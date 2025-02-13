@@ -1,0 +1,646 @@
+﻿﻿@if (Request.Cookies["KullaniciBilgileri"] == null || Request.Cookies["KullaniciBilgileri"]["KullaniciID"] == null)
+{
+    Response.Redirect("/Anasayfa/Login");
+}
+
+@{
+    string kullaniciAdi = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["KullaniciAdi"]);
+    string adSoyad = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["AdSoyad"]);
+    string binaAdi = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdi"]);
+    string binaAdres = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdres"]);
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>@ViewBag.Title - Apartman Aidat Yazılımı</title>
+    <meta name="description" content="Apartman aidat, ek gelir, gider ve borç takibi yaparak apartman muhasebesini tutun. Denetçi raporları ve kat mülkiyeti kanununa uygun çalışmalarla apartman yönetimini kolaylaştırın. Ücretsiz demo fırsatını kaçırmayın!">
+    <meta name="keywords" content="apartman, aidat takibi, ek gelir, gider, borç takibi, apartman muhasebesi, denetçi raporları, kat mülkiyeti kanunu, ücretsiz demo">
+
+    <!-- Favicons -->
+    <link href="/Content/Admin/assets/img/favicon.png" rel="icon">
+    <link href="/Content/Admin/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="/Content/Admin/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/vendor/simple-datatables/style.css" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link href="/Content/Admin/assets/css/style.css" rel="stylesheet">
+    <style>
+        .duyuru-container {
+            width: 100%;
+            overflow: hidden; /* Taşmayı gizle */
+            padding: 10px;
+            background-color: red; /* Arka planı kırmızı yap */
+            position: relative;
+        }
+
+        .duyuru-item {
+            display: inline-block;
+            margin-right: 50px; /* Duyurular arasında boşluk */
+            white-space: nowrap;
+            color: white; /* Yazıyı beyaz yap */
+        }
+    </style>
+
+    <!-- Select2 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+
+  
+
+
+</head>
+
+<body>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function preventDotAndComma(event) {
+            let key = event.key; // event.key kullanarak tuş değerini alıyoruz
+            let input = event.target;
+            let currentValue = input.value;
+
+            // Harfleri ve diğer geçersiz karakterleri engelle (Türkçe karakterler dahil)
+            if (/^[a-zA-ZğüşıöçĞÜŞİÖÇ]$/.test(key)) {
+                event.preventDefault();
+                return;
+            }
+
+            // NumLock rakamları ve normal rakamlar
+            if (/^[0-9]$/.test(key)) {
+                return; // Rakam girişine izin ver
+            }
+
+            // Nokta ve virgül kontrolü
+            if ((key === '.' || key === ',')) {
+                if (currentValue.includes(',')) {
+                    event.preventDefault(); // Zaten virgül varsa tekrar virgüle izin verme
+                    return;
+                }
+                event.preventDefault(); // Noktayı virgüle çevirme işlemi
+                let cursorPosition = input.selectionStart;
+                let newValue = currentValue.slice(0, cursorPosition) + ',' + currentValue.slice(cursorPosition);
+                input.value = newValue;
+                input.setSelectionRange(cursorPosition + 1, cursorPosition + 1);
+                return;
+            }
+
+            // Silme (Backspace) ve sil (Delete) tuşlarına izin ver
+            if (key === 'Backspace' || key === 'Delete') {
+                return; // Bu tuşlar serbest bırakılır
+            }
+
+            // Diğer geçersiz tuşlar
+            event.preventDefault();
+        }
+    </script>
+
+    <!-- ======= Header ======= -->
+    <header id="header" class="header fixed-top d-flex align-items-center">
+
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="/AnaSayfa" class="logo d-flex align-items-center">
+                <img src="~/Content/Admin/assets/img/binamakbuzlogo2.png" alt="">
+                <span class="d-none d-lg-block">Aidat Yazılımı</span>
+            </a>
+            <i class="bi bi-list toggle-sidebar-btn"></i>
+        </div><!-- End Logo -->
+
+
+
+        <nav class="header-nav ms-auto">
+            <ul class="d-flex align-items-center">
+
+
+
+
+                <li class="nav-item dropdown pe-3">
+
+                    <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+                        <img src="/Content/Admin/assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
+                        <span class="d-none d-md-block dropdown-toggle ps-2">@kullaniciAdi</span>
+                    </a><!-- End Profile Iamge Icon -->
+
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+                        <li class="dropdown-header">
+                            <h6>@adSoyad</h6>
+                            <span>@binaAdi</span>
+                        </li>
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="/AnaSayfa/Password">
+                                <i class="bi bi-gear"></i>
+                                <span>Şifre Değiştir</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="/AnaSayfa/Logout">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Çıkış Yap</span>
+                            </a>
+                        </li>
+
+                    </ul><!-- End Profile Dropdown Items -->
+                </li><!-- End Profile Nav -->
+
+            </ul>
+        </nav><!-- End Icons Navigation -->
+
+    </header><!-- End Header -->
+    <!-- ======= Sidebar ======= -->
+    <aside id="sidebar" class="sidebar">
+
+        <ul class="sidebar-nav" id="sidebar-nav">
+
+            @if (Session["Aktif"].ToString() == "Anasayfa")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa">
+                        <i class="bi bi-house"></i>
+                        <span>Ana Sayfa</span>
+                    </a>
+                </li>
+            }
+
+            @if (Session["Aktif"].ToString() != "Anasayfa")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa">
+                        <i class="bi bi-house"></i>
+                        <span>Ana Sayfa</span>
+                    </a>
+                </li>
+
+            }
+            @if (Session["Aktif"].ToString() == "AcilisBakiye")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/AcilisBakiye">
+                        <i class="bi bi-coin"></i>
+                        <span>Açılış Bakiyesi</span>
+                    </a>
+                </li>
+
+            }
+            @if (Session["Aktif"].ToString() != "AcilisBakiye")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/AcilisBakiye">
+                        <i class="bi bi-coin"></i>
+                        <span>Açılış Bakiyesi</span>
+                    </a>
+                </li>
+
+            }
+            @if (Session["Aktif"].ToString() == "Sakinler")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/Sakinler">
+                        <i class="bi bi-person-vcard-fill"></i>
+                        <span>Daire Sakinleri</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "Sakinler")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/Sakinler">
+                        <i class="bi bi-person-vcard-fill"></i>
+                        <span>Daire Sakinleri</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() == "DaireBorclandir")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/DaireBorclandir">
+                        <i class="bi bi-calendar-plus-fill"></i>
+                        <span>Daire Borçlandır</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "DaireBorclandir")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/DaireBorclandir">
+                        <i class="bi bi-calendar-plus-fill"></i>
+                        <span>Daire Borçlandır</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() == "DonemEkle")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/DonemEkle">
+                        <i class="bi bi-window-plus"></i>
+                        <span>Dönem Ekle</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "DonemEkle")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/DonemEkle">
+                        <i class="bi bi-window-plus"></i>
+                        <span>Dönem Ekle</span>
+                    </a>
+                </li>
+            }
+
+
+
+            <hr />
+            <li class="nav-heading">İşlemler</li>
+
+            @if (Session["Aktif"].ToString() == "Makbuz")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/Makbuz">
+                        <i class="bi bi-card-list"></i>
+                        <span>Makbuz Oluştur</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "Makbuz")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/Makbuz">
+                        <i class="bi bi-card-list"></i>
+                        <span>Makbuz Oluştur</span>
+                    </a>
+                </li>
+            }
+
+
+
+            @if (Session["Aktif"].ToString() == "Giderler")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/Giderler">
+                        <i class="bi bi-file-earmark-x"></i>
+                        <span>Giderler</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "Giderler")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/Giderler">
+                        <i class="bi bi-file-earmark-x"></i>
+                        <span>Giderler</span>
+                    </a>
+                </li>
+            }
+
+
+            @if (Session["Aktif"].ToString() == "Tahsilat")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/Tahsilat">
+                        <i class="bi bi-file-earmark-plus-fill"></i>
+                        <span>Tahsilatlar</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "Tahsilat")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/Tahsilat">
+                        <i class="bi bi-file-earmark-plus-fill"></i>
+                        <span>Tahsilatlar</span>
+                    </a>
+                </li>
+            }
+
+            <hr />
+            <li class="nav-heading">DİĞER</li>
+
+            @if (Session["Aktif"].ToString() == "EklenenAidatlar")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/EklenenAidatlar">
+                        <i class="bi bi-envelope-plus-fill"></i>
+                        <span>Eklenen Aidatlar</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "EklenenAidatlar")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/EklenenAidatlar">
+                        <i class="bi bi-envelope-plus-fill"></i>
+                        <span>Eklenen Aidatlar</span>
+                    </a>
+                </li>
+            }
+
+            @if (Session["Aktif"].ToString() == "EklenenEkler")
+            {
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/EklenenEkler">
+                        <i class="bi bi-envelope-plus"></i>
+                        <span>Eklenen Ekler</span>
+                    </a>
+                </li>
+
+            }
+            @if (Session["Aktif"].ToString() != "EklenenEkler")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/EklenenEkler">
+                        <i class="bi bi-envelope-plus"></i>
+                        <span>Eklenen Ekler</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() == "Ara")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/Makbuz/Ara">
+                        <i class="bi bi-search"></i>
+                        <span>Makbuz Ara</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "Ara")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/Makbuz/Ara">
+                        <i class="bi bi-search"></i>
+                        <span>Makbuz Ara</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() == "DaireSorgu")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/DaireSorgu">
+                        <i class="bi bi-person-workspace"></i>
+                        <span>Daire Borç Sorgula</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "DaireSorgu")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/DaireSorgu">
+                        <i class="bi bi-person-workspace"></i>
+                        <span>Daire Borç Sorgula</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() == "Notlar")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/Notlar">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Notlarım</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "Notlar")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/Notlar">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Notlarım</span>
+                    </a>
+                </li>
+            }
+
+
+            <hr />
+            <li class="nav-heading">Raporlar</li>
+            @if (Session["Aktif"].ToString() == "BorcluDaireler")
+            {
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/AnaSayfa/BorcluDaireler">
+                        <i class="bi bi-person-video2"></i>
+                        <span>Borçlu Daireler</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "BorcluDaireler")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/AnaSayfa/BorcluDaireler">
+                        <i class="bi bi-person-video2"></i>
+                        <span>Borçlu Daireler</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() == "GelirGider")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/Raporlar/GelirGider">
+                        <i class="bi bi-clipboard-data"></i>
+                        <span>Gelir Gider Raporu</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "GelirGider")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/Raporlar/GelirGider">
+                        <i class="bi bi-clipboard-data"></i>
+                        <span>Gelir Gider Raporu</span>
+                    </a>
+                </li>
+            }
+
+            @if (Session["Aktif"].ToString() == "DetayliGelirGider")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/Raporlar/DetayliGelirGider?yil=@DateTime.Now.Year&ay=@DateTime.Now.Month">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>Detaylı Gelir Gider Tablosu</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "DetayliGelirGider")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/Raporlar/DetayliGelirGider?yil=@DateTime.Now.Year&ay=@DateTime.Now.Month">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>Detaylı Gelir Gider Tablosu</span>
+                    </a>
+                </li>
+            }
+
+            @if (Session["Aktif"].ToString() == "DenetciRaporu")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" href="/Raporlar/DenetciRaporu">
+                        <i class="bi bi-file-post"></i>
+                        <span>Denetçi Raporu</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "DenetciRaporu")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/Raporlar/DenetciRaporu">
+                        <i class="bi bi-file-post"></i>
+                        <span>Denetçi Raporu</span>
+                    </a>
+                </li>
+            }
+
+            @if (Session["Aktif"].ToString() == "TureGoreGiderler")
+            {
+                <li class="nav-item">
+                    <a class="nav-link " href="/Raporlar/TureGoreGiderler">
+                        <i class="bi bi-file-minus-fill"></i>
+                        <span>Türe Göre Giderler</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "TureGoreGiderler")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/Raporlar/TureGoreGiderler">
+                        <i class="bi bi-file-minus-fill"></i>
+                        <span>Türe Göre Giderler</span>
+                    </a>
+                </li>
+            }
+
+
+            @if (Session["Aktif"].ToString() == "DevirBakiyeleri")
+            {
+                <li class="nav-item">
+                    <a class="nav-link " href="/Raporlar/DevirBakiyeleri">
+                        <i class="bi bi-file-minus-fill"></i>
+                        <span>Türe Göre Giderler</span>
+                    </a>
+                </li>
+            }
+            @if (Session["Aktif"].ToString() != "DevirBakiyeleri")
+            {
+                <li class="nav-item">
+                    <a class="nav-link collapsed" href="/Raporlar/DevirBakiyeleri">
+                        <i class="bi bi-file-minus-fill"></i>
+                        <span>Devir Bakiyeleri</span>
+                    </a>
+                </li>
+            }
+
+
+
+
+
+        </ul>
+
+    </aside><!-- End Sidebar-->
+    <main id="main" class="main">
+
+        @if (ViewBag.Duyurular != null && ViewBag.Duyurular.Count > 0)
+        {
+            <div class="duyuru-container">
+                <marquee behavior="scroll" direction="left" scrollamount="5" scrolldelay="10" loop="infinite">
+                    @if (ViewBag.Duyurular != null)
+                    {
+                        foreach (var item in ViewBag.Duyurular)
+                        {
+                            <span class="duyuru-item">
+                                <i class="bi bi-megaphone-fill"></i> &nbsp; <b>@item.Baslik</b> | @item.Aciklama &nbsp; <i class="bi bi-megaphone-fill"></i>
+                            </span>
+                        }
+                    }
+                </marquee>
+            </div>
+            <br />
+        }
+
+        <p><b>Bina Adı:</b> @binaAdi | <b>Lisans Tarihi:</b> @ViewBag.LisansTarih | <a href="https://www.youtube.com/watch?v=Z5XfSiqd6bA&t=5s" class="btn btn-warning" target="_blank"><i class="bi bi-camera-reels-fill"></i> Kullanım Videosu</a> </p>
+
+
+
+        <p style="font-size:20px" class="text-center">
+            Lisans süresinin dolmasına <b> @ViewBag.KalanGun</b> gün kaldı
+        </p>
+        <div class="progress" style="width: 100%; max-width: 100%; height: 40px;">
+            @if (ViewBag.KalanGun > 25)
+            {
+
+                <div class="progress-bar bg-success" role="progressbar" style="width: @ViewBag.Percent%; font-size: 20px; line-height: 40px;" aria-valuenow="@ViewBag.KalanGun" aria-valuemin="0" aria-valuemax="365">
+
+                </div>
+            }
+            else
+            {
+
+                <div class="progress-bar bg-danger" role="progressbar" style="width: @ViewBag.Percent%; font-size: 20px; line-height: 40px;" aria-valuenow="@ViewBag.KalanGun" aria-valuemin="0" aria-valuemax="365">
+
+                </div>
+            }
+        </div>
+        <hr />
+
+        @RenderBody()
+    </main>
+
+    <!-- ======= Footer ======= -->
+    <footer id="footer" class="footer">
+        <div class="copyright">
+            &copy; Copyright <strong><span>Bugrasoft</span></strong>. All Rights Reserved
+        </div>
+
+    </footer><!-- End Footer -->
+
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+    <script src="/Content/Admin/assets/vendor/apexcharts/apexcharts.min.js"></script>
+    <script src="/Content/Admin/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/Content/Admin/assets/vendor/chart.js/chart.umd.js"></script>
+    <script src="/Content/Admin/assets/vendor/echarts/echarts.min.js"></script>
+    <script src="/Content/Admin/assets/vendor/quill/quill.min.js"></script>
+    <script src="/Content/Admin/assets/vendor/simple-datatables/simple-datatables.js"></script>
+    <script src="/Content/Admin/assets/vendor/tinymce/tinymce.min.js"></script>
+    <script src="/Content/Admin/assets/vendor/php-email-form/validate.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="/Content/Admin/assets/js/main.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Tüm select elemanlarına select2 uygula
+            $('.filter').select2({
+                width: '100%',  // Makes the Select2 dropdown take the full width
+                placeholder: 'Bina Seçiniz',  // Adds a placeholder text
+                allowClear: true,  // Adds a clear button
+                heigth: '50px'
+            });
+        });
+    </script>
+
+</body>
+
+</html>

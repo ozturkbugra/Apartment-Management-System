@@ -1,0 +1,87 @@
+﻿
+@{
+    ViewBag.Title = "Dönem Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{ 
+    var item = DateTime.Now.ToString("MMMM");
+}
+<h2>Dönem Ekle</h2>
+<br />
+<form id="donemForm" action="/AnaSayfa/DonemEkle" method="post">
+    <div class="row">
+        <div class="col-6">
+            <label>YIL</label>
+            <input type="text" maxlength="4" name="AidatYil" class="form-control" value="@DateTime.Now.ToString("yyyy")" />
+        </div>
+        <div class="col-6">
+            <label>AY</label>
+            <select class="form-select" name="AidatAy">
+                <option value="Ocak" @(item == "Ocak" ? "selected" : "")>Ocak</option>
+                <option value="Şubat" @(item == "Şubat" ? "selected" : "")>Şubat</option>
+                <option value="Mart" @(item == "Mart" ? "selected" : "")>Mart</option>
+                <option value="Nisan" @(item == "Nisan" ? "selected" : "")>Nisan</option>
+                <option value="Mayıs" @(item == "Mayıs" ? "selected" : "")>Mayıs</option>
+                <option value="Haziran" @(item == "Haziran" ? "selected" : "")>Haziran</option>
+                <option value="Temmuz" @(item == "Temmuz" ? "selected" : "")>Temmuz</option>
+                <option value="Ağustos" @(item == "Ağustos" ? "selected" : "")>Ağustos</option>
+                <option value="Eylül" @(item == "Eylül" ? "selected" : "")>Eylül</option>
+                <option value="Ekim" @(item == "Ekim" ? "selected" : "")>Ekim</option>
+                <option value="Kasım" @(item == "Kasım" ? "selected" : "")>Kasım</option>
+                <option value="Aralık" @(item == "Aralık" ? "selected" : "")>Aralık</option>
+            </select>
+        </div>
+    </div>
+
+    <br />
+    <div class="row">
+        <div class="col-6">
+            <label>Aidat Tutar</label>
+            <input type="text" name="AidatTutar" class="form-control" onkeydown="preventDotAndComma(event)" />
+        </div>
+        <div class="col-6">
+            <label>Ek Tutar</label>
+            <input type="text" name="EkTutar" class="form-control" onkeydown="preventDotAndComma(event)" />
+        </div>
+    </div>
+    <br />
+
+    <button type="button" class="btn btn-success" onclick="submitFormWithConfirmation()">Dönem Ekle</button>
+</form>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+
+    function submitFormWithConfirmation() {
+        if (confirm("Bu işlemi yapmak istediğinizden emin misiniz?")) {
+            document.getElementById("donemForm").submit();
+        }
+    }
+
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+</script>

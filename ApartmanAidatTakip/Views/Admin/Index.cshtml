@@ -1,0 +1,89 @@
+﻿
+@{
+    ViewBag.Title = "Ana Sayfa";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Ana Sayfa</h1>
+</div><!-- End Page Title -->
+<br />
+<div class="row">
+    <div class="col-lg-6 col-md-6 col-sm-12"><div class="card-body">
+    <h5 class="card-title">Lisan Süresi 7 Günden Az Kalanların Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Bina Adı</th>
+                    <th scope="col">Bina Kullanıcı Adı</th>
+                  
+                    <th scope="col">Daire Sayısı</th>
+                    <th scope="col">Sözleşme Başlangıç Tarihi</th>
+                    <th scope="col">Sözleşme Bitiş Tarihi</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Son7gun)
+                {
+
+                    <tr>
+
+                        <td>@item.BinaAdi</td>
+                        <td>@item.BinaKullaniciAdi</td>
+                     
+                        <td>@item.DaireSayisi</td>
+                        <td>@item.SozlesmeBaslamaTarihi.ToString("dd/MM/yyyy")</td>
+                        <td>@item.SozlesmeBitisTarihi.ToString("dd/MM/yyyy")</td>
+                        <td><a href="/Admin/BinaDuzenle/@item.BinaID" class="badge bg-warning">Düzenle</a> | <a href="/Admin/BinaSil/@item.BinaID" class="badge bg-danger">Sil</a> </td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+    <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="card-body">
+            <h5 class="card-title">Lisans Süresi Bitenlerin Listesi</h5>
+            <div class="table-responsive">
+                <table class="table table-borderless datatable">
+                    <thead>
+                        <tr>
+
+                            <th scope="col">Bina Adı</th>
+                            <th scope="col">Bina Kullanıcı Adı</th>
+
+                            <th scope="col">Daire Sayısı</th>
+                            <th scope="col">Sözleşme Başlangıç Tarihi</th>
+                            <th scope="col">Sözleşme Bitiş Tarihi</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.Biten)
+                        {
+
+                            <tr>
+
+                                <td>@item.BinaAdi</td>
+                                <td>@item.BinaKullaniciAdi</td>
+
+                                <td>@item.DaireSayisi</td>
+                                <td>@item.SozlesmeBaslamaTarihi.ToString("dd/MM/yyyy")</td>
+                                <td>@item.SozlesmeBitisTarihi.ToString("dd/MM/yyyy")</td>
+                                <td><a href="/Admin/BinaDuzenle/@item.BinaID" class="badge bg-warning">Düzenle</a> | <a href="/Admin/BinaSil/@item.BinaID" class="badge bg-danger">Sil</a> </td>
+                            </tr>
+
+                        }
+
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+</div>

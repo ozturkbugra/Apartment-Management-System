@@ -1,0 +1,46 @@
+﻿
+@{
+    ViewBag.Title = "Devir Bakiyeleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Devir Bakiyeleri</h1>
+</div><!-- End Page Title -->
+
+<div class="card-body">
+    <h5 class="card-title">Gider Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless table-success datatable">
+            <thead>
+                <tr>
+                    
+                    <th scope="col">Devir Edilen Dönem</th>
+                    <th scope="col">Devir Eden Aidat Tutarı</th>
+                    <th scope="col">Devir Eden Ek Tutarı</th>
+                    <th scope="col">Devir Eden Toplam Tutar</th>
+                    
+               
+
+                 
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Bakiyeler)
+                {
+
+                    <tr>
+                        <td>@item.KasaAy - @item.KasaYil dönemine devir</td>
+                        <td>@item.KasaAidat.ToString("N2") @tl</td>
+                        <td>@item.KasaEk.ToString("N2") @tl</td>
+                        <td>@item.KasaToplam.ToString("N2") @tl</td>
+                       
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>

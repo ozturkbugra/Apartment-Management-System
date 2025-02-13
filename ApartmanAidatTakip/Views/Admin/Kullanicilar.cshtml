@@ -1,0 +1,151 @@
+﻿
+@{
+    ViewBag.Title = "Kullanicilar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Kullanıcılar</h1>
+</div><!-- End Page Title -->
+<br />
+<select class="form-select" name="BinaID" id="BinaID" onchange="filterUsersByFacility()">
+    <option value="">Tüm Binalar</option>
+    @foreach (var item in ViewBag.Binalar)
+    {
+        <option value="@item.BinaID">@item.BinaKullaniciAdi</option>
+    }
+</select>
+<br />
+<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+    Kullanıcı Ekle
+</button>
+
+
+
+<div class="modal fade" id="verticalycentered" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Kullanıcı Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="/Admin/KullaniciEkle" method="post">
+
+                <div class="modal-body">
+                    <input type="text" name="KullaniciAdi" placeholder="Kullanıcı Adı" id="KullaniciAdi" class="form-control" />
+
+                    <input type="text" name="AdSoyad" placeholder="Ad Soyad" id="AdSoyad" class="form-control mt-2" />
+
+                    <input type="text" name="Telefon" placeholder="Telefon" id="Telefon" class="form-control mt-2" maxlength="10" />
+                    <label class="mt-2"> Bina Seçiniz</label>
+                    <select class="form-select mt-2" name="BinaID">
+                        @foreach (var item in ViewBag.Binalar)
+                        {
+                            <option value="@item.BinaID">@item.BinaKullaniciAdi</option>
+                        }
+                    </select>
+
+                    <select class="form-select mt-2" name="Yetki">
+                        <option value="0">Kullanıcı</option>
+                        <option value="1">Admin</option>
+                    </select>
+
+                 
+                </div>
+                <div class="modal-footer">
+
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div><!-- End Vertically centered Modal-->
+<br />
+<div class="card-body">
+    <h5 class="card-title">Kullanıcı Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Kullanıcı Adı</th>
+                    <th scope="col">Ad Soyad</th>
+                    <th scope="col">Bina Adı</th>
+                    <th scope="col">Telefon</th>
+
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Kullanicilar)
+                {
+
+                    <tr>
+
+                        <td>@item.KullaniciAdi</td>
+                        <td>@item.AdSoyad</td>
+                        <td>@item.BinaAdi</td>
+                        <td>@item.Telefon</td>
+                        <td><a href="/Admin/KullaniciDuzenle/@item.KullaniciID" class="badge bg-warning">Düzenle</a> | <a href="/Admin/KullaniciSil/@item.KullaniciID" class="badge bg-danger">Sil</a> </td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+        </div>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+    </script>
+    <script>
+        function filterUsersByFacility() {
+            var binaID = document.getElementById("BinaID").value;
+            var url = new URL(window.location.href);
+            if (binaID) {
+                url.searchParams.set('BinaID', binaID);
+            } else {
+                url.searchParams.delete('BinaID');
+            }
+            window.location.href = url.toString();
+        }
+
+        // Sayfa yüklendiğinde seçili değeri koru
+        document.addEventListener("DOMContentLoaded", function () {
+            var urlParams = new URLSearchParams(window.location.search);
+            var binaID = urlParams.get('BinaID');
+            if (binaID) {
+                document.getElementById("BinaID").value = binaID;
+            }
+        });
+    </script>
+
+

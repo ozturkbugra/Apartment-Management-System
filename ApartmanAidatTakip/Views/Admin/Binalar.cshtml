@@ -1,0 +1,116 @@
+﻿
+@{
+    ViewBag.Title = "Binalar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Binalar</h1>
+</div><!-- End Page Title -->
+
+<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+    Bina Ekle
+</button>
+
+<div class="modal fade" id="verticalycentered" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bina Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="/Admin/BinaEkle" method="post">
+
+                <div class="modal-body">
+                    <input type="text" name="BinaAdi" placeholder="Bina Adı" id="BinaAdi" class="form-control" />
+
+                    <input type="text" name="BinaKullaniciAdi" placeholder="Bina Kullanıcı Adı (Örnek Uzay 2 Apartmanı Yenimahalle / Ankara)" id="BinaKullaniciAdi" class="form-control mt-2" />
+
+                    <input type="text" name="Adres" placeholder="Adres" id="Adres" class="form-control mt-2" />
+
+                    <input type="text" name="VergiNo" placeholder="Vergi No" id="VergiNo" class="form-control mt-2" maxlength="10" />
+
+                    <input type="number" name="DaireSayisi" placeholder="Daire Sayısı" id="DaireSayisi" class="form-control mt-2" />
+
+                    <label class="mt-2">Sözleşme Bitiş Tarihi</label>
+                    <input type="date" name="SozlesmeBitisTarihi" id="SozlesmeBitisTarihi" class="form-control mt-2" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+
+                </div>
+                <div class="modal-footer">
+
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div><!-- End Vertically centered Modal-->
+<br />
+<div class="card-body">
+    <h5 class="card-title">Bina Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Bina Adı</th>
+                    <th scope="col">Bina Kullanıcı Adı</th>
+                    <th scope="col">Adres</th>
+                    <th scope="col">Vergi No</th>
+                    <th scope="col">Daire Sayısı</th>
+                    <th scope="col">Sözleşme Başlangıç Tarihi</th>
+                    <th scope="col">Sözleşme Bitiş Tarihi</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Binalar)
+                {
+
+                    <tr>
+
+                        <td>@item.BinaAdi</td>
+                        <td>@item.BinaKullaniciAdi</td>
+                        <td>@item.Adres</td>
+                        <td>@item.VergiNo</td>
+                        <td>@item.DaireSayisi</td>
+                        <td>@item.SozlesmeBaslamaTarihi.ToString("dd/MM/yyyy")</td>
+                        <td>@item.SozlesmeBitisTarihi.ToString("dd/MM/yyyy")</td>
+                        <td><a href="/Admin/BinaDuzenle/@item.BinaID" class="badge bg-warning">Düzenle</a> | <a href="/Admin/BinaSil/@item.BinaID" class="badge bg-danger">Sil</a> </td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+    </script>

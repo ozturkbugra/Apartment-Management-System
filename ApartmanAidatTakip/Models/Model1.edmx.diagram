@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="356c4cd508334b7795604a0f41990ac4" Name="Diagram1">
+        <EntityTypeShape EntityType="AptVTModel.Aidat" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.Daireler" Width="1.5" PointX="2.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.Ek" Width="1.5" PointX="4.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.Gider" Width="1.5" PointX="4.75" PointY="4.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.GiderTuru" Width="1.5" PointX="6.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.Hareketler" Width="1.5" PointX="6.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.Kasa" Width="1.5" PointX="6.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.Makbuz" Width="1.5" PointX="8.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.Tahsilat" Width="1.5" PointX="8.75" PointY="4.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.AidatView" Width="1.5" PointX="8.75" PointY="7.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.EkView" Width="1.5" PointX="10.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.GiderView" Width="1.5" PointX="10.75" PointY="4.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.HareketView" Width="1.5" PointX="4.75" PointY="10.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.KasaView" Width="1.5" PointX="10.75" PointY="8.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.MakbuzView" Width="1.5" PointX="0.75" PointY="12.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.TahsilatView" Width="1.5" PointX="12.75" PointY="5.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AptVTModel.Binalar" Width="1.5" PointX="7.375" PointY="11.75" />
+        <EntityTypeShape EntityType="AptVTModel.Kullanicilar" Width="1.5" PointX="9.375" PointY="12.75" />
+        <EntityTypeShape EntityType="AptVTModel.KullanicilarView" Width="1.5" PointX="11.375" PointY="12.75" />
+        <EntityTypeShape EntityType="AptVTModel.MakbuzSatir" Width="1.5" PointX="0.75" PointY="7.75" />
+        <EntityTypeShape EntityType="AptVTModel.MakbuzSatirView" Width="1.5" PointX="13.375" PointY="0.75" />
+        <EntityTypeShape EntityType="AptVTModel.AcilisBakiye" Width="1.5" PointX="13.375" PointY="9.75" />
+        <EntityTypeShape EntityType="AptVTModel.Duyurular" Width="1.5" PointX="13.375" PointY="12.75" />
+        <EntityTypeShape EntityType="AptVTModel.Notlar" Width="1.5" PointX="3.375" PointY="14.75" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

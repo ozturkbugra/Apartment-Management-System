@@ -1,0 +1,151 @@
+﻿
+@{
+    ViewBag.Title = "Makbuz Ara";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="pagetitle">
+    <h1>Makbuz Ara</h1>
+</div><!-- End Page Title -->
+
+<form action="/Makbuz/Ara" method="get">
+    <div class="row">
+        <div class="col-lg-3 col-md-3 col-sm-6">
+
+            <input type="number" class="form-control" name="DaireNo" placeholder="Daire No" value="@ViewBag.DaireNo" />
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-6">
+
+            <input type="number" class="form-control" name="MakbuzNo" placeholder="Makbuz No" value="@ViewBag.MakbuzNo" />
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-6">
+
+            <input type="number" class="form-control" name="GiderNo" placeholder="Gider No" value="@ViewBag.GiderNo" />
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-6">
+
+            <input type="number" class="form-control" name="TahsilatNo" placeholder="Tahsilat No" value="@ViewBag.TahsilatNo" />
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12"><button type="submit" class="btn btn-success">Ara</button></div>
+    </div>
+</form>
+
+@if (ViewBag.Makbuzlar != null)
+{
+    <div class="card-body">
+        <h5 class="card-title">Makbuzlar</h5>
+        <div class="table-responsive">
+            <table class="table table-borderless datatable">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th scope="col">Makbuz No</th>
+                        <th scope="col">Tarih</th>
+                        <th scope="col">Daire No</th>
+                        <th scope="col">Ad Soyad</th>
+                        <th scope="col">Tutar</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Makbuzlar)
+                    {
+
+                        <tr>
+                            <td><a href="/Makbuz/GeneratePDF?MakbuzID=@item.MakbuzID" class="badge bg-success" target="_blank"><i class="bi bi-printer"></i> Yazdır</a></td>
+                            <td>@item.MakbuzNo</td>
+                            <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
+                            <td>@item.DaireNo</td>
+                            <td>@item.AdSoyad</td>
+                            <td>@item.MabuzTutar</td>
+                        </tr>
+
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+}
+
+@if (ViewBag.GiderMakbuz != null)
+{
+    <br />
+    <div class="card-body">
+        <h5 class="card-title">Gider Makbuzları</h5>
+        <div class="table-responsive">
+            <table class="table table-borderless datatable">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th scope="col">Gider No</th>
+                        <th scope="col">Tarih</th>
+                        <th scope="col">Gider Türü</th>
+                        <th scope="col">Açıklama</th>
+                        <th scope="col">Tutar</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.GiderMakbuz)
+                    {
+
+                        <tr>
+                            <td><a href="/AnaSayfa/GiderMakbuz?GiderID=@item.GiderID" class="badge bg-success" target="_blank"><i class="bi bi-printer"></i> Yazdır</a></td>
+                            <td>@item.GiderNo</td>
+                            <td>@item.GiderTarih.ToString("dd/MM/yyyy")</td>
+                            <td>@item.GiderTuruAdi</td>
+                            <td>@item.GiderAciklama</td>
+                            <td>@item.GiderTutar</td>
+                        </tr>
+
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (ViewBag.TahsilatMakbuz != null)
+{
+    <br />
+    <div class="card-body">
+        <h5 class="card-title">Tahsilat Makbuzları</h5>
+        <div class="table-responsive">
+            <table class="table table-borderless datatable">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th scope="col">Tahsilat No</th>
+                        <th scope="col">Tarih</th>
+                      
+                        <th scope="col">Açıklama</th>
+                        <th scope="col">Tutar</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.TahsilatMakbuz)
+                    {
+
+                        <tr>
+                            <td><a href="/AnaSayfa/TahsilatMakbuz?TahsilatID=@item.TahsilatID" class="badge bg-success" target="_blank"><i class="bi bi-printer"></i> Yazdır</a></td>
+                            <td>@item.TahsilatNo</td>
+                            <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
+                        
+                            <td>@item.TahsilatAciklama</td>
+                            <td>@item.TahsilatTutar</td>
+                        </tr>
+
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

@@ -1,0 +1,125 @@
+﻿@{
+    ViewBag.Title = "Gelir Gider Raporu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Gelir Gider Raporu</h1>
+</div><!-- End Page Title -->
+
+<form action="/Raporlar/GelirGider" method="get">
+    <div class="row">
+        <div class="col-lg-4 col-md-4 col-sm-6"><input type="date" name="ilk" class="form-control" value="@ViewBag.tarihdeger1" /></div>
+        <div class="col-lg-4 col-md-4 col-sm-6"><input type="date" name="son" class="form-control" value="@ViewBag.tarihdeger2" /></div>
+        <div class="col-lg-4 col-md-4 col-sm-6"><button type="submit" class="btn btn-info">Listele</button></div>
+    </div>
+</form>
+
+@if (ViewBag.MakbuzGelir != null)
+{
+    <div class="row mt-3">
+        <div class="col-lg-6 col-md-6 col-sm-12">
+
+            <form action="/Raporlar/GelirPDF" method="get" target="_blank">
+                <input type="hidden" name="ilk" value="@ViewBag.tarihdeger1" />
+                <input type="hidden" name="son" value="@ViewBag.tarihdeger2" />
+                <button type="submit" class="btn btn-success"><i class="bi bi-printer"></i> Gelir Raporu Yazdır</button>
+            </form>
+
+            <p class="text-center"><b>GELİRLER</b></p>
+
+
+
+            <!-- Gelir Tablosu (Makbuz Geliri ve Tahsilat Geliri) -->
+            <div class="table-responsive">
+                <p class="text-center">Aidat Makbuzları</p>
+                <table class="table table-striped table-borderless datatable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Makbuz No</th>
+                            <th scope="col">Tarih</th>
+                            <th scope="col">Daire No</th>
+                            <th scope="col">Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.MakbuzGelir)
+                        {
+                            <tr>
+                                <td>@item.MakbuzNo</td>
+                                <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
+                                <td>@item.DaireNo</td>
+                                <td>@item.MabuzTutar.ToString("N2") @tl</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-responsive">
+                <p class="text-center">Tahsilat Makbuzları</p>
+                <table class="table table-striped table-borderless datatable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Makbuz No</th>
+                            <th scope="col">Tarih</th>
+                            <th scope="col">Açıklama</th>
+                            <th scope="col">Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.TahsilatGelir)
+                        {
+                            <tr>
+                                <td>@item.TahsilatNo</td>
+                                <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
+                                <td>@item.TahsilatAciklama</td>
+                                <td>@item.TahsilatTutar.ToString("N2") @tl</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-6 col-sm-12">
+            <!-- Gider PDF için buton -->
+            <form action="/Raporlar/GiderPDF" method="get" target="_blank">
+                <input type="hidden" name="ilk" value="@ViewBag.tarihdeger1" />
+                <input type="hidden" name="son" value="@ViewBag.tarihdeger2" />
+                <button type="submit" class="btn btn-danger"><i class="bi bi-printer"></i> Gider Raporu Yazdır</button>
+            </form>
+
+            <p class="text-center"><b>GİDERLER</b></p>
+
+
+
+            <!-- Gider Tablosu -->
+            <div class="table-responsive">
+                <table class="table table-striped table-borderless datatable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Makbuz No</th>
+                            <th scope="col">Gider Türü</th>
+                            <th scope="col">Tarih</th>
+                            <th scope="col">Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.Gider)
+                        {
+                            <tr>
+                                <td>@item.GiderNo</td>
+                                <td>@item.GiderTuruAdi</td>
+                                <td>@item.GiderTarih.ToString("dd/MM/yyyy")</td>
+                                <td>@item.GiderTutar.ToString("N2") @tl</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+

@@ -1,0 +1,168 @@
+﻿
+@{
+    ViewBag.Title = "Makbuz Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+<a href="/Makbuz" class="btn btn-primary">Geri Dön</a>
+<br />
+<div class="pagetitle">
+    <h1>Makbuz Ekle</h1>
+</div>
+
+<p><b>Daire No:</b> @ViewBag.d.DaireNo</p>
+<p><b>Ad Soyad:</b> @ViewBag.d.AdSoyad</p>
+<p><b>Durum:</b> @ViewBag.d.DaireDurum</p>
+<p><b>Borç:</b> @ViewBag.d.Borc.ToString("N2") @tl</p>
+
+<div class="row">
+    <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="card-body">
+            <h5 class="card-title">Ödenmemiş Aidatlar</h5>
+            <div class="table-responsive">
+                <table class="table table-borderless datatable">
+                    <thead>
+                        <tr>
+
+                            <th scope="col">Ay</th>
+                            <th scope="col">Yıl</th>
+                            <th scope="col">Tutar</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.Aidatlar)
+                        {
+
+                            <tr>
+
+                                <td>@item.AidatAy</td>
+                                <td>@item.AidatYil</td>
+                                <td>@item.AidatTutar.ToString("N2") @tl</td>
+                                <td><a href="/Makbuz/AidatSatirEkle/@item.AidatID" class="badge bg-success">Ekle</a></td>
+                            </tr>
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="card-body">
+            <h5 class="card-title">Ödenmemiş Ekler</h5>
+            <div class="table-responsive">
+                <table class="table table-borderless datatable">
+                    <thead>
+                        <tr>
+
+                            <th scope="col">Ay</th>
+                            <th scope="col">Yıl</th>
+                            <th scope="col">Tutar</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.Ekler)
+                        {
+
+                            <tr>
+
+                                <td>@item.EkAy</td>
+                                <td>@item.EkYil</td>
+                                <td>@item.EkTutar.ToString("N2") @tl</td>
+                                <td><a href="/Makbuz/EkSatirEkle/@item.EkID" class="badge bg-success">Ekle</a></td>
+                            </tr>
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+    
+    <div class="col-12">
+        <div class="card-body">
+            <h5 class="card-title">Mabuz İçeriği</h5>
+            <div class="table-responsive">
+                <table class="table table-borderless datatable">
+                    <thead>
+                        <tr>
+
+                            <th scope="col">Ay</th>
+                            <th scope="col">Yıl</th>
+                            <th scope="col">Tutar</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.MakbuzSatir)
+                        {
+
+                            <tr>
+
+
+                                <td>@item.AyAdi</td>
+                                <td>@item.YilAdi</td>
+                                <td>@item.Tutar.ToString("N2") @tl</td>
+                                <td><a href="/Makbuz/SatirCikar/@item.MakbuzSatirID" class="badge bg-danger">Çıkar</a></td>
+                            </tr>
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Button to generate PDF -->
+<div class="row">
+   
+        <a class="btn btn-success"  href="/Makbuz/GeneratePDF?MakbuzID=@Session["MakbuzID"]" target="_blank" ><i class="bi bi-printer"></i> Makbuzu Onayla ve Yazdır</a>
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+
+    // PDF Generation
+        $('#generatePdf').click(function () {
+            window.location.href = '@Url.Action("GeneratePdf", "Makbuz", new { MakbuzID = Session["MakbuzID"] })';
+        });
+</script>
+

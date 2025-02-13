@@ -1,0 +1,58 @@
+﻿
+@{
+    ViewBag.Title = "BinaDuzenle";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Bina Düzenle</h2>
+
+<form action="/Admin/BinaDuzenle" method="post">
+    <input type="hidden" name="BinaID" value="@ViewBag.b.BinaID" />
+    <label class="mt-2">Bina Adı</label>
+    <input type="text" name="BinaAdi" placeholder="Bina Adı" id="BinaAdi" class="form-control" value="@ViewBag.b.BinaAdi" />
+    <label class="mt-2">Bina Kullanıcı Adı</label>
+    <input type="text" name="BinaKullaniciAdi" placeholder="Bina Kullanıcı Adı" id="BinaKullaniciAdi" class="form-control" value="@ViewBag.b.BinaKullaniciAdi" />
+    <label class="mt-2">Adres</label>
+    <input type="text" name="Adres" placeholder="Adres" id="Adres" class="form-control mt-2" value="@ViewBag.b.Adres" />
+    <label class="mt-2">Vergi No</label>
+
+    <input type="text" name="VergiNo" placeholder="Vergi No" id="VergiNo" class="form-control mt-2" maxlength="10" value="@ViewBag.b.VergiNo" />
+    <label class="mt-2">Daire Sayısı</label>
+
+    <input type="number" name="DaireSayisi" placeholder="Daire Sayısı" id="DaireSayisi" class="form-control mt-2" value="@ViewBag.b.DaireSayisi" />
+
+    <label class="mt-2">Sözleşme Bitiş Tarihi</label>
+    <input type="date" name="SozlesmeBitisTarihi" id="SozlesmeBitisTarihi" class="form-control mt-2" value="@ViewBag.b.SozlesmeBitisTarihi.ToString("yyyy-MM-dd")" />
+
+    <br />
+    <button type="submit" class="btn btn-warning">Güncelle</button>
+</form>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+</script>
+

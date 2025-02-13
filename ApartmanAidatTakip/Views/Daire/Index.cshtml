@@ -1,0 +1,126 @@
+﻿
+@{
+    ViewBag.Title = "Ana Sayfa";
+    Layout = "~/Views/Shared/_DaireLayout.cshtml";
+    string tl = "₺";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5>Daire Sakini Bilgileri</h5>
+    </div>
+    <div class="card-body">
+        <br />
+        <h5>Bina Adı: @ViewBag.BinaAdi</h5>
+        <h5>Daire No: @Session["DaireNo"]</h5>
+        <h5>Ad Soyad: @Session["AdSoyad"]</h5>
+        <h5>Borç: @ViewBag.Borc.ToString("N2") @tl</h5>
+    </div>
+</div>
+
+
+<h2>Borçlu Dönemler</h2>
+
+<div class="row">
+    <div class="col-md-6 col-sm-12">
+        <div class="card-body">
+            <h5 class="card-title">Aidat Borçları</h5>
+            <div class="table-responsive">
+                <table class="table table-borderless table-striped table-danger table-hover datatable">
+                    <thead>
+                        <tr>
+
+                            <th scope="col">Dönem</th>
+                            <th scope="col">Tutar</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.OdenmeyenAidatlar)
+                        {
+
+                            <tr>
+
+                                <td>@item.AidatAy - @item.AidatYil</td>
+
+                                <td>@item.AidatTutar.ToString("N2") @tl</td>
+                            </tr>
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-sm-12">
+        <div class="card-body">
+            <h5 class="card-title">Ek Borçları</h5>
+            <div class="table-responsive">
+                <table class="table table-borderless table-striped table-warning table-hover datatable">
+                    <thead>
+                        <tr>
+
+                            <th scope="col">Dönem</th>
+                            <th scope="col">Tutar</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.OdenmeyenEkler)
+                        {
+
+                            <tr>
+
+                                <td>@item.EkAy - @item.EkYil</td>
+
+                                <td>@item.EkTutar.ToString("N2") @tl</td>
+                            </tr>
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<hr />
+
+<h2> Ödenen Makbuzlar </h2>
+
+
+<div class="card-body">
+    <h5 class="card-title">Makbuz Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless table-striped table-success table-hover datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col"></th>
+                    <th scope="col">Makbuz No</th>
+                    <th scope="col">Tarih</th>
+                    <th scope="col">Tutar</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.OdenenMakbuzlar)
+                {
+
+                    <tr>
+                        <td><a href="/Daire/Makbuz?MakbuzID=@item.MakbuzID" target="_blank" class="badge bg-success"><i class="bi bi-printer"></i>Yazdır</a></td>
+
+                        <td>@item.MakbuzNo</td>
+                        <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
+                        <td>@item.MabuzTutar.ToString("N2") @tl</td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>

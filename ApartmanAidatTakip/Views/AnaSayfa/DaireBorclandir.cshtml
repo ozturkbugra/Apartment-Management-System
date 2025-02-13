@@ -1,0 +1,96 @@
+﻿
+@{
+    ViewBag.Title = "Daire Borçlandır";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Daire Borçlandır</h2>
+
+<form action="/AnaSayfa/DaireBorclandir" method="post">
+    <label>Daire No</label>
+    <select name="DaireNo" class="form-select">
+        @foreach (var item in ViewBag.Daireler)
+        {
+            <option value="@item.DaireNo"> @item.DaireNo Numara - @item.AdSoyad</option>
+        }
+
+    </select>
+    <br />
+    <div class="row">
+        <div class="col-6">
+            <label>YIL</label>
+            <input type="text" maxlength="4" name="AidatYil" class="form-control" value="@DateTime.Now.ToString("yyyy")" />
+        </div>
+        <div class="col-6">
+            <label>AY</label>
+            <select class="form-select" name="AidatAy">
+                <option value="Ocak">Ocak</option>
+                <option value="Şubat">Şubat</option>
+                <option value="Mart">Mart</option>
+                <option value="Nisan">Nisan</option>
+                <option value="Mayıs">Mayıs</option>
+                <option value="Haziran">Haziran</option>
+                <option value="Temmuz">Temmuz</option>
+                <option value="Ağustos">Ağustos</option>
+                <option value="Eylül">Eylül</option>
+                <option value="Ekim">Ekim</option>
+                <option value="Kasım">Kasım</option>
+                <option value="Aralık">Aralık</option>
+            </select>
+        </div>
+    </div>
+
+    <br />
+
+    <label>Tutar</label>
+    <input type="text" name="AidatTutar" class="form-control" onkeydown="preventDotAndComma(event)" />
+    <br />
+    <button type="Submit" class="btn btn-success">Borçlandır</button>
+</form>
+
+<hr />
+
+<form method="post" action="/AnaSayfa/GecikmeZammı">
+    <h2>Gecikme Zammı Ekle </h2>
+    <br />
+    <div class="form-check">
+    <input class="form-check-input" type="checkbox" name="durum" value="true" id="rememberMe">
+    <label class="form-check-label" for="rememberMe">Gecikme Zammı Eklenmiş Olan Aidatlara Tekrar Ekle</label>
+    </div>
+    <br />
+    <label>Gecikme Zammı (Bu dönemden önce ödenmeyen aidatlara gecikme zammı ekler)</label>
+    <input type="text" name="tutar" class="form-control" onkeydown="preventDotAndComma(event)" />
+    <br />
+    <button type="Submit" class="btn btn-success">Ekle</button>
+
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+</script>

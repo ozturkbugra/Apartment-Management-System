@@ -1,0 +1,88 @@
+﻿
+@{
+    ViewBag.Title = "Eklenen Aidatlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Eklenen Aidatlar</h1>
+</div><!-- End Page Title -->
+
+<div class="card-body">
+    <h5 class="card-title">Aidat Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Daire No</th>
+                    <th scope="col">Ad Soyad</th>
+                    <th scope="col">Ay</th>
+                    <th scope="col">Yıl</th>
+                    <th scope="col">Tutar</th>
+                    
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Aidatlar)
+                {
+
+                    <tr>
+
+                        <td>@item.DaireNo</td>
+                        <td>@item.AdSoyad</td>
+                        <td>@item.AidatAy</td>
+                        <td>@item.AidatYil</td>
+                        <td>@item.AidatTutar.ToString("N2") @tl</td>
+                     
+
+                        <td><a href="/AnaSayfa/AidatDuzenle/@item.AidatID" class="badge bg-warning">Düzenle</a> <a href="/AnaSayfa/AidatSil/@item.AidatID" class="badge bg-danger" onclick="confirmDeleteAidat(event, @item.AidatID)">Sil</a></td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function confirmDeleteAidat(event, id) {
+        event.preventDefault(); // Linkin varsayılan davranışını engeller
+        var userConfirmed = confirm("Bu aidatı silmek istediğinize emin misiniz?");
+        if (userConfirmed) {
+            window.location.href = '/AnaSayfa/AidatSil/' + id; // Onaylarsa yönlendirme yapılır
+        }
+    }
+</script>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+</script>

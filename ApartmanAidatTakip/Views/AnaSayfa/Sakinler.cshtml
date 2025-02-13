@@ -1,0 +1,144 @@
+﻿
+@{
+    ViewBag.Title = "Daire Sakinleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Daire Sakinleri</h1>
+</div><!-- End Page Title -->
+
+@if (ViewBag.Durum == true)
+{
+
+
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+        Daire Sakini Ekle
+    </button>
+}
+@if(ViewBag.Durum == false)
+{
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered" disabled>
+        Daire Sakini Ekle
+    </button>
+}
+
+
+<div class="modal fade" id="verticalycentered" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Daire Sakini Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="/AnaSayfa/SakinEkle" method="post">
+
+                <div class="modal-body">
+                    <input type="text" name="AdSoyad" placeholder="Ad Soyad" id="AdSoyad" class="form-control" required />
+
+                    <input type="text" name="Telefon" placeholder="Telefon (başında 0 olmadan 10 haneli giriniz)" id="Telefon" class="form-control mt-2" maxlength="10" required />
+                    <label class="mt-1 text-danger">Bu bilgiyi doğru girmeniz gereklidir. Sakinler bu bilgi ile borcunu sorgulayabilecektir</label>
+
+                    <input type="text" name="TC" placeholder="TC Kimlik No" id="TC" class="form-control mt-2" maxlength="11" required />
+                    <label class="mt-1 text-danger">Bu bilgiyi doğru girmeniz gereklidir. Sakinler bu bilgi ile borcunu sorgulayabilecektir</label>
+
+                    <select name="DaireDurum" class="mt-2 form-select">
+                        <option value="Ev Sahibi">Ev Sahibi</option>
+                        <option value="Kiracı">Kiracı</option>
+                    </select>
+
+                    <label class="mt-2">Yönetimde Mi?</label>
+                    <select name="YonetimdeMi" class="mt-2 form-select">
+                        <option value="H">Hayır</option>
+                        <option value="E">Evet</option>
+                    </select>
+                    <label class="mt-1 text-danger">Yönetimde olan dairelere aidat ve ek eklenmez</label>
+                </div>
+                <div class="modal-footer">
+
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div><!-- End Vertically centered Modal-->
+<br />
+<div class="card-body">
+    <h5 class="card-title">Daire Sakinleri Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Daire No</th>
+                    <th scope="col">Ad Soyad</th>
+                    <th scope="col">Telefon</th>
+                    <th scope="col">TC</th>
+                    <th scope="col">Durum</th>
+                    <th scope="col">Borç</th>
+                    <th scope="col">Yönetimde Mi?</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Daireler)
+                {
+
+                    <tr>
+
+                        <td>@item.DaireNo</td>
+                        <td>@item.AdSoyad</td>
+                        <td>@item.Telefon</td>
+                        <td>@item.TC</td>
+                        <td>@item.DaireDurum</td>
+                        <td>@item.Borc.ToString("N2") @tl</td>
+                        @if (@item.YonetimdeMi == "E")
+                        {
+                            <td>Evet</td>
+                        }@if (@item.YonetimdeMi == "H")
+                        {
+                            <td>Hayır</td>
+                        }
+
+
+                        <td><a href="/AnaSayfa/SakinDuzenle/@item.DaireID" class="badge bg-warning">Düzenle</a></td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+    </script>
+

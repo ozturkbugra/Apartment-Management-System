@@ -1,0 +1,60 @@
+﻿
+@{
+    ViewBag.Title = "Denetçi Raporu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Denetçi Raporu</h1>
+</div><!-- End Page Title -->
+
+<form action="/Raporlar/DenetciRaporu" method="get">
+    <div class="row">
+        <div class="col-lg-4 col-md-4 col-sm-6"><input type="date" name="ilk" class="form-control" value="@ViewBag.tarihdeger1" /></div>
+        <div class="col-lg-4 col-md-4 col-sm-6"><input type="date" name="son" class="form-control" value="@ViewBag.tarihdeger2" /></div>
+        <div class="col-lg-4 col-md-4 col-sm-6"><button type="submit" class="btn btn-info">Listele</button></div>
+    </div>
+</form>
+@{
+    string tl = " ₺";
+}
+<br />
+
+@if (ViewBag.elektrik != null)
+{
+    <br />
+ 
+        
+      
+            <form action="/Raporlar/DenetciRaporuPDF" method="get" target="_blank">
+                <input type="hidden" name="ilk" value="@ViewBag.tarihdeger1" />
+                <input type="hidden" name="son" value="@ViewBag.tarihdeger2" />
+                <button type="submit" class="btn btn-success"> <i class="bi bi-printer"></i>  YAZDIR</button>
+
+            </form>
+       
+    <br />
+    <h4>Elektrik: @ViewBag.elektrik.ToString("N2") @tl</h4>
+    <h4>Su: @ViewBag.su.ToString("N2") @tl</h4>
+    <h4>Yakıt - Isınma Gideri: @ViewBag.yakitisinma.ToString("N2") @tl</h4>
+    <h4>Yönetim Gideri: @ViewBag.yonetim.ToString("N2") @tl</h4>
+    <h4>Temizlik Gideri: @ViewBag.temizlik.ToString("N2") @tl</h4>
+    <h4>Bakım Onarım Gideri: @ViewBag.bakimonarim.ToString("N2") @tl</h4>
+    <h4>Demirbaş Gideri: @ViewBag.demirbas.ToString("N2") @tl</h4>
+    <h4>Görevli Maaş Gideri: @ViewBag.maas.ToString("N2") @tl</h4>
+    <h4>Görevli SSK Gideri: @ViewBag.ssk.ToString("N2") @tl</h4>
+    <h4>Diğer Gider: @ViewBag.diger.ToString("N2") @tl</h4>
+
+    <h3 class="text-danger">Toplam Gider: @ViewBag.toplamgider.ToString("N2") @tl</h3>
+    <br />
+    <h4>Aidat Geliri: @ViewBag.aidat.ToString("N2") @tl</h4>
+    <h4>Ek Gelir: @ViewBag.ek.ToString("N2") @tl</h4>
+    <h3 class="text-success">Toplam Gelir: @ViewBag.toplamgelir.ToString("N2") @tl</h3>
+    <br />
+    <h3 class="text-primary">Kasa Devir: @ViewBag.KasaToplam.ToString("N2") @tl </h3>
+    <h4 class="text-primary">(Aidat: @ViewBag.KasaAidat.ToString("N2") @tl | Ek: @ViewBag.KasaEk.ToString("N2") @tl )</h4>
+    <br />
+    <h3 class="text-success"><b>Toplam Kasa:  @ViewBag.toplamkasa.ToString("N2") @tl</b></h3>
+    <h4 class="text-success"><b>(Aidat: @ViewBag.toplamkasaaidat.ToString("N2") @tl | Ek: @ViewBag.toplamkasaek.ToString("N2") @tl )</b></h4>
+
+}

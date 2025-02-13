@@ -1,0 +1,51 @@
+﻿
+@{
+    ViewBag.Title = "Borçlu Daireler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Borçlu Daireler</h1>
+</div><!-- End Page Title -->
+
+<a href="/AnaSayfa/BorcluDairelerPDF" class="btn btn-success" target="_blank"><i class="bi bi-printer"></i> Yazdır</a> | <a href="/AnaSayfa/BorcluDairelerExcel" class="btn btn-success" target="_blank"><i class="bi bi-excel"></i> Excel'e Aktar</a>
+<br />
+<div class="card-body">
+    <h5 class="card-title">Daire Sakinleri Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Daire No</th>
+                    <th scope="col">Ad Soyad</th>
+                    <th scope="col">Telefon</th>
+                    <th scope="col">TC</th>
+                    <th scope="col">Durum</th>
+                    <th scope="col">Borç</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.BorcluDaireler)
+                {
+
+                    <tr>
+
+                        <td>@item.DaireNo</td>
+                        <td>@item.AdSoyad</td>
+                        <td>@item.Telefon</td>
+                        <td>@item.TC</td>
+                        <td>@item.DaireDurum</td>
+                        <td>@item.Borc.ToString("N2") @tl</td>
+
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+

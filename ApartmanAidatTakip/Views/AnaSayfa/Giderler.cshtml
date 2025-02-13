@@ -1,0 +1,182 @@
+﻿
+@{
+    ViewBag.Title = "Giderler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Giderler</h1>
+</div><!-- End Page Title -->
+
+@if (ViewBag.DonemSorgu == true)
+{
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+        Gider Ekle
+    </button>
+
+}
+@if (ViewBag.DonemSorgu == false)
+{
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered" disabled>
+        Gider Ekle
+    </button>
+    <p class="text-danger">@DateTime.Now.ToString("MMMM") ayı dönemini eklemeniz gerekmektedir.</p>
+
+}
+
+
+
+
+
+<div class="modal fade" id="verticalycentered" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Gider Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="/AnaSayfa/GiderEkle" method="post">
+
+                <div class="modal-body">
+                    <label>Gider Türü</label>
+                    <select name="GiderTuruID" class="form-select">
+                        @foreach (var item in ViewBag.GiderTuru)
+                        {
+                            <option value="@item.GiderTuruID">@item.GiderTuruAdi</option>
+                        }
+                    </select>
+
+                    <input type="text" name="GiderAciklama" placeholder="Açıklama" id="GiderAciklama" class="form-control mt-3" maxlength="500" required/>
+
+                    <input type="text" name="GiderTutar" placeholder="Tutar" id="GiderTutar" class="form-control mt-3" onkeydown="preventDotAndComma(event)" required/>
+
+                </div>
+                <div class="modal-footer">
+
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div><!-- End Vertically centered Modal-->
+<br />
+<div class="card-body">
+    <h5 class="card-title">Gider Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th scope="col">Tarih</th>
+                    <th scope="col">Gider No</th>
+                    <th scope="col">Gider Türü</th>
+                    <th scope="col">Açıklama</th>
+                    <th scope="col">Tutar</th>
+
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Giderler)
+                {
+
+                    <tr>
+                        <th><a href="/AnaSayfa/GiderMakbuz?GiderID=@item.GiderID" target="_blank" class="badge bg-success"><i class="bi bi-printer"></i>Yazdır</a></th>
+
+                        <td>@item.GiderTarih.ToString("dd/MM/yyyy")</td>
+                        <td>@item.GiderNo</td>
+                        <td>@item.GiderTuruAdi</td>
+                        <td>
+    @(item.GiderAciklama.Length > 10 ? item.GiderAciklama.Substring(0, Math.Min(10, item.GiderAciklama.Length - 2)) + "..." : item.GiderAciklama.Substring(2))
+</td>
+
+                        <td>@item.GiderTutar.ToString("N2") @tl</td>
+                        <td>
+                            <a href="/AnaSayfa/GiderSil/@item.GiderID" class="badge bg-danger" onclick="confirmDeleteExpense(event, @item.GiderID)">Sil</a>
+
+                        </td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<br />
+
+<div class="card-body">
+    <h5 class="card-title">Silinen Gider Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless table-striped table-danger datatable">
+            <thead>
+                <tr>
+                    <th scope="col">Tarih</th>
+                    <th scope="col">Gider No</th>
+                    <th scope="col">Gider Türü</th>
+                
+                    <th scope="col">Tutar</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.SilinenGiderler)
+                {
+
+                    <tr>
+                        <td>@item.GiderTarih.ToString("dd/MM/yyyy")</td>
+                        <td>@item.GiderNo</td>
+                        <td>@item.GiderTuruAdi</td>
+                        
+                        <td>@item.GiderTutar.ToString("N2") @tl</td>
+
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+</script>
+
+<script>
+    function confirmDeleteExpense(event, id) {
+        event.preventDefault(); // Linke tıklamayı engeller
+        var userConfirmed = confirm("Bu gideri silmek istediğinize emin misiniz?");
+        if (userConfirmed) {
+            window.location.href = '/AnaSayfa/GiderSil/' + id; // Kullanıcı onaylarsa silme işlemi yapılır
+        }
+    }
+</script>

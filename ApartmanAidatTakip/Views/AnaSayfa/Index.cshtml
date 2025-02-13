@@ -1,0 +1,294 @@
+﻿
+@{
+    ViewBag.Title = "Ana Sayfa";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Gelir Gider</h1>
+</div><!-- End Page Title -->
+
+<section class="dashboard">
+    <div class="row mt-1">
+        <div class="col-lg-4 col-md-4 col-sm-4">
+            <!-- Revenue Card -->
+
+            <div class="card info-card revenue-card">
+
+
+                <div class="card-body">
+                    <h5 class="card-title">Toplam Gelir</h5>
+
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <br />
+                        <div class="ps-3">
+                            <h6>@ViewBag.ToplamGelir.ToString("N2") @tl</h6>
+                            @if (ViewBag.Degisim == 1)
+                            {
+                                <span class="text-success small pt-1 fw-bold">@ViewBag.DegisimTutar%</span> <span class="text-muted small pt-2 ps-1">Artış (Aylık)</span>
+
+                            }
+                            @if (ViewBag.Degisim == 0)
+                            {
+                                <span class="text-danger small pt-1 fw-bold">@ViewBag.DegisimTutar%</span> <span class="text-muted small pt-2 ps-1">Azalış (Aylık)</span>
+
+                            }
+                            <br /> <br />
+                        </div>
+                    </div>
+
+
+                </div>
+            </div><!-- End Revenue Card -->
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-4">
+            <div class="card info-card sales-card">
+
+
+                <div class="card-body">
+                    <h5 class="card-title"> Toplam Kasa</h5>
+
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@ViewBag.Kasa.ToString("N2") @tl</h6>
+                            <span class="text-success small pt-1 fw-bold">Aidat: @ViewBag.AidatBakiye.ToString("N2") @tl</span> <br /> <span class="text-success small pt-1 fw-bold"> Ek: @ViewBag.EkBakiye.ToString("N2") @tl</span>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-4">
+            <div class="card info-card customers-card">
+
+
+                <div class="card-body">
+                    <h5 class="card-title">Toplam Gider</h5>
+
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <br />
+                        <div class="ps-3">
+                            <h6>@ViewBag.ToplamGider.ToString("N2") @tl</h6>
+                            @if (ViewBag.GiderDegisim == 1)
+                            {
+                                <span class="text-success small pt-1 fw-bold">@ViewBag.GiderDegisimTutar%</span> <span class="text-muted small pt-2 ps-1">Artış (Aylık)</span>
+
+                            }
+                            @if (ViewBag.GiderDegisim == 0)
+                            {
+                                <span class="text-danger small pt-1 fw-bold">@ViewBag.GiderDegisimTutar%</span> <span class="text-muted small pt-2 ps-1">Azalış (Aylık)</span>
+
+                            }
+                            <br /> <br />
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div><!-- End Customers Card -->
+        </div>
+
+    </div>
+
+    <div class="row mt-1">
+        <div class="col-lg-4 col-md-4 col-sm-4">
+            <!-- Revenue Card -->
+
+            <div class="card info-card revenue-card">
+
+
+                <div class="card-body">
+                    <h5 class="card-title">@DateTime.Now.ToString("MMMM") - @DateTime.Now.ToString("yyyy") Dönemi Gelir</h5>
+
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@ViewBag.aygelir.ToString("N2") @tl</h6>
+                           
+
+                        </div>
+                    </div>
+
+
+                </div>
+            </div><!-- End Revenue Card -->
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-4">
+            <div class="card info-card sales-card">
+
+
+                <div class="card-body">
+                    <h5 class="card-title"> Toplam Alacak</h5>
+
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@ViewBag.alacak.ToString("N2") @tl</h6>
+
+                           
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-4">
+            <div class="card info-card customers-card">
+
+
+                <div class="card-body">
+                    <h5 class="card-title">@DateTime.Now.ToString("MMMM") - @DateTime.Now.ToString("yyyy") Dönemi Gider</h5>
+
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6> @ViewBag.aygider.ToString("N2") @tl</h6>
+                           
+
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div><!-- End Customers Card -->
+        </div>
+
+    </div>
+</section>
+
+
+<div class="row mt-1">
+    <div class="col-lg-6 col-md-6 col-sm-12">
+        <p class="text-center"><b>GELİRLER</b></p>
+        <div class="table-responsive">
+            <p class="text-center">Aidat Makbuzları</p>
+            <table class="table table-striped table-borderless table-success datatable">
+                <thead>
+                    <tr>
+
+                        <th scope="col">#</th>
+                        <th scope="col">Makbuz No</th>
+                        <th scope="col">Tarih</th>
+                        <th scope="col">Daire No</th>
+                        <th scope="col">Tutar</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Makbuzlar)
+                    {
+
+                        <tr>
+                            <th><a href="/Makbuz/GeneratePDF?MakbuzID=@item.MakbuzID" target="_blank" class="badge bg-success"><i class="bi bi-printer"></i>Yazdır</a></th>
+                            <td>@item.MakbuzNo</td>
+                            <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
+                            <td>@item.DaireNo</td>
+                            <td>@item.MabuzTutar.ToString("N2") @tl</td>
+                        </tr>
+
+                    }
+
+                </tbody>
+            </table>
+        </div>
+        <br />
+        @if (ViewBag.Tahsilatlar != null)
+        {
+
+            <div class="table-responsive">
+                <p class="text-center">Tahsilat Makbuzları</p>
+                <table class="table table-striped table-success table-borderless datatable">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Makbuz No</th>
+                            <th scope="col">Tarih</th>
+                            <th scope="col">Açıklama</th>
+                            <th scope="col">Tutar</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.Tahsilatlar)
+                        {
+
+                            <tr>
+                                <th><a href="/AnaSayfa/TahsilatMakbuz?TahsilatID=@item.TahsilatID" target="_blank" class="badge bg-success"><i class="bi bi-printer"></i>Yazdır</a></th>
+
+                                <td>@item.TahsilatNo</td>
+                                <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
+                                <td>@item.TahsilatAciklama</td>
+
+                                <td>@item.TahsilatTutar.ToString("N2") @tl</td>
+                            </tr>
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </div>
+    <div class="col-lg-6 col-md-6 col-sm-12">
+        <p class="text-center"><b>Giderler</b></p>
+        <div class="table-responsive">
+            <p class="text-center">Gider Makbuzları</p>
+
+            <table class="table table-striped table-borderless table-danger datatable">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Makbuz No</th>
+                        <th scope="col">Gider Türü</th>
+                        <th scope="col">Tarih</th>
+                        <th scope="col">Tutar</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Giderler)
+                    {
+
+                        <tr>
+                            <th><a href="/AnaSayfa/GiderMakbuz?GiderID=@item.GiderID" target="_blank" class="badge bg-success"><i class="bi bi-printer"></i>Yazdır</a></th>
+                            <td>@item.GiderNo</td>
+                            <td>@item.GiderTuruAdi</td>
+                            <td>@item.GiderTarih.ToString("dd/MM/yyyy")</td>
+                            <td>@item.GiderTutar.ToString("N2") @tl</td>
+                        </tr>
+
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+   
+
+</div>

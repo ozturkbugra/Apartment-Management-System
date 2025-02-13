@@ -1,0 +1,69 @@
+﻿
+@{
+    ViewBag.Title = "SilinenKullanicilar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card-body">
+    <h5 class="card-title">Silinen Kullanıcı Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Kullanıcı Adı</th>
+                    <th scope="col">Ad Soyad</th>
+                    <th scope="col">Bina Adı</th>
+                    <th scope="col">Telefon</th>
+
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Kullanicilar)
+                {
+
+                    <tr>
+
+                        <td>@item.KullaniciAdi</td>
+                        <td>@item.AdSoyad</td>
+                        <td>@item.BinaAdi</td>
+                        <td>@item.Telefon</td>
+                        <td><a href="/Admin/KullaniciGeriAl/@item.KullaniciID" class="badge bg-warning">Geri Al</a> | <a href="/Admin/KullaniciTamamenSil/@item.KullaniciID" class="badge bg-danger">Tamamen Sil</a> </td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+    </script>

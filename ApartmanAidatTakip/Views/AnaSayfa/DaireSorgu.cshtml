@@ -1,0 +1,139 @@
+﻿
+@{
+    ViewBag.Title = "Daire Sorgulama";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Daire Borç Sorgula</h1>
+</div><!-- End Page Title -->
+
+<form action="/AnaSayfa/DaireSorgu" method="get">
+    <div class="row">
+        <div class="col-lg-3 col-md-3 col-sm-6">
+
+            <input type="number" class="form-control" name="DaireNo" placeholder="Daire No" value="@ViewBag.DaireNo" />
+        </div>
+        <div class="col-lg-1 col-md-1 col-sm-6">
+
+            <div class="col-12"><button type="submit" class="btn btn-success">Ara</button></div>
+        </div>
+        @if (ViewBag.Aidat != null || ViewBag.Ek != null)
+        {
+            <div class="col-lg-3 col-md-3 col-sm-12">
+                
+                <h5>Ad Soyad: @ViewBag.b.AdSoyad</h5>
+                <h5>Durum: @ViewBag.b.DaireDurum</h5>
+                <h5>Borç: @ViewBag.b.Borc.ToString("N2") @tl</h5>
+                
+            </div>
+        }
+
+    </div>
+    
+</form>
+
+@if (ViewBag.Aidat != null || ViewBag.Ek != null)
+{
+    
+
+    <br />
+    <div class="row">
+        <div class="col-md-6 col-sm-12">
+            <div class="card-body">
+                <h5 class="card-title">Aidat Borçları</h5>
+                <div class="table-responsive">
+                    <table class="table table-borderless table-striped table-danger table-hover datatable">
+                        <thead>
+                            <tr>
+                                
+                                <th scope="col">Dönem</th>
+                                <th scope="col">Tutar</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ViewBag.Aidat)
+                            {
+
+                                <tr>
+
+                                    <td>@item.AidatAy - @item.AidatYil</td>
+
+                                    <td>@item.AidatTutar.ToString("N2") @tl</td>
+                                </tr>
+
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+            <div class="card-body">
+                <h5 class="card-title">Ek Borçları</h5>
+                <div class="table-responsive">
+                    <table class="table table-borderless table-striped table-warning table-hover datatable">
+                        <thead>
+                            <tr>
+                           
+                                <th scope="col">Dönem</th>
+                                <th scope="col">Tutar</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ViewBag.Ek)
+                            {
+
+                                <tr>
+
+                                    <td>@item.EkAy - @item.EkYil</td>
+
+                                    <td>@item.EkTutar.ToString("N2") @tl</td>
+                                </tr>
+
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+}
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+</script>

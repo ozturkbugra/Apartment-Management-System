@@ -1,0 +1,9 @@
+VT adı seninley_apartmanvt
+
+Kullanıcı Adı seninley_aptuser
+
+Şifre V6ycf11_6
+
+.\MSSQLSERVER2019
+
+89.252.183.170\MSSQLSERVER2019

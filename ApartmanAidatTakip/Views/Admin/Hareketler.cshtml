@@ -1,0 +1,107 @@
+﻿
+@{
+    ViewBag.Title = "Hareketler";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Hareketler</h1>
+</div><!-- End Page Title -->
+
+<form action="/Admin/Hareketler" method="get">
+    <div class="row">
+        <div class="col-3">
+            <select class="form-select filter" name="BinaID">
+                    <option value="">Tüm Binalar</option>
+                @foreach (var item in ViewBag.Binalar)
+                {
+                    <option value="@item.BinaID" @(item.BinaID == ViewBag.BinaID2 ? "selected" : "")> @item.BinaKullaniciAdi</option>
+                }
+            </select>
+        </div>
+        <div class="col-3"> <input type="date" name="tarih1" class="form-control" value="@ViewBag.tarihdeger1" /> </div>
+        <div class="col-3"> <input type="date" name="tarih2" class="form-control" value="@ViewBag.tarihdeger2" /> </div>
+
+        <div class="col-3"> <button type="submit" class="btn btn-danger">Listele</button> </div>
+    </div>
+</form>
+
+<br />
+<div class="card-body">
+    <h5 class="card-title">Bina Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Bina Adı</th>
+                    <th scope="col">Kullanıcı Adı</th>
+                    <th scope="col">Ad Soyad</th>
+                    <th scope="col">Olay Açıklama</th>
+                    <th scope="col">Tarih</th>
+                    <th scope="col">Tür</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Hareketler)
+                {
+
+                    <tr>
+
+                        <td>@item.BinaAdi</td>
+                        <td>@item.KullaniciAdi</td>
+                        <td>@item.AdSoyad</td>
+                        <td>@item.OlayAciklama</td>
+                        <td>@item.Tarih</td>
+                        <td>@item.Tur</td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+   
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+</script>
+
+<script>
+    // Sayfa yüklendiğinde seçili değeri koru
+    document.addEventListener("DOMContentLoaded", function () {
+        var urlParams = new URLSearchParams(window.location.search);
+        var binaID = urlParams.get('BinaID');
+        if (binaID) {
+            document.getElementById("BinaID").value = binaID;
+        }
+    });
+</script>

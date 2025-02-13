@@ -1,0 +1,173 @@
+﻿
+@{
+    ViewBag.Title = "Tahsilat";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Tahsilatlar</h1>
+</div><!-- End Page Title -->
+
+@if (ViewBag.DonemSorgu == true)
+{
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+        Tahsilat Ekle
+    </button>
+}
+@if (ViewBag.DonemSorgu == false)
+{
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered" disabled>
+        Tahsilat Ekle
+    </button>
+    <p class="text-danger">@DateTime.Now.ToString("MMMM") ayı dönemini eklemeniz gerekmektedir.</p>
+
+}
+
+
+
+
+<div class="modal fade" id="verticalycentered" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tahsilat Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="/AnaSayfa/TahsilatEkle" method="post">
+
+                <div class="modal-body">
+
+                    <input type="text" name="TahsilatAciklama" placeholder="Açıklama" id="TahsilatAciklama" class="form-control" maxlength="500" required/>
+
+                    <input type="text" name="TahsilatTutar" placeholder="Tutar" id="TahsilatTutar" class="form-control mt-3" onkeydown="preventDotAndComma(event)" required/>
+
+                </div>
+                <div class="modal-footer">
+
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div><!-- End Vertically centered Modal-->
+<br />
+<div class="card-body">
+    <h5 class="card-title">Tahsilat Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th scope="col">Tarih</th>
+                    <th scope="col">Tahsilat No</th>
+                    <th scope="col">Açıklama</th>
+                    <th scope="col">Tutar</th>
+
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Tahsilatlar)
+                {
+
+                    <tr>
+                        <th><a href="/AnaSayfa/TahsilatMakbuz?TahsilatID=@item.TahsilatID" target="_blank" class="badge bg-success"><i class="bi bi-printer"></i>Yazdır</a></th>
+
+                        <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
+                        <td>@item.TahsilatNo</td>
+                      
+                        <td>
+                            @(item.TahsilatAciklama.Length > 10 ? item.TahsilatAciklama.Substring(0, Math.Min(10, item.TahsilatAciklama.Length - 2)) + "..." : item.TahsilatAciklama.Substring(2))
+                        </td>
+
+                        <td>@item.TahsilatTutar.ToString("N2") @tl</td>
+
+                        <td><a href="/AnaSayfa/TahsilatSil/@item.TahsilatID" class="badge bg-danger" onclick="confirmDelete(event, @item.TahsilatID)">Sil</a> </td>
+
+
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<br />
+
+<div class="card-body">
+    <h5 class="card-title">Silinen Tahsilat Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless table-striped table-danger datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Tarih</th>
+                    <th scope="col">Tahsilat No</th>
+                    <th scope="col">Açıklama</th>
+                    <th scope="col">Tutar</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.SilinenTahsilatlar)
+                {
+
+                    <tr>
+                        <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
+                        <td>@item.TahsilatNo</td>
+                        <td>
+                            @(item.TahsilatAciklama.Length > 10 ? item.TahsilatAciklama.Substring(0, Math.Min(10, item.TahsilatAciklama.Length - 2)) + "..." : item.TahsilatAciklama.Substring(2))
+                        </td>
+                        <td>@item.TahsilatTutar.ToString("N2") @tl</td>
+
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+</script>
+<script>
+
+    function confirmDelete(event, id) {
+        event.preventDefault(); // Linke tıklamayı engeller
+        var userConfirmed = confirm("Silmek istediğinize emin misiniz?");
+        if (userConfirmed) {
+            window.location.href = '/AnaSayfa/TahsilatSil/' + id; // Kullanıcı onaylarsa silme işlemi yapılır
+        }
+    }
+</script>

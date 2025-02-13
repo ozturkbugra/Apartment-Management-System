@@ -1,0 +1,31 @@
+﻿
+@{
+    ViewBag.Title = "KullaniciDuzenle";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Kullanıcı Düzenle</h2>
+
+<form action="/Admin/KullaniciDuzenle" method="post">
+    <input type="hidden" name="KullaniciID" value="@ViewBag.b.KullaniciID" />
+    <label class="mt-2">Kullanıcı Adı</label>
+    <input type="text" name="KullaniciAdi" placeholder="Kullanıcı Adı" id="KullaniciAdi" class="form-control" value="@ViewBag.b.KullaniciAdi" />
+    <label class="mt-2">Ad Soyad</label>
+    <input type="text" name="AdSoyad" placeholder="Ad Soyad" id="AdSoyad" class="form-control mt-2" value="@ViewBag.b.AdSoyad" />
+    <label class="mt-2">Telefon</label>
+
+    <input type="text" name="Telefon" placeholder="Telefon" id="Telefon" class="form-control mt-2" maxlength="10" value="@ViewBag.b.Telefon" />
+    <label class="mt-2">Bina Adı</label>
+
+    <select name="BinaID" id="BinaID" class="form-select mt-2">
+        @foreach (var item in ViewBag.Binalar)
+        {
+            <option value="@item.BinaID" @(item.BinaID == ViewBag.b.BinaID ? "selected" : "")>@item.BinaAdi</option>
+        }
+
+    </select>
+
+    <br />
+    <button type="submit" class="btn btn-warning">Güncelle</button>
+</form>
+

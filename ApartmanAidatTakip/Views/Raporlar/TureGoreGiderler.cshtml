@@ -1,0 +1,76 @@
+﻿
+@{
+    ViewBag.Title = "Türe Göre Giderler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Gelir Gider Raporu</h1>
+</div><!-- End Page Title -->
+
+<form action="/Raporlar/TureGoreGiderler" method="get">
+    <div class="row">
+        <div class="col-lg-3 col-md-3 col-sm-12">
+            <select class="form-select" name="GiderTuruID">
+                @foreach (var item in ViewBag.GiderTuru)
+                {
+                    <option value="@item.GiderTuruID" @(item.GiderTuruID == ViewBag.giderturudeger ? "selected" : "")>@item.GiderTuruAdi</option>
+                }
+
+            </select>
+
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-6"><input type="date" name="ilk" class="form-control" value="@ViewBag.tarihdeger1" /></div>
+        <div class="col-lg-3 col-md-3 col-sm-6"><input type="date" name="son" class="form-control" value="@ViewBag.tarihdeger2" /></div>
+
+        <div class="col-lg-3 col-md-3 col-sm-6"><button type="submit" class="btn btn-info">Listele</button></div>
+    </div>
+</form>
+
+@if (ViewBag.Gider != null)
+{
+    <br />
+    <div class="card-body">
+        <h5 class="card-title">Gider Listesi</h5>
+        <div class="table-responsive">
+            <table class="table table-borderless datatable">
+                <thead>
+                    <tr>
+
+                        <th scope="col">Tarih</th>
+                        <th scope="col">Makbuz No</th>
+                        <th scope="col">Gider Türü</th>
+                        <th scope="col">Açıklama</th>
+                        <th scope="col">Tutar</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Gider)
+                    {
+
+                        <tr>
+
+                            <td>@item.GiderTarih.ToString("dd/MM/yyyy")</td>
+                            <td>@item.GiderNo</td>
+                            <td>@item.GiderTuruAdi</td>
+                            <td>@item.GiderAciklama</td>
+                            <td>@item.GiderTutar.ToString("N2") @tl</td>
+
+                        </tr>
+
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+      
+    
+    <br />
+    <h3 class="text-center">Toplam: @ViewBag.Toplam.ToString("N2") @tl </h3>
+
+}
+

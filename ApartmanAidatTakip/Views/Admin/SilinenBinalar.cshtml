@@ -1,0 +1,78 @@
+﻿
+@{
+    ViewBag.Title = "Silinen Binalar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Silinen Binalar</h1>
+</div><!-- End Page Title -->
+
+
+<br />
+<div class="card-body">
+    <h5 class="card-title">Silinen Bina Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Bina Adı</th>
+                    <th scope="col">Bina Kullanıcı Adı</th>
+                    <th scope="col">Adres</th>
+                    <th scope="col">Vergi No</th>
+                    <th scope="col">Daire Sayısı</th>
+                    <th scope="col">Sözleşme Başlangıç Tarihi</th>
+                    <th scope="col">Sözleşme Bitiş Tarihi</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Binalar)
+                {
+
+                    <tr>
+
+                        <td>@item.BinaAdi</td>
+                        <td>@item.BinaKullaniciAdi</td>
+                        <td>@item.Adres</td>
+                        <td>@item.VergiNo</td>
+                        <td>@item.DaireSayisi</td>
+                        <td>@item.SozlesmeBaslamaTarihi.ToString("dd/MM/yyyy")</td>
+                        <td>@item.SozlesmeBitisTarihi.ToString("dd/MM/yyyy")</td>
+                        <td><a href="/Admin/BinaGeriAl/@item.BinaID" class="badge bg-warning">Geri Al</a> | <a href="/Admin/BinaTamamenSil/@item.BinaID" class="badge bg-danger">Tamamen Sil</a> </td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+    </script>

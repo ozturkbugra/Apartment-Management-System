@@ -1,0 +1,22 @@
+﻿
+@{
+    ViewBag.Title = "Aidat Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Aidat Düzenle</h1>
+</div><!-- End Page Title -->
+
+<br />
+<form action="/AnaSayfa/AidatDuzenle" method="post">
+    <input type="hidden" name="AidatID" value="@ViewBag.a.AidatID" />
+    <label> Daire No: @ViewBag.a.DaireNo </label>
+    <br />
+    <label> @ViewBag.a.AidatAy - @ViewBag.a.AidatYil </label>
+    <br />
+    <input type="text" name="AidatTutar" class="form-control" value="@ViewBag.a.AidatTutar" onkeydown="preventDotAndComma(event)" />
+    <br />
+    <button type="submit" class="btn btn-success">Güncelle</button>
+
+</form>

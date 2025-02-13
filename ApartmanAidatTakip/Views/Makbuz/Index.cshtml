@@ -1,0 +1,150 @@
+﻿
+@{
+    ViewBag.Title = "Makbuz Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Makbuz Oluştur</h1>
+</div>
+
+<br />
+@if (ViewBag.DonemSorgu == true)
+{
+    <form action="/Makbuz/Olustur" method="post">
+        <label>Daire No:</label>
+        <select name="DaireID" class="form-select">
+            @foreach (var item in ViewBag.Daireler)
+            {
+                <option value="@item.DaireNo"> @item.DaireNo Numara - @item.AdSoyad (Borç: @item.Borc ₺)</option>
+            }
+
+        </select>
+        <br />
+
+        <button type="submit" class="btn btn-success">Makbuz Oluştur</button>
+
+
+
+    </form>
+}
+@if (ViewBag.DonemSorgu == false)
+{
+    <button type="submit" class="btn btn-success" disabled>Makbuz Oluştur</button>
+    <p class="text-danger">@DateTime.Now.ToString("MMMM") ayı dönemini eklemeniz gerekmektedir.</p>
+
+}
+
+<br />
+<div class="card-body">
+    <h5 class="card-title">Makbuzlar</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th scope="col">Makbuz No</th>
+                    <th scope="col">Tarih</th>
+                    <th scope="col">Daire No</th>
+                    <th scope="col">Ad Soyad</th>
+                    <th scope="col">Tutar</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Makbuzlar)
+                {
+
+                    <tr>
+                        <td><a href="/Makbuz/Ekle?ID=@item.MakbuzID" class="badge bg-info">Detay</a></td>
+                        <td>@item.MakbuzNo</td>
+                        <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
+                        <td>@item.DaireNo</td>
+                        <td>@item.AdSoyad</td>
+                        <td>@item.MabuzTutar.ToString("N2") @tl</td>
+                        <td>
+                            <a href="/Makbuz/MakbuzSil/@item.MakbuzID" class="badge bg-danger" onclick="confirmDeleteReceipt(event, @item.MakbuzID)">Sil</a>
+                        </td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<br />
+<div class="card-body">
+    <h5 class="card-title">Silinen Makbuzlar</h5>
+    <div class="table-responsive">
+        <table class="table table-danger table-striped table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Makbuz No</th>
+                    <th scope="col">Tarih</th>
+                    <th scope="col">Daire No</th>
+                    <th scope="col">Ad Soyad</th>
+                    <th scope="col">Tutar</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.SilinenMakbuzlar)
+                {
+
+                    <tr>
+                        <td>@item.MakbuzNo</td>
+                        <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
+                        <td>@item.DaireNo</td>
+                        <td>@item.AdSoyad</td>
+                        <td>@item.MabuzTutar.ToString("N2") @tl</td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+</script>
+
+<script>
+    function confirmDeleteReceipt(event, id) {
+        event.preventDefault(); // Linke tıklamayı engeller
+        var userConfirmed = confirm("Bu makbuzu silmek istediğinize emin misiniz?");
+        if (userConfirmed) {
+            window.location.href = '/Makbuz/MakbuzSil/' + id; // Kullanıcı onaylarsa silme işlemi yapılır
+        }
+    }
+</script>

@@ -1,0 +1,37 @@
+﻿
+@{
+    ViewBag.Title = "Sakin Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Sakin Düzenle | Daire No: @ViewBag.s.DaireNo  </h2>
+<br />
+<form class="/AnaSayfa/SakinDuzenle" method="post">
+    <input type="hidden" name="DaireID" value="@ViewBag.s.DaireID" />
+    <br />
+    <label>Ad Soyad</label>
+    <input type="text" name="AdSoyad" value="@ViewBag.s.AdSoyad" class="form-control" required/>
+    <br />
+    <label>Telefon</label>
+    <input type="text" name="Telefon" value="@ViewBag.s.Telefon" class="form-control" maxlength="10" required/>
+    <br />
+    <label>TC</label>
+
+    <input type="text" name="TC" value="@ViewBag.s.TC" class="form-control" maxlength="11" required/>
+    <br />
+    <label>Yönetimde Mi?</label>
+    <select name="YonetimdeMi" class="form-select">
+        <option value="H" @(ViewBag.s.YonetimdeMi == "H" ? "selected" : "")>HAYIR</option>
+        <option value="E" @(ViewBag.s.YonetimdeMi == "E" ? "selected" : "")>EVET</option>
+    </select>
+
+    <br />
+    <label>Durum</label>
+    <select name="DaireDurum" class="form-select">
+        <option value="Ev Sahibi" @(ViewBag.s.DaireDurum == "Ev Sahibi" ? "selected" : "")>Ev Sahibi</option>
+        <option value="Kiracı" @(ViewBag.s.DaireDurum == "Kiracı" ? "selected" : "")>Kiracı</option>
+    </select>
+    <br />
+    <button type="submit" class="btn btn-success">Güncelle</button>
+</form>
+

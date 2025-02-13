@@ -1,0 +1,118 @@
+﻿
+@{
+    ViewBag.Title = "Açılış Bakiyesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Açılış Bakiyesi</h1>
+</div><!-- End Page Title -->
+
+@if (ViewBag.Durum == true)
+{
+
+
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+        Ekle
+    </button>
+}
+@if (ViewBag.Durum == false)
+{
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered" disabled>
+        Ekle
+    </button>
+}
+
+@{
+    string mail = "info@bugrasoft.com";
+ }
+<br />
+<p>Bu işlemi sadece 1 kere yapabilirsiniz yanlış işlem olduğunda bize mail atabilirsiniz <a href="mailto:@mail">@mail</a> </p>
+
+<div class="modal fade" id="verticalycentered" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Açılış Bakiyesi Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="/AnaSayfa/AcilisBakiyeEkle" method="post">
+
+                <div class="modal-body"> 
+                    <input type="text" name="AidatTutar" placeholder="Aidat Tutarı" id="AidatTutar" onkeydown="preventDotAndComma(event)" class="form-control" required/>
+
+                    <input type="text" name="EkTutar" placeholder="Ek Tutarı" id="EkTutar" onkeydown="preventDotAndComma(event)" class="form-control mt-2" required/>
+
+
+                </div>
+                <div class="modal-footer">
+
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div><!-- End Vertically centered Modal-->
+
+<br />
+<div class="card-body">
+    <h5 class="card-title">Daire Sakinleri Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+
+                    <th scope="col">Aidat Tutar</th>
+                    <th scope="col">Ek Tutar</th>
+                    <th scope="col">Toplam Açılış Bakiye</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Bakiye)
+                {
+
+                    <tr>
+
+                        <td>@item.AidatTutar.ToString("N2") @tl</td>
+                        <td>@item.EkTutar.ToString("N2") @tl</td>
+                        <td>@item.ToplamTutar.ToString("N2") @tl</td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+ $(document).ready(function() {
+     @if (TempData["Hata"] != null)
+     {
+         <text>
+             Swal.fire({
+                 icon: 'error',
+                 title: 'HATA!',
+                 text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+             });
+         </text>
+     }
+
+     @if (TempData["Basarili"] != null)
+     {
+         <text>
+             Swal.fire({
+                 icon: 'success',
+                 title: 'Başarılı!',
+                 text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+             });
+         </text>
+     }
+ });
+
+
+</script>

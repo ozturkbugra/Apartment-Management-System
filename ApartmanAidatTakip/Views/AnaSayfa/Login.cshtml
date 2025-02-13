@@ -1,0 +1,220 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>Apartman Aidat Yazılımı - Giriş</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <link href="/Content/Admin/assets/img/favicon.png" rel="icon">
+    <link href="/Content/Admin/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="/Content/Admin/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <!-- Select2 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f6fa;
+        }
+
+
+
+        .container {
+            max-width: 400px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+        .btn-success {
+            border-radius: 10px;
+            font-weight: 600;
+            background-color: #28a745;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background-color: #28a745;
+            color: #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .small {
+            font-size: 0.875rem;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 576px) {
+            .container {
+                margin-top: -10px;
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
+            .card {
+                margin-top: 10px;
+            }
+
+            .form-control {
+                font-size: 0.9rem;
+            }
+
+            .btn-success {
+                font-size: 0.9rem;
+            }
+
+            .small {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <div class="container d-flex flex-column align-items-center justify-content-center min-vh-100">
+
+            <section class="section register d-flex flex-column align-items-center justify-content-center py-4">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-12 d-flex flex-column align-items-center justify-content-center">
+
+
+                            <div class="card">
+
+                                <div class="card-body">
+
+                                    <div class="text-center mb-3">
+                                        <img src="~/Content/Admin/assets/img/binamakbuzlogo2.png" width="80" alt="">
+                                    </div>
+                                    <h5 class="card-title text-center mb-3">Yönetici Giriş Paneli</h5>
+
+                                    <form method="post" action="/AnaSayfa/Login" class="row g-3 needs-validation" novalidate>
+
+                                        <div class="col-12">
+                                            <label for="BinaID" class="form-label">Bina Adı</label>
+                                            <select class="form-select" name="BinaID" id="BinaID" required>
+                                                <option value="">Bina Seçiniz</option>
+                                                @foreach (var item in ViewBag.Binalar)
+                                                {
+                                                    <option value="@item.BinaID">@item.BinaKullaniciAdi</option>
+                                                }
+                                            </select>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label for="KullaniciAdi" class="form-label">Kullanıcı Adı</label>
+                                            <input type="text" name="KullaniciAdi" class="form-control" id="KullaniciAdi" required>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label for="Parola" class="form-label">Parola</label>
+                                            <input type="password" name="Parola" class="form-control" id="Parola" required>
+                                        </div>
+
+                                        <div class="col-12">
+                                            @if (!string.IsNullOrEmpty(ViewBag.Uyari))
+                                            {
+                                                <div class="alert alert-danger text-center">@ViewBag.Uyari</div>
+                                            }
+                                        </div>
+
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="remember" value="true" id="rememberMe">
+                                                <label class="form-check-label" for="rememberMe">Beni Hatırla</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <button class="btn btn-success w-100" type="submit">Giriş Yap</button>
+                                        </div>
+                                        <div class="col-12 text-center">
+                                            <p class="small mb-0">Bu binada daireniz var ve borcunuzu mu sorgulamak istiyorsunuz? <a href="/Daire/Login">Daire Sakini Paneli</a></p>
+                                        </div>
+
+                                        <div class="col-12 text-center">
+                                            <p class="small mb-0">Hesabın Yok Mu? <a href="https://bugrasoft.com">Yazılımımızı Kullanmak İçin Bize Ulaş</a></p>
+                                        </div>
+                                    </form>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main><!-- End #main -->
+
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+    <script src="/Content/Admin/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/Content/Admin/assets/vendor/echarts/echarts.min.js"></script>
+    <script src="/Content/Admin/assets/vendor/simple-datatables/simple-datatables.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <!-- Initialize Select2 -->
+    <script>
+        $(document).ready(function () {
+            $('#BinaID').select2({
+                width: '100%',
+                placeholder: 'Bina Seçiniz',
+                allowClear: true
+            });
+        });
+    </script>
+
+</body>
+
+</html>

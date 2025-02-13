@@ -1,0 +1,1243 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="AptVTModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="AcilisBakiye">
+          <Key>
+            <PropertyRef Name="AcilisBakiyeID" />
+          </Key>
+          <Property Name="AcilisBakiyeID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="EkTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="AidatTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="ToplamTutar" Type="decimal" Precision="18" Scale="2" />
+        </EntityType>
+        <EntityType Name="Aidat">
+          <Key>
+            <PropertyRef Name="AidatID" />
+          </Key>
+          <Property Name="AidatID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AidatAy" Type="nvarchar" MaxLength="15" />
+          <Property Name="AidatYil" Type="int" />
+          <Property Name="AidatTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="DaireNo" Type="int" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+          <Property Name="ZamEklendiMi" Type="nvarchar" MaxLength="1" />
+        </EntityType>
+        <EntityType Name="Binalar">
+          <Key>
+            <PropertyRef Name="BinaID" />
+          </Key>
+          <Property Name="BinaID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="BinaAdi" Type="nvarchar(max)" />
+          <Property Name="Adres" Type="nvarchar(max)" />
+          <Property Name="VergiNo" Type="nvarchar" MaxLength="10" />
+          <Property Name="DaireSayisi" Type="int" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+          <Property Name="SozlesmeBitisTarihi" Type="date" />
+          <Property Name="SozlesmeBaslamaTarihi" Type="date" />
+          <Property Name="BinaKullaniciAdi" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="Daireler">
+          <Key>
+            <PropertyRef Name="DaireID" />
+          </Key>
+          <Property Name="DaireID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DaireNo" Type="int" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="AdSoyad" Type="nvarchar(max)" />
+          <Property Name="Telefon" Type="nvarchar" MaxLength="10" />
+          <Property Name="TC" Type="nvarchar" MaxLength="11" />
+          <Property Name="DaireDurum" Type="nvarchar" MaxLength="10" />
+          <Property Name="Borc" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="YonetimdeMi" Type="nvarchar" MaxLength="1" />
+        </EntityType>
+        <EntityType Name="Duyurular">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Baslik" Type="nvarchar(max)" />
+          <Property Name="Aciklama" Type="nvarchar(max)" />
+          <Property Name="Tarih" Type="date" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+        </EntityType>
+        <EntityType Name="Ek">
+          <Key>
+            <PropertyRef Name="EkID" />
+          </Key>
+          <Property Name="EkID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="EkAy" Type="nvarchar" MaxLength="15" />
+          <Property Name="EkYil" Type="int" />
+          <Property Name="EkTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="DaireNo" Type="int" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+        </EntityType>
+        <EntityType Name="Gider">
+          <Key>
+            <PropertyRef Name="GiderID" />
+          </Key>
+          <Property Name="GiderID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GiderNo" Type="int" />
+          <Property Name="GiderAciklama" Type="nvarchar" MaxLength="500" />
+          <Property Name="GiderTuruID" Type="int" />
+          <Property Name="GiderTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="GiderTarih" Type="date" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+        </EntityType>
+        <EntityType Name="GiderTuru">
+          <Key>
+            <PropertyRef Name="GiderTuruID" />
+          </Key>
+          <Property Name="GiderTuruID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GiderTuruAdi" Type="nvarchar(max)" />
+          <Property Name="BinaID" Type="int" />
+        </EntityType>
+        <EntityType Name="Hareketler">
+          <Key>
+            <PropertyRef Name="HareketID" />
+          </Key>
+          <Property Name="HareketID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="KullaniciID" Type="int" />
+          <Property Name="OlayAciklama" Type="nvarchar(max)" />
+          <Property Name="Tarih" Type="datetime" />
+          <Property Name="Tur" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="Kasa">
+          <Key>
+            <PropertyRef Name="KasaID" />
+          </Key>
+          <Property Name="KasaID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="KasaAy" Type="nvarchar" MaxLength="20" />
+          <Property Name="KasaYil" Type="int" />
+          <Property Name="KasaAidat" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="KasaEk" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="KasaToplam" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="AyKodu" Type="int" />
+        </EntityType>
+        <EntityType Name="Kullanicilar">
+          <Key>
+            <PropertyRef Name="KullaniciID" />
+          </Key>
+          <Property Name="KullaniciID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="KullaniciAdi" Type="nvarchar" MaxLength="100" />
+          <Property Name="AdSoyad" Type="nvarchar(max)" />
+          <Property Name="Parola" Type="nvarchar(max)" />
+          <Property Name="Telefon" Type="nvarchar" MaxLength="10" />
+          <Property Name="Yetki" Type="nvarchar" MaxLength="1" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+        </EntityType>
+        <EntityType Name="Makbuz">
+          <Key>
+            <PropertyRef Name="MakbuzID" />
+          </Key>
+          <Property Name="MakbuzID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="MakbuzNo" Type="int" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="DaireID" Type="int" />
+          <Property Name="MabuzTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="MakbuzTarihi" Type="date" />
+          <Property Name="Aciklama" Type="nvarchar" MaxLength="500" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="10" />
+          <Property Name="OnayliMi" Type="bit" />
+        </EntityType>
+        <EntityType Name="MakbuzSatir">
+          <Key>
+            <PropertyRef Name="MakbuzSatirID" />
+          </Key>
+          <Property Name="MakbuzSatirID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="MakbuzID" Type="int" />
+          <Property Name="AyAdi" Type="nvarchar" MaxLength="20" />
+          <Property Name="YilAdi" Type="int" />
+          <Property Name="Tutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="DaireID" Type="int" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+          <Property Name="EkMiAidatMi" Type="nvarchar" MaxLength="1" />
+        </EntityType>
+        <EntityType Name="Notlar">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Aciklama" Type="nvarchar(max)" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="BorcAciklama" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="Tahsilat">
+          <Key>
+            <PropertyRef Name="TahsilatID" />
+          </Key>
+          <Property Name="TahsilatID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TahsilatNo" Type="int" />
+          <Property Name="TahsilatAciklama" Type="nvarchar" MaxLength="500" />
+          <Property Name="TahsilatTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="TahsilatTarih" Type="date" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'AptVT.dbo.AidatView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="AidatView">
+          <Key>
+            <PropertyRef Name="AidatID" />
+          </Key>
+          <Property Name="BinaAdi" Type="nvarchar(max)" />
+          <Property Name="AidatID" Type="int" Nullable="false" />
+          <Property Name="AidatAy" Type="nvarchar" MaxLength="15" />
+          <Property Name="AidatYil" Type="int" />
+          <Property Name="AidatTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="DaireNo" Type="int" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="AdSoyad" Type="nvarchar(max)" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'AptVT.dbo.EkView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="EkView">
+          <Key>
+            <PropertyRef Name="EkID" />
+          </Key>
+          <Property Name="EkID" Type="int" Nullable="false" />
+          <Property Name="EkAy" Type="nvarchar" MaxLength="15" />
+          <Property Name="EkYil" Type="int" />
+          <Property Name="EkTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="DaireNo" Type="int" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="BinaAdi" Type="nvarchar(max)" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+          <Property Name="AdSoyad" Type="nvarchar(max)" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'AptVT.dbo.GiderView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="GiderView">
+          <Key>
+            <PropertyRef Name="GiderID" />
+          </Key>
+          <Property Name="GiderTuruID" Type="int" />
+          <Property Name="GiderTuruAdi" Type="nvarchar(max)" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+          <Property Name="GiderTarih" Type="date" />
+          <Property Name="GiderTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="GiderAciklama" Type="nvarchar" MaxLength="500" />
+          <Property Name="GiderID" Type="int" Nullable="false" />
+          <Property Name="BinaAdi" Type="nvarchar(max)" />
+          <Property Name="GiderNo" Type="int" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'AptVT.dbo.HareketView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="HareketView">
+          <Key>
+            <PropertyRef Name="HareketID" />
+            <PropertyRef Name="BinaID" />
+            <PropertyRef Name="KullaniciID" />
+          </Key>
+          <Property Name="HareketID" Type="int" Nullable="false" />
+          <Property Name="BinaID" Type="int" Nullable="false" />
+          <Property Name="BinaAdi" Type="nvarchar(max)" />
+          <Property Name="KullaniciID" Type="int" Nullable="false" />
+          <Property Name="KullaniciAdi" Type="nvarchar" MaxLength="100" />
+          <Property Name="AdSoyad" Type="nvarchar(max)" />
+          <Property Name="OlayAciklama" Type="nvarchar(max)" />
+          <Property Name="Tarih" Type="datetime" />
+          <Property Name="Tur" Type="nvarchar(max)" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'AptVT.dbo.KasaView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="KasaView">
+          <Key>
+            <PropertyRef Name="KasaID" />
+          </Key>
+          <Property Name="KasaID" Type="int" Nullable="false" />
+          <Property Name="KasaAy" Type="nvarchar" MaxLength="20" />
+          <Property Name="KasaYil" Type="int" />
+          <Property Name="KasaAidat" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="KasaEk" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="KasaToplam" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="BinaAdi" Type="nvarchar(max)" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'AptVT.dbo.KullanicilarView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="KullanicilarView">
+          <Key>
+            <PropertyRef Name="BinaID" />
+            <PropertyRef Name="KullaniciID" />
+          </Key>
+          <Property Name="BinaAdi" Type="nvarchar(max)" />
+          <Property Name="BinaID" Type="int" Nullable="false" />
+          <Property Name="Adres" Type="nvarchar(max)" />
+          <Property Name="VergiNo" Type="nvarchar" MaxLength="10" />
+          <Property Name="DaireSayisi" Type="int" />
+          <Property Name="KullaniciID" Type="int" Nullable="false" />
+          <Property Name="KullaniciAdi" Type="nvarchar" MaxLength="100" />
+          <Property Name="AdSoyad" Type="nvarchar(max)" />
+          <Property Name="Parola" Type="nvarchar(max)" />
+          <Property Name="Telefon" Type="nvarchar" MaxLength="10" />
+          <Property Name="Yetki" Type="nvarchar" MaxLength="1" />
+          <Property Name="KullaniciDurumu" Type="nvarchar" MaxLength="1" />
+          <Property Name="SozlesmeBitisTarihi" Type="date" />
+          <Property Name="BinaDurumu" Type="nvarchar" MaxLength="1" />
+          <Property Name="BinaKullaniciAdi" Type="nvarchar(max)" />
+          <Property Name="SozlesmeBaslamaTarihi" Type="date" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'AptVT.dbo.MakbuzSatirView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="MakbuzSatirView">
+          <Key>
+            <PropertyRef Name="MakbuzSatirID" />
+          </Key>
+          <Property Name="MakbuzSatirID" Type="int" Nullable="false" />
+          <Property Name="MakbuzID" Type="int" />
+          <Property Name="MakbuzNo" Type="int" />
+          <Property Name="DaireNo" Type="int" />
+          <Property Name="AdSoyad" Type="nvarchar(max)" />
+          <Property Name="MabuzTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="MakbuzTarihi" Type="date" />
+          <Property Name="Aciklama" Type="nvarchar" MaxLength="500" />
+          <Property Name="MabuzDurum" Type="nvarchar" MaxLength="10" />
+          <Property Name="AyAdi" Type="nvarchar" MaxLength="20" />
+          <Property Name="Tutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="DaireID" Type="int" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="MakbuzSatirDurum" Type="nvarchar" MaxLength="1" />
+          <Property Name="YilAdi" Type="int" />
+          <Property Name="EkMiAidatMi" Type="nvarchar" MaxLength="1" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'AptVT.dbo.MakbuzView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="MakbuzView">
+          <Key>
+            <PropertyRef Name="MakbuzID" />
+          </Key>
+          <Property Name="MakbuzID" Type="int" Nullable="false" />
+          <Property Name="MakbuzNo" Type="int" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="BinaAdi" Type="nvarchar(max)" />
+          <Property Name="DaireID" Type="int" />
+          <Property Name="DaireNo" Type="int" />
+          <Property Name="AdSoyad" Type="nvarchar(max)" />
+          <Property Name="MabuzTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="MakbuzTarihi" Type="date" />
+          <Property Name="Aciklama" Type="nvarchar" MaxLength="500" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="10" />
+          <Property Name="Telefon" Type="nvarchar" MaxLength="10" />
+          <Property Name="TC" Type="nvarchar" MaxLength="11" />
+          <Property Name="DaireDurum" Type="nvarchar" MaxLength="10" />
+          <Property Name="Borc" Type="decimal" Precision="18" Scale="2" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="TahsilatView">
+          <Key>
+            <PropertyRef Name="TahsilatID" />
+          </Key>
+          <Property Name="TahsilatID" Type="int" Nullable="false" />
+          <Property Name="TahsilatAciklama" Type="nvarchar" MaxLength="500" />
+          <Property Name="TahsilatTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="TahsilatTarih" Type="date" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="BinaAdi" Type="nvarchar(max)" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+          <Property Name="TahsilatNo" Type="int" />
+        </EntityType>
+        <EntityContainer Name="AptVTModelStoreContainer">
+          <EntitySet Name="AcilisBakiye" EntityType="Self.AcilisBakiye" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Aidat" EntityType="Self.Aidat" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Binalar" EntityType="Self.Binalar" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Daireler" EntityType="Self.Daireler" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Duyurular" EntityType="Self.Duyurular" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Ek" EntityType="Self.Ek" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Gider" EntityType="Self.Gider" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="GiderTuru" EntityType="Self.GiderTuru" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Hareketler" EntityType="Self.Hareketler" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Kasa" EntityType="Self.Kasa" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Kullanicilar" EntityType="Self.Kullanicilar" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Makbuz" EntityType="Self.Makbuz" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="MakbuzSatir" EntityType="Self.MakbuzSatir" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Notlar" EntityType="Self.Notlar" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Tahsilat" EntityType="Self.Tahsilat" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AidatView" EntityType="Self.AidatView" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [AidatView].[BinaAdi] AS [BinaAdi], 
+    [AidatView].[AidatID] AS [AidatID], 
+    [AidatView].[AidatAy] AS [AidatAy], 
+    [AidatView].[AidatYil] AS [AidatYil], 
+    [AidatView].[AidatTutar] AS [AidatTutar], 
+    [AidatView].[DaireNo] AS [DaireNo], 
+    [AidatView].[Durum] AS [Durum], 
+    [AidatView].[BinaID] AS [BinaID], 
+    [AidatView].[AdSoyad] AS [AdSoyad]
+    FROM [dbo].[AidatView] AS [AidatView]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="EkView" EntityType="Self.EkView" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [EkView].[EkID] AS [EkID], 
+    [EkView].[EkAy] AS [EkAy], 
+    [EkView].[EkYil] AS [EkYil], 
+    [EkView].[EkTutar] AS [EkTutar], 
+    [EkView].[DaireNo] AS [DaireNo], 
+    [EkView].[BinaID] AS [BinaID], 
+    [EkView].[BinaAdi] AS [BinaAdi], 
+    [EkView].[Durum] AS [Durum], 
+    [EkView].[AdSoyad] AS [AdSoyad]
+    FROM [dbo].[EkView] AS [EkView]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="GiderView" EntityType="Self.GiderView" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [GiderView].[GiderTuruID] AS [GiderTuruID], 
+    [GiderView].[GiderTuruAdi] AS [GiderTuruAdi], 
+    [GiderView].[BinaID] AS [BinaID], 
+    [GiderView].[Durum] AS [Durum], 
+    [GiderView].[GiderTarih] AS [GiderTarih], 
+    [GiderView].[GiderTutar] AS [GiderTutar], 
+    [GiderView].[GiderAciklama] AS [GiderAciklama], 
+    [GiderView].[GiderID] AS [GiderID], 
+    [GiderView].[BinaAdi] AS [BinaAdi], 
+    [GiderView].[GiderNo] AS [GiderNo]
+    FROM [dbo].[GiderView] AS [GiderView]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="HareketView" EntityType="Self.HareketView" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [HareketView].[HareketID] AS [HareketID], 
+    [HareketView].[BinaID] AS [BinaID], 
+    [HareketView].[BinaAdi] AS [BinaAdi], 
+    [HareketView].[KullaniciID] AS [KullaniciID], 
+    [HareketView].[KullaniciAdi] AS [KullaniciAdi], 
+    [HareketView].[AdSoyad] AS [AdSoyad], 
+    [HareketView].[OlayAciklama] AS [OlayAciklama], 
+    [HareketView].[Tarih] AS [Tarih], 
+    [HareketView].[Tur] AS [Tur]
+    FROM [dbo].[HareketView] AS [HareketView]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="KasaView" EntityType="Self.KasaView" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [KasaView].[KasaID] AS [KasaID], 
+    [KasaView].[KasaAy] AS [KasaAy], 
+    [KasaView].[KasaYil] AS [KasaYil], 
+    [KasaView].[KasaAidat] AS [KasaAidat], 
+    [KasaView].[KasaEk] AS [KasaEk], 
+    [KasaView].[KasaToplam] AS [KasaToplam], 
+    [KasaView].[BinaID] AS [BinaID], 
+    [KasaView].[BinaAdi] AS [BinaAdi]
+    FROM [dbo].[KasaView] AS [KasaView]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="KullanicilarView" EntityType="Self.KullanicilarView" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [KullanicilarView].[BinaAdi] AS [BinaAdi], 
+    [KullanicilarView].[BinaID] AS [BinaID], 
+    [KullanicilarView].[Adres] AS [Adres], 
+    [KullanicilarView].[VergiNo] AS [VergiNo], 
+    [KullanicilarView].[DaireSayisi] AS [DaireSayisi], 
+    [KullanicilarView].[KullaniciID] AS [KullaniciID], 
+    [KullanicilarView].[KullaniciAdi] AS [KullaniciAdi], 
+    [KullanicilarView].[AdSoyad] AS [AdSoyad], 
+    [KullanicilarView].[Parola] AS [Parola], 
+    [KullanicilarView].[Telefon] AS [Telefon], 
+    [KullanicilarView].[Yetki] AS [Yetki], 
+    [KullanicilarView].[KullaniciDurumu] AS [KullaniciDurumu], 
+    [KullanicilarView].[SozlesmeBitisTarihi] AS [SozlesmeBitisTarihi], 
+    [KullanicilarView].[BinaDurumu] AS [BinaDurumu], 
+    [KullanicilarView].[BinaKullaniciAdi] AS [BinaKullaniciAdi], 
+    [KullanicilarView].[SozlesmeBaslamaTarihi] AS [SozlesmeBaslamaTarihi]
+    FROM [dbo].[KullanicilarView] AS [KullanicilarView]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="MakbuzSatirView" EntityType="Self.MakbuzSatirView" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [MakbuzSatirView].[MakbuzSatirID] AS [MakbuzSatirID], 
+    [MakbuzSatirView].[MakbuzID] AS [MakbuzID], 
+    [MakbuzSatirView].[MakbuzNo] AS [MakbuzNo], 
+    [MakbuzSatirView].[DaireNo] AS [DaireNo], 
+    [MakbuzSatirView].[AdSoyad] AS [AdSoyad], 
+    [MakbuzSatirView].[MabuzTutar] AS [MabuzTutar], 
+    [MakbuzSatirView].[MakbuzTarihi] AS [MakbuzTarihi], 
+    [MakbuzSatirView].[Aciklama] AS [Aciklama], 
+    [MakbuzSatirView].[MabuzDurum] AS [MabuzDurum], 
+    [MakbuzSatirView].[AyAdi] AS [AyAdi], 
+    [MakbuzSatirView].[Tutar] AS [Tutar], 
+    [MakbuzSatirView].[DaireID] AS [DaireID], 
+    [MakbuzSatirView].[BinaID] AS [BinaID], 
+    [MakbuzSatirView].[MakbuzSatirDurum] AS [MakbuzSatirDurum], 
+    [MakbuzSatirView].[YilAdi] AS [YilAdi], 
+    [MakbuzSatirView].[EkMiAidatMi] AS [EkMiAidatMi]
+    FROM [dbo].[MakbuzSatirView] AS [MakbuzSatirView]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="MakbuzView" EntityType="Self.MakbuzView" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [MakbuzView].[MakbuzID] AS [MakbuzID], 
+    [MakbuzView].[MakbuzNo] AS [MakbuzNo], 
+    [MakbuzView].[BinaID] AS [BinaID], 
+    [MakbuzView].[BinaAdi] AS [BinaAdi], 
+    [MakbuzView].[DaireID] AS [DaireID], 
+    [MakbuzView].[DaireNo] AS [DaireNo], 
+    [MakbuzView].[AdSoyad] AS [AdSoyad], 
+    [MakbuzView].[MabuzTutar] AS [MabuzTutar], 
+    [MakbuzView].[MakbuzTarihi] AS [MakbuzTarihi], 
+    [MakbuzView].[Aciklama] AS [Aciklama], 
+    [MakbuzView].[Durum] AS [Durum], 
+    [MakbuzView].[Telefon] AS [Telefon], 
+    [MakbuzView].[TC] AS [TC], 
+    [MakbuzView].[DaireDurum] AS [DaireDurum], 
+    [MakbuzView].[Borc] AS [Borc]
+    FROM [dbo].[MakbuzView] AS [MakbuzView]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="TahsilatView" EntityType="Self.TahsilatView" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [TahsilatView].[TahsilatID] AS [TahsilatID], 
+    [TahsilatView].[TahsilatAciklama] AS [TahsilatAciklama], 
+    [TahsilatView].[TahsilatTutar] AS [TahsilatTutar], 
+    [TahsilatView].[TahsilatTarih] AS [TahsilatTarih], 
+    [TahsilatView].[BinaID] AS [BinaID], 
+    [TahsilatView].[BinaAdi] AS [BinaAdi], 
+    [TahsilatView].[Durum] AS [Durum], 
+    [TahsilatView].[TahsilatNo] AS [TahsilatNo]
+    FROM [dbo].[TahsilatView] AS [TahsilatView]</DefiningQuery>
+          </EntitySet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="AptVTModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Aidat">
+          <Key>
+            <PropertyRef Name="AidatID" />
+          </Key>
+          <Property Name="AidatID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AidatAy" Type="String" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Name="AidatYil" Type="Int32" />
+          <Property Name="AidatTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DaireNo" Type="Int32" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="ZamEklendiMi" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="Daireler">
+          <Key>
+            <PropertyRef Name="DaireID" />
+          </Key>
+          <Property Name="DaireID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DaireNo" Type="Int32" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="AdSoyad" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Telefon" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="TC" Type="String" MaxLength="11" FixedLength="false" Unicode="true" />
+          <Property Name="DaireDurum" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Borc" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="YonetimdeMi" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="Ek">
+          <Key>
+            <PropertyRef Name="EkID" />
+          </Key>
+          <Property Name="EkID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="EkAy" Type="String" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Name="EkYil" Type="Int32" />
+          <Property Name="EkTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DaireNo" Type="Int32" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="Gider">
+          <Key>
+            <PropertyRef Name="GiderID" />
+          </Key>
+          <Property Name="GiderID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="GiderAciklama" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="GiderTuruID" Type="Int32" />
+          <Property Name="GiderTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="GiderTarih" Type="DateTime" Precision="0" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="GiderNo" Type="Int32" />
+        </EntityType>
+        <EntityType Name="GiderTuru">
+          <Key>
+            <PropertyRef Name="GiderTuruID" />
+          </Key>
+          <Property Name="GiderTuruID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="GiderTuruAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="BinaID" Type="Int32" />
+        </EntityType>
+        <EntityType Name="Hareketler">
+          <Key>
+            <PropertyRef Name="HareketID" />
+          </Key>
+          <Property Name="HareketID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="KullaniciID" Type="Int32" />
+          <Property Name="OlayAciklama" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Tarih" Type="DateTime" Precision="3" />
+          <Property Name="Tur" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="Kasa">
+          <Key>
+            <PropertyRef Name="KasaID" />
+          </Key>
+          <Property Name="KasaID" Type="Int32" Nullable="false" />
+          <Property Name="KasaAy" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="KasaYil" Type="Int32" />
+          <Property Name="KasaAidat" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="KasaEk" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="KasaToplam" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="AyKodu" Type="Int32" />
+        </EntityType>
+        <EntityType Name="Makbuz">
+          <Key>
+            <PropertyRef Name="MakbuzID" />
+          </Key>
+          <Property Name="MakbuzID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="MakbuzNo" Type="Int32" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="DaireID" Type="Int32" />
+          <Property Name="MabuzTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="MakbuzTarihi" Type="DateTime" Precision="0" />
+          <Property Name="Aciklama" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Durum" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="OnayliMi" Type="Boolean" />
+        </EntityType>
+        <EntityType Name="Tahsilat">
+          <Key>
+            <PropertyRef Name="TahsilatID" />
+          </Key>
+          <Property Name="TahsilatID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TahsilatAciklama" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="TahsilatTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="TahsilatTarih" Type="DateTime" Precision="0" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="TahsilatNo" Type="Int32" />
+        </EntityType>
+        <EntityType Name="AidatView">
+          <Key>
+            <PropertyRef Name="AidatID" />
+          </Key>
+          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="AidatID" Type="Int32" Nullable="false" />
+          <Property Name="AidatAy" Type="String" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Name="AidatYil" Type="Int32" />
+          <Property Name="AidatTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DaireNo" Type="Int32" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="AdSoyad" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="EkView">
+          <Key>
+            <PropertyRef Name="EkID" />
+          </Key>
+          <Property Name="EkID" Type="Int32" Nullable="false" />
+          <Property Name="EkAy" Type="String" MaxLength="15" FixedLength="false" Unicode="true" />
+          <Property Name="EkYil" Type="Int32" />
+          <Property Name="EkTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DaireNo" Type="Int32" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="AdSoyad" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="GiderView">
+          <Key>
+            <PropertyRef Name="GiderID" />
+          </Key>
+          <Property Name="GiderTuruID" Type="Int32" />
+          <Property Name="GiderTuruAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="GiderTarih" Type="DateTime" Precision="0" />
+          <Property Name="GiderTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="GiderAciklama" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="GiderID" Type="Int32" Nullable="false" />
+          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="GiderNo" Type="Int32" />
+        </EntityType>
+        <EntityType Name="HareketView">
+          <Key>
+            <PropertyRef Name="HareketID" />
+            <PropertyRef Name="BinaID" />
+            <PropertyRef Name="KullaniciID" />
+          </Key>
+          <Property Name="HareketID" Type="Int32" Nullable="false" />
+          <Property Name="BinaID" Type="Int32" Nullable="false" />
+          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="KullaniciID" Type="Int32" Nullable="false" />
+          <Property Name="KullaniciAdi" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="AdSoyad" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="OlayAciklama" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Tarih" Type="DateTime" Precision="3" />
+          <Property Name="Tur" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="KasaView">
+          <Key>
+            <PropertyRef Name="KasaID" />
+          </Key>
+          <Property Name="KasaID" Type="Int32" Nullable="false" />
+          <Property Name="KasaAy" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="KasaYil" Type="Int32" />
+          <Property Name="KasaAidat" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="KasaEk" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="KasaToplam" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="MakbuzView">
+          <Key>
+            <PropertyRef Name="MakbuzID" />
+          </Key>
+          <Property Name="MakbuzID" Type="Int32" Nullable="false" />
+          <Property Name="MakbuzNo" Type="Int32" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="DaireID" Type="Int32" />
+          <Property Name="DaireNo" Type="Int32" />
+          <Property Name="AdSoyad" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="MabuzTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="MakbuzTarihi" Type="DateTime" Precision="0" />
+          <Property Name="Aciklama" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Durum" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Telefon" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="TC" Type="String" MaxLength="11" FixedLength="false" Unicode="true" />
+          <Property Name="DaireDurum" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Borc" Type="Decimal" Precision="18" Scale="2" />
+        </EntityType>
+        <EntityType Name="TahsilatView">
+          <Key>
+            <PropertyRef Name="TahsilatID" />
+          </Key>
+          <Property Name="TahsilatID" Type="Int32" Nullable="false" />
+          <Property Name="TahsilatAciklama" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="TahsilatTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="TahsilatTarih" Type="DateTime" Precision="0" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="TahsilatNo" Type="Int32" />
+        </EntityType>
+        <EntityContainer Name="AptVTEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Aidats" EntityType="Self.Aidat" />
+          <EntitySet Name="Dairelers" EntityType="Self.Daireler" />
+          <EntitySet Name="Eks" EntityType="Self.Ek" />
+          <EntitySet Name="Giders" EntityType="Self.Gider" />
+          <EntitySet Name="GiderTurus" EntityType="Self.GiderTuru" />
+          <EntitySet Name="Hareketlers" EntityType="Self.Hareketler" />
+          <EntitySet Name="Kasas" EntityType="Self.Kasa" />
+          <EntitySet Name="Makbuzs" EntityType="Self.Makbuz" />
+          <EntitySet Name="Tahsilats" EntityType="Self.Tahsilat" />
+          <EntitySet Name="AidatViews" EntityType="Self.AidatView" />
+          <EntitySet Name="EkViews" EntityType="Self.EkView" />
+          <EntitySet Name="GiderViews" EntityType="Self.GiderView" />
+          <EntitySet Name="HareketViews" EntityType="Self.HareketView" />
+          <EntitySet Name="KasaViews" EntityType="Self.KasaView" />
+          <EntitySet Name="MakbuzViews" EntityType="Self.MakbuzView" />
+          <EntitySet Name="TahsilatViews" EntityType="Self.TahsilatView" />
+          <EntitySet Name="Binalars" EntityType="AptVTModel.Binalar" />
+          <EntitySet Name="Kullanicilars" EntityType="AptVTModel.Kullanicilar" />
+          <EntitySet Name="KullanicilarViews" EntityType="AptVTModel.KullanicilarView" />
+          <EntitySet Name="MakbuzSatirs" EntityType="AptVTModel.MakbuzSatir" />
+          <EntitySet Name="MakbuzSatirViews" EntityType="AptVTModel.MakbuzSatirView" />
+          <EntitySet Name="AcilisBakiyes" EntityType="AptVTModel.AcilisBakiye" />
+          <EntitySet Name="Duyurulars" EntityType="AptVTModel.Duyurular" />
+          <EntitySet Name="Notlars" EntityType="AptVTModel.Notlar" />
+        </EntityContainer>
+        <EntityType Name="Binalar">
+          <Key>
+            <PropertyRef Name="BinaID" />
+          </Key>
+          <Property Name="BinaID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Adres" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="VergiNo" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="DaireSayisi" Type="Int32" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="SozlesmeBitisTarihi" Type="DateTime" Precision="0" />
+          <Property Name="SozlesmeBaslamaTarihi" Type="DateTime" Precision="0" />
+          <Property Name="BinaKullaniciAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="Kullanicilar">
+          <Key>
+            <PropertyRef Name="KullaniciID" />
+          </Key>
+          <Property Name="KullaniciID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="KullaniciAdi" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="AdSoyad" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Parola" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Telefon" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Yetki" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="KullanicilarView">
+          <Key>
+            <PropertyRef Name="BinaID" />
+            <PropertyRef Name="KullaniciID" />
+          </Key>
+          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="BinaID" Type="Int32" Nullable="false" />
+          <Property Name="Adres" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="VergiNo" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="DaireSayisi" Type="Int32" />
+          <Property Name="KullaniciID" Type="Int32" Nullable="false" />
+          <Property Name="KullaniciAdi" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="AdSoyad" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Parola" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Telefon" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Yetki" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="KullaniciDurumu" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="SozlesmeBitisTarihi" Type="DateTime" Precision="0" />
+          <Property Name="BinaDurumu" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="BinaKullaniciAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="SozlesmeBaslamaTarihi" Type="DateTime" Precision="0" />
+        </EntityType>
+        <EntityType Name="MakbuzSatir">
+          <Key>
+            <PropertyRef Name="MakbuzSatirID" />
+          </Key>
+          <Property Name="MakbuzSatirID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="MakbuzID" Type="Int32" />
+          <Property Name="AyAdi" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="YilAdi" Type="Int32" />
+          <Property Name="Tutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DaireID" Type="Int32" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="EkMiAidatMi" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="MakbuzSatirView">
+          <Key>
+            <PropertyRef Name="MakbuzSatirID" />
+          </Key>
+          <Property Name="MakbuzSatirID" Type="Int32" Nullable="false" />
+          <Property Name="MakbuzID" Type="Int32" />
+          <Property Name="MakbuzNo" Type="Int32" />
+          <Property Name="DaireNo" Type="Int32" />
+          <Property Name="AdSoyad" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="MabuzTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="MakbuzTarihi" Type="DateTime" Precision="0" />
+          <Property Name="Aciklama" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="MabuzDurum" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="AyAdi" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Tutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DaireID" Type="Int32" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="MakbuzSatirDurum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="YilAdi" Type="Int32" />
+          <Property Name="EkMiAidatMi" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="AcilisBakiye">
+          <Key>
+            <PropertyRef Name="AcilisBakiyeID" />
+          </Key>
+          <Property Name="AcilisBakiyeID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="EkTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="AidatTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="ToplamTutar" Type="Decimal" Precision="18" Scale="2" />
+        </EntityType>
+        <EntityType Name="Duyurular">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" />
+          <Property Name="Baslik" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Aciklama" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Tarih" Type="DateTime" Precision="0" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="Notlar">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Aciklama" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="BorcAciklama" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="AptVTModelStoreContainer" CdmEntityContainer="AptVTEntities">
+          <EntitySetMapping Name="Aidats">
+            <EntityTypeMapping TypeName="AptVTModel.Aidat">
+              <MappingFragment StoreEntitySet="Aidat">
+                <ScalarProperty Name="ZamEklendiMi" ColumnName="ZamEklendiMi" />
+                <ScalarProperty Name="AidatID" ColumnName="AidatID" />
+                <ScalarProperty Name="AidatAy" ColumnName="AidatAy" />
+                <ScalarProperty Name="AidatYil" ColumnName="AidatYil" />
+                <ScalarProperty Name="AidatTutar" ColumnName="AidatTutar" />
+                <ScalarProperty Name="DaireNo" ColumnName="DaireNo" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Dairelers">
+            <EntityTypeMapping TypeName="AptVTModel.Daireler">
+              <MappingFragment StoreEntitySet="Daireler">
+                <ScalarProperty Name="YonetimdeMi" ColumnName="YonetimdeMi" />
+                <ScalarProperty Name="DaireID" ColumnName="DaireID" />
+                <ScalarProperty Name="DaireNo" ColumnName="DaireNo" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="AdSoyad" ColumnName="AdSoyad" />
+                <ScalarProperty Name="Telefon" ColumnName="Telefon" />
+                <ScalarProperty Name="TC" ColumnName="TC" />
+                <ScalarProperty Name="DaireDurum" ColumnName="DaireDurum" />
+                <ScalarProperty Name="Borc" ColumnName="Borc" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Eks">
+            <EntityTypeMapping TypeName="AptVTModel.Ek">
+              <MappingFragment StoreEntitySet="Ek">
+                <ScalarProperty Name="EkID" ColumnName="EkID" />
+                <ScalarProperty Name="EkAy" ColumnName="EkAy" />
+                <ScalarProperty Name="EkYil" ColumnName="EkYil" />
+                <ScalarProperty Name="EkTutar" ColumnName="EkTutar" />
+                <ScalarProperty Name="DaireNo" ColumnName="DaireNo" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Giders">
+            <EntityTypeMapping TypeName="AptVTModel.Gider">
+              <MappingFragment StoreEntitySet="Gider">
+                <ScalarProperty Name="GiderNo" ColumnName="GiderNo" />
+                <ScalarProperty Name="GiderID" ColumnName="GiderID" />
+                <ScalarProperty Name="GiderAciklama" ColumnName="GiderAciklama" />
+                <ScalarProperty Name="GiderTuruID" ColumnName="GiderTuruID" />
+                <ScalarProperty Name="GiderTutar" ColumnName="GiderTutar" />
+                <ScalarProperty Name="GiderTarih" ColumnName="GiderTarih" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="GiderTurus">
+            <EntityTypeMapping TypeName="AptVTModel.GiderTuru">
+              <MappingFragment StoreEntitySet="GiderTuru">
+                <ScalarProperty Name="GiderTuruID" ColumnName="GiderTuruID" />
+                <ScalarProperty Name="GiderTuruAdi" ColumnName="GiderTuruAdi" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Hareketlers">
+            <EntityTypeMapping TypeName="AptVTModel.Hareketler">
+              <MappingFragment StoreEntitySet="Hareketler">
+                <ScalarProperty Name="HareketID" ColumnName="HareketID" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="KullaniciID" ColumnName="KullaniciID" />
+                <ScalarProperty Name="OlayAciklama" ColumnName="OlayAciklama" />
+                <ScalarProperty Name="Tarih" ColumnName="Tarih" />
+                <ScalarProperty Name="Tur" ColumnName="Tur" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Kasas">
+            <EntityTypeMapping TypeName="AptVTModel.Kasa">
+              <MappingFragment StoreEntitySet="Kasa">
+                <ScalarProperty Name="AyKodu" ColumnName="AyKodu" />
+                <ScalarProperty Name="KasaID" ColumnName="KasaID" />
+                <ScalarProperty Name="KasaAy" ColumnName="KasaAy" />
+                <ScalarProperty Name="KasaYil" ColumnName="KasaYil" />
+                <ScalarProperty Name="KasaAidat" ColumnName="KasaAidat" />
+                <ScalarProperty Name="KasaEk" ColumnName="KasaEk" />
+                <ScalarProperty Name="KasaToplam" ColumnName="KasaToplam" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Makbuzs">
+            <EntityTypeMapping TypeName="AptVTModel.Makbuz">
+              <MappingFragment StoreEntitySet="Makbuz">
+                <ScalarProperty Name="OnayliMi" ColumnName="OnayliMi" />
+                <ScalarProperty Name="MakbuzID" ColumnName="MakbuzID" />
+                <ScalarProperty Name="MakbuzNo" ColumnName="MakbuzNo" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="DaireID" ColumnName="DaireID" />
+                <ScalarProperty Name="MabuzTutar" ColumnName="MabuzTutar" />
+                <ScalarProperty Name="MakbuzTarihi" ColumnName="MakbuzTarihi" />
+                <ScalarProperty Name="Aciklama" ColumnName="Aciklama" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Tahsilats">
+            <EntityTypeMapping TypeName="AptVTModel.Tahsilat">
+              <MappingFragment StoreEntitySet="Tahsilat">
+                <ScalarProperty Name="TahsilatNo" ColumnName="TahsilatNo" />
+                <ScalarProperty Name="TahsilatID" ColumnName="TahsilatID" />
+                <ScalarProperty Name="TahsilatAciklama" ColumnName="TahsilatAciklama" />
+                <ScalarProperty Name="TahsilatTutar" ColumnName="TahsilatTutar" />
+                <ScalarProperty Name="TahsilatTarih" ColumnName="TahsilatTarih" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AidatViews">
+            <EntityTypeMapping TypeName="AptVTModel.AidatView">
+              <MappingFragment StoreEntitySet="AidatView">
+                <ScalarProperty Name="AdSoyad" ColumnName="AdSoyad" />
+                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
+                <ScalarProperty Name="AidatID" ColumnName="AidatID" />
+                <ScalarProperty Name="AidatAy" ColumnName="AidatAy" />
+                <ScalarProperty Name="AidatYil" ColumnName="AidatYil" />
+                <ScalarProperty Name="AidatTutar" ColumnName="AidatTutar" />
+                <ScalarProperty Name="DaireNo" ColumnName="DaireNo" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="EkViews">
+            <EntityTypeMapping TypeName="AptVTModel.EkView">
+              <MappingFragment StoreEntitySet="EkView">
+                <ScalarProperty Name="AdSoyad" ColumnName="AdSoyad" />
+                <ScalarProperty Name="EkID" ColumnName="EkID" />
+                <ScalarProperty Name="EkAy" ColumnName="EkAy" />
+                <ScalarProperty Name="EkYil" ColumnName="EkYil" />
+                <ScalarProperty Name="EkTutar" ColumnName="EkTutar" />
+                <ScalarProperty Name="DaireNo" ColumnName="DaireNo" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="GiderViews">
+            <EntityTypeMapping TypeName="AptVTModel.GiderView">
+              <MappingFragment StoreEntitySet="GiderView">
+                <ScalarProperty Name="GiderNo" ColumnName="GiderNo" />
+                <ScalarProperty Name="GiderTuruID" ColumnName="GiderTuruID" />
+                <ScalarProperty Name="GiderTuruAdi" ColumnName="GiderTuruAdi" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+                <ScalarProperty Name="GiderTarih" ColumnName="GiderTarih" />
+                <ScalarProperty Name="GiderTutar" ColumnName="GiderTutar" />
+                <ScalarProperty Name="GiderAciklama" ColumnName="GiderAciklama" />
+                <ScalarProperty Name="GiderID" ColumnName="GiderID" />
+                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HareketViews">
+            <EntityTypeMapping TypeName="AptVTModel.HareketView">
+              <MappingFragment StoreEntitySet="HareketView">
+                <ScalarProperty Name="HareketID" ColumnName="HareketID" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
+                <ScalarProperty Name="KullaniciID" ColumnName="KullaniciID" />
+                <ScalarProperty Name="KullaniciAdi" ColumnName="KullaniciAdi" />
+                <ScalarProperty Name="AdSoyad" ColumnName="AdSoyad" />
+                <ScalarProperty Name="OlayAciklama" ColumnName="OlayAciklama" />
+                <ScalarProperty Name="Tarih" ColumnName="Tarih" />
+                <ScalarProperty Name="Tur" ColumnName="Tur" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="KasaViews">
+            <EntityTypeMapping TypeName="AptVTModel.KasaView">
+              <MappingFragment StoreEntitySet="KasaView">
+                <ScalarProperty Name="KasaID" ColumnName="KasaID" />
+                <ScalarProperty Name="KasaAy" ColumnName="KasaAy" />
+                <ScalarProperty Name="KasaYil" ColumnName="KasaYil" />
+                <ScalarProperty Name="KasaAidat" ColumnName="KasaAidat" />
+                <ScalarProperty Name="KasaEk" ColumnName="KasaEk" />
+                <ScalarProperty Name="KasaToplam" ColumnName="KasaToplam" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MakbuzViews">
+            <EntityTypeMapping TypeName="AptVTModel.MakbuzView">
+              <MappingFragment StoreEntitySet="MakbuzView">
+                <ScalarProperty Name="Borc" ColumnName="Borc" />
+                <ScalarProperty Name="DaireDurum" ColumnName="DaireDurum" />
+                <ScalarProperty Name="TC" ColumnName="TC" />
+                <ScalarProperty Name="Telefon" ColumnName="Telefon" />
+                <ScalarProperty Name="MakbuzID" ColumnName="MakbuzID" />
+                <ScalarProperty Name="MakbuzNo" ColumnName="MakbuzNo" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
+                <ScalarProperty Name="DaireID" ColumnName="DaireID" />
+                <ScalarProperty Name="DaireNo" ColumnName="DaireNo" />
+                <ScalarProperty Name="AdSoyad" ColumnName="AdSoyad" />
+                <ScalarProperty Name="MabuzTutar" ColumnName="MabuzTutar" />
+                <ScalarProperty Name="MakbuzTarihi" ColumnName="MakbuzTarihi" />
+                <ScalarProperty Name="Aciklama" ColumnName="Aciklama" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TahsilatViews">
+            <EntityTypeMapping TypeName="AptVTModel.TahsilatView">
+              <MappingFragment StoreEntitySet="TahsilatView">
+                <ScalarProperty Name="TahsilatNo" ColumnName="TahsilatNo" />
+                <ScalarProperty Name="TahsilatID" ColumnName="TahsilatID" />
+                <ScalarProperty Name="TahsilatAciklama" ColumnName="TahsilatAciklama" />
+                <ScalarProperty Name="TahsilatTutar" ColumnName="TahsilatTutar" />
+                <ScalarProperty Name="TahsilatTarih" ColumnName="TahsilatTarih" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Binalars">
+            <EntityTypeMapping TypeName="AptVTModel.Binalar">
+              <MappingFragment StoreEntitySet="Binalar">
+                <ScalarProperty Name="BinaKullaniciAdi" ColumnName="BinaKullaniciAdi" />
+                <ScalarProperty Name="SozlesmeBaslamaTarihi" ColumnName="SozlesmeBaslamaTarihi" />
+                <ScalarProperty Name="SozlesmeBitisTarihi" ColumnName="SozlesmeBitisTarihi" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+                <ScalarProperty Name="DaireSayisi" ColumnName="DaireSayisi" />
+                <ScalarProperty Name="VergiNo" ColumnName="VergiNo" />
+                <ScalarProperty Name="Adres" ColumnName="Adres" />
+                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Kullanicilars">
+            <EntityTypeMapping TypeName="AptVTModel.Kullanicilar">
+              <MappingFragment StoreEntitySet="Kullanicilar">
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+                <ScalarProperty Name="Yetki" ColumnName="Yetki" />
+                <ScalarProperty Name="Telefon" ColumnName="Telefon" />
+                <ScalarProperty Name="Parola" ColumnName="Parola" />
+                <ScalarProperty Name="AdSoyad" ColumnName="AdSoyad" />
+                <ScalarProperty Name="KullaniciAdi" ColumnName="KullaniciAdi" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="KullaniciID" ColumnName="KullaniciID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="KullanicilarViews">
+            <EntityTypeMapping TypeName="AptVTModel.KullanicilarView">
+              <MappingFragment StoreEntitySet="KullanicilarView">
+                <ScalarProperty Name="SozlesmeBaslamaTarihi" ColumnName="SozlesmeBaslamaTarihi" />
+                <ScalarProperty Name="BinaKullaniciAdi" ColumnName="BinaKullaniciAdi" />
+                <ScalarProperty Name="BinaDurumu" ColumnName="BinaDurumu" />
+                <ScalarProperty Name="SozlesmeBitisTarihi" ColumnName="SozlesmeBitisTarihi" />
+                <ScalarProperty Name="KullaniciDurumu" ColumnName="KullaniciDurumu" />
+                <ScalarProperty Name="Yetki" ColumnName="Yetki" />
+                <ScalarProperty Name="Telefon" ColumnName="Telefon" />
+                <ScalarProperty Name="Parola" ColumnName="Parola" />
+                <ScalarProperty Name="AdSoyad" ColumnName="AdSoyad" />
+                <ScalarProperty Name="KullaniciAdi" ColumnName="KullaniciAdi" />
+                <ScalarProperty Name="KullaniciID" ColumnName="KullaniciID" />
+                <ScalarProperty Name="DaireSayisi" ColumnName="DaireSayisi" />
+                <ScalarProperty Name="VergiNo" ColumnName="VergiNo" />
+                <ScalarProperty Name="Adres" ColumnName="Adres" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MakbuzSatirs">
+            <EntityTypeMapping TypeName="AptVTModel.MakbuzSatir">
+              <MappingFragment StoreEntitySet="MakbuzSatir">
+                <ScalarProperty Name="EkMiAidatMi" ColumnName="EkMiAidatMi" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="DaireID" ColumnName="DaireID" />
+                <ScalarProperty Name="Tutar" ColumnName="Tutar" />
+                <ScalarProperty Name="YilAdi" ColumnName="YilAdi" />
+                <ScalarProperty Name="AyAdi" ColumnName="AyAdi" />
+                <ScalarProperty Name="MakbuzID" ColumnName="MakbuzID" />
+                <ScalarProperty Name="MakbuzSatirID" ColumnName="MakbuzSatirID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MakbuzSatirViews">
+            <EntityTypeMapping TypeName="AptVTModel.MakbuzSatirView">
+              <MappingFragment StoreEntitySet="MakbuzSatirView">
+                <ScalarProperty Name="EkMiAidatMi" ColumnName="EkMiAidatMi" />
+                <ScalarProperty Name="YilAdi" ColumnName="YilAdi" />
+                <ScalarProperty Name="MakbuzSatirDurum" ColumnName="MakbuzSatirDurum" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="DaireID" ColumnName="DaireID" />
+                <ScalarProperty Name="Tutar" ColumnName="Tutar" />
+                <ScalarProperty Name="AyAdi" ColumnName="AyAdi" />
+                <ScalarProperty Name="MabuzDurum" ColumnName="MabuzDurum" />
+                <ScalarProperty Name="Aciklama" ColumnName="Aciklama" />
+                <ScalarProperty Name="MakbuzTarihi" ColumnName="MakbuzTarihi" />
+                <ScalarProperty Name="MabuzTutar" ColumnName="MabuzTutar" />
+                <ScalarProperty Name="AdSoyad" ColumnName="AdSoyad" />
+                <ScalarProperty Name="DaireNo" ColumnName="DaireNo" />
+                <ScalarProperty Name="MakbuzNo" ColumnName="MakbuzNo" />
+                <ScalarProperty Name="MakbuzID" ColumnName="MakbuzID" />
+                <ScalarProperty Name="MakbuzSatirID" ColumnName="MakbuzSatirID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AcilisBakiyes">
+            <EntityTypeMapping TypeName="AptVTModel.AcilisBakiye">
+              <MappingFragment StoreEntitySet="AcilisBakiye">
+                <ScalarProperty Name="ToplamTutar" ColumnName="ToplamTutar" />
+                <ScalarProperty Name="AidatTutar" ColumnName="AidatTutar" />
+                <ScalarProperty Name="EkTutar" ColumnName="EkTutar" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="AcilisBakiyeID" ColumnName="AcilisBakiyeID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Duyurulars">
+            <EntityTypeMapping TypeName="AptVTModel.Duyurular">
+              <MappingFragment StoreEntitySet="Duyurular">
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+                <ScalarProperty Name="Tarih" ColumnName="Tarih" />
+                <ScalarProperty Name="Aciklama" ColumnName="Aciklama" />
+                <ScalarProperty Name="Baslik" ColumnName="Baslik" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Notlars">
+            <EntityTypeMapping TypeName="AptVTModel.Notlar">
+              <MappingFragment StoreEntitySet="Notlar">
+                <ScalarProperty Name="BorcAciklama" ColumnName="BorcAciklama" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="Aciklama" ColumnName="Aciklama" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

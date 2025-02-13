@@ -1,0 +1,22 @@
+﻿
+@{
+    ViewBag.Title = "Ek Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Ek Düzenle</h1>
+</div><!-- End Page Title -->
+
+<br />
+<form action="/AnaSayfa/EkDuzenle" method="post">
+    <input type="hidden" name="EkID" value="@ViewBag.a.EkID" />
+    <label> Daire No: @ViewBag.a.DaireNo </label>
+    <br />
+    <label> @ViewBag.a.EkAy - @ViewBag.a.EkYil </label>
+    <br />
+    <input type="text" name="EkTutar" class="form-control" value="@ViewBag.a.EkTutar" onkeydown="preventDotAndComma(event)" />
+    <br />
+    <button type="submit" class="btn btn-success">Güncelle</button>
+
+</form>
