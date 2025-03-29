@@ -13,16 +13,26 @@
 {
 
 
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
-        Daire Sakini Ekle
-    </button>
+    <div class="row d-flex justify-content-center gap-2">
+        <div class="col-auto">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+                Daire Sakini Ekle
+            </button>
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered1">
+                Excel ile toplu ekle
+            </button>
+        </div>
+        <div class="col-auto">
+            <a href="~/Content/Admin/assets/document/excel format.xlsx" class="btn btn-outline-success">
+                Excel Formatını İndir
+            </a>
+        </div>
+    </div>
 
-   
 
 
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered1">
-        Excel ile toplu ekle
-    </button>
 }
 @if (ViewBag.Durum == false)
 {
