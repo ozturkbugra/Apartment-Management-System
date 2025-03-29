@@ -427,6 +427,15 @@ namespace ApartmanAidatTakip.Controllers
             int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
+            var sorgu = db.Dairelers.Where(x => x.BinaID == BinaID).FirstOrDefault();
+
+            if(sorgu != null)
+            {
+                TempData["Hata"] = "Bu binaya ait daire kaydı yapılmıştır. Bu yüzden toplu halde daire ekleyemezsiniz. Tek tek daireleri tanımlamanız gerekmektedir.";
+                return RedirectToAction("Sakinler", "AnaSayfa");
+
+            }
+
             try
             {
                 if (file != null && file.ContentLength > 0)
@@ -448,23 +457,29 @@ namespace ApartmanAidatTakip.Controllers
 
                         List<Daireler> daireListesi = new List<Daireler>();
 
+                        
+                        int dairesayisi = 1;
+
                         for (int row = 2; row <= rowCount; row++) // 1. satır başlık olduğu için 2'den başlıyoruz
                         {
+                            
                             eklenensakinsayisi++; // Her yeni eklemede artır
 
                             var daire = new Daireler
                             {
-                                DaireNo = Convert.ToInt32(worksheet.Cells[row, 1].Value), // Excel'den DaireNo al
-                                AdSoyad = worksheet.Cells[row, 2].Value?.ToString() ?? "", // Excel'den AdSoyad al
+                                DaireNo = dairesayisi, // Excel'den DaireNo al
+                                AdSoyad = worksheet.Cells[row, 1].Value?.ToString() ?? "", // Excel'den AdSoyad al
                                 BinaID = BinaID,
-                                Telefon = worksheet.Cells[row, 3].Value?.ToString() ?? "", // Sabit değer
-                                TC = worksheet.Cells[row, 4].Value?.ToString() ?? "", // Sabit değer
-                                DaireDurum = worksheet.Cells[row, 5].Value?.ToString() ?? "", // Sabit değer
+                                Telefon = worksheet.Cells[row, 2].Value?.ToString() ?? "", // Sabit değer
+                                TC = worksheet.Cells[row, 3].Value?.ToString() ?? "", // Sabit değer
+                                DaireDurum = worksheet.Cells[row, 4].Value?.ToString() ?? "", // Sabit değer
                                 Borc = 0, // Sabit değer
                                 YonetimdeMi = "H" // Sabit değer
                             };
 
                             daireListesi.Add(daire);
+                            dairesayisi++;
+
                         }
 
                         db.Dairelers.AddRange(daireListesi);
