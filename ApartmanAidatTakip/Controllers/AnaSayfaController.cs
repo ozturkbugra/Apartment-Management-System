@@ -54,9 +54,6 @@ namespace ApartmanAidatTakip.Controllers
             ViewBag.Duyurular = db.Duyurulars.Where(x => x.Durum == "A").OrderByDescending(x => x.ID).ToList();
 
         }
-
-
-
         public void DonemEklendiMi()
         {
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
@@ -75,8 +72,6 @@ namespace ApartmanAidatTakip.Controllers
                 Session["DonemSorgu"] = "1";
             }
         }
-
-
         public ActionResult Login()
         {
             DateTime simdi = DateTime.Now.Date;
@@ -143,7 +138,6 @@ namespace ApartmanAidatTakip.Controllers
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
 
             int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
-
             var aktifmi = db.KullanicilarViews.Where(x => x.KullaniciID == KullaniciID).FirstOrDefault();
 
             if (aktifmi.KullaniciDurumu == "P")
@@ -188,9 +182,26 @@ namespace ApartmanAidatTakip.Controllers
                 return RedirectToAction("Logout", "AnaSayfa");
             }
 
+
+
+            // buradan başlayacağız
+
+            DateTime bugun = DateTime.Now;
+            DateTime oncekiAy = bugun;
+
+            int SimdikiYil = oncekiAy.Year;
+            int SimdikiAy = oncekiAy.Month;
+
+            // Önce son kasayı kontrol ediyoruz
+            var son_kasa = db.Kasas
+                .Where(x => x.KasaYil == SimdikiYil && x.AyKodu == SimdikiAy && x.BinaID == BinaID)
+                .FirstOrDefault();
+
+
             int currentMonth = DateTime.Now.Month;
             int previousMonth = (currentMonth == 1) ? 12 : currentMonth - 1;
             int currentYear = DateTime.Now.Year;
+
 
             var acilis = db.AcilisBakiyes.Where(x => x.BinaID == BinaID).FirstOrDefault();
 
@@ -211,32 +222,72 @@ namespace ApartmanAidatTakip.Controllers
 
             }
 
+            if (son_kasa == null)
+            {
+                int ay = DateTime.Now.Month;
+                int yil = DateTime.Now.Year;
+                var aygider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                var makbuzgelir = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil).Sum(x => (decimal?)x.MabuzTutar) ?? 0;
+                var tahsilatgelir = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                var demirbasgider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTuruID == 6).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+
+                ViewBag.aygelir = makbuzgelir + tahsilatgelir;
+                ViewBag.aygider = aygider;
+                ViewBag.alacak = db.Dairelers.Where(x => x.BinaID == BinaID).Sum(x => (decimal?)x.Borc) ?? 0;
+
+                var makbuzIDListesi = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Year == yil).Select(x => x.MakbuzID).ToList();
+                decimal makbuz = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && makbuzIDListesi.Contains((int)x.MakbuzID)).Sum(x => (decimal?)x.Tutar) ?? 0;
+                decimal tahsilat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                decimal gider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                ViewBag.ToplamGelir = makbuz + tahsilat;
+                ViewBag.ToplamGider = gider;
 
 
-            int ay = DateTime.Now.Month;
-            int yil = DateTime.Now.Year;
-            var aygider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
-            var makbuzgelir = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil).Sum(x => (decimal?)x.MabuzTutar) ?? 0;
-            var tahsilatgelir = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
-            var demirbasgider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTuruID == 6).Sum(x => (decimal?)x.GiderTutar) ?? 0;
-
-            ViewBag.aygelir = makbuzgelir + tahsilatgelir;
-            ViewBag.aygider = aygider;
-            ViewBag.alacak = db.Dairelers.Where(x => x.BinaID == BinaID).Sum(x => (decimal?)x.Borc) ?? 0;
-
-            decimal makbuz = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.Tutar) ?? 0;
-            decimal tahsilat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
-            decimal gider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.GiderTutar) ?? 0;
-            ViewBag.ToplamGelir = makbuz + tahsilat + acilisbakiye;
-            ViewBag.ToplamGider = gider;
-            ViewBag.Kasa = (makbuz + tahsilat + acilisbakiye) - gider;
+                decimal tummakbuz = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.Tutar) ?? 0;
+                decimal tahsilat2 = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "E").Sum(x => (decimal?)x.Tutar) ?? 0;
+                decimal tahsilat3 = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                decimal gider2 = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.GiderTutar) ?? 0;
 
 
-            ViewBag.EkBakiye = (tahsilat + ekacilis) - demirbasgider;
+                ViewBag.Kasa = (acilisbakiye + tummakbuz + tahsilat3) - gider2;
+
+                ViewBag.EkBakiye = (tahsilat3 + ekacilis + tahsilat2) - demirbasgider;
+                ViewBag.AidatBakiye = ViewBag.Kasa - ViewBag.EkBakiye;
+
+
+            }
+            else
+            {
+
+
+                int ay = DateTime.Now.Month;
+                int yil = DateTime.Now.Year;
+                var aygider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                var makbuzgelir = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil).Sum(x => (decimal?)x.MabuzTutar) ?? 0;
+                var tahsilatgelir = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                var demirbasgider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTuruID == 6 && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+
+                ViewBag.aygelir = makbuzgelir + tahsilatgelir;
+                ViewBag.aygider = aygider;
+                ViewBag.alacak = db.Dairelers.Where(x => x.BinaID == BinaID).Sum(x => (decimal?)x.Borc) ?? 0;
+
+
+                var makbuzIDListesi = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Year == yil).Select(x => x.MakbuzID).ToList();
+                decimal makbuz = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && makbuzIDListesi.Contains((int)x.MakbuzID)).Sum(x => (decimal?)x.Tutar) ?? 0;
+                decimal tahsilat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                decimal gider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                ViewBag.ToplamGelir = makbuz + tahsilat;
+                ViewBag.ToplamGider = gider;
+
+                ViewBag.Kasa = (son_kasa.KasaToplam + makbuzgelir + tahsilatgelir) - aygider;
+
+                ViewBag.EkBakiye = (tahsilatgelir + son_kasa.KasaEk) - demirbasgider;
+
+                ViewBag.AidatBakiye = ViewBag.Kasa - ViewBag.EkBakiye;
 
 
 
-            ViewBag.AidatBakiye = ViewBag.Kasa - ViewBag.EkBakiye;
+            }
 
             decimal eskimakbuz = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == previousMonth && x.MakbuzTarihi.Value.Year == currentYear).Sum(x => (decimal?)x.MabuzTutar) ?? 0;
             decimal eskitahsilat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Month == previousMonth && x.TahsilatTarih.Value.Year == currentYear).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
@@ -310,6 +361,7 @@ namespace ApartmanAidatTakip.Controllers
                 ViewBag.KasaDegisim = 1;
                 ViewBag.KasaDegisimTutar = kasadegisim;
             }
+
 
             ViewBag.ToplamAlacak = db.Dairelers.Where(x => x.BinaID == BinaID).Sum(x => (decimal?)x.Borc) ?? 0;
             ViewBag.Giderler = db.GiderViews
@@ -907,582 +959,366 @@ namespace ApartmanAidatTakip.Controllers
 
 
 
-
-
                 var acilisbakiyesieklendimi = db.AcilisBakiyes.Where(x => x.BinaID == BinaID).FirstOrDefault();
 
-
-
                 if (acilisbakiyesieklendimi == null)
-
                 {
-
                     TempData["Hata"] = "Açılış bakiyesi eklemediğiniz için dönem eklenemedi. Açılış bakiyeniz yoksa 0 olarak ekleyiniz";
-
                     return View();
-
                 }
 
-
-
+                //Eklenen daire sayısı kontrol ediliyor
                 var tds = db.Binalars.Where(x => x.BinaID == BinaID).FirstOrDefault();
 
                 int? tanimlanandairesayisi = tds.DaireSayisi;
 
                 if (tanimlanandairesayisi == null)
-
                 {
-
                     tanimlanandairesayisi = 0;
-
                 }
 
                 int? eds = db.Dairelers.Where(x => x.BinaID == BinaID).Count();
 
-
-
                 if (eds == null)
-
                 {
-
                     eds = 0;
-
                 }
-
-
 
                 if (tanimlanandairesayisi != eds)
-
                 {
-
                     TempData["Hata"] = "Eksik Daire Sakini Tanımlaması nedeniyle dönem ekleme işlemi gerçekleştirilemedi. Eklemeniz Gereken Daire Sayısı: " + tanimlanandairesayisi;
-
                     return View();
-
                 }
-
-
 
                 int yeniAyKodu;
 
                 if (aidat.AidatAy == "Ocak")
-
                 {
-
                     yeniAyKodu = 1;
-
                 }
-
                 else if (aidat.AidatAy == "Şubat")
-
                 {
-
                     yeniAyKodu = 2;
-
                 }
-
                 else if (aidat.AidatAy == "Mart")
-
                 {
-
                     yeniAyKodu = 3;
-
                 }
-
                 else if (aidat.AidatAy == "Nisan")
-
                 {
-
                     yeniAyKodu = 4;
-
                 }
-
                 else if (aidat.AidatAy == "Mayıs")
-
                 {
-
                     yeniAyKodu = 5;
-
                 }
-
                 else if (aidat.AidatAy == "Haziran")
-
                 {
-
                     yeniAyKodu = 6;
-
                 }
-
                 else if (aidat.AidatAy == "Temmuz")
-
                 {
-
                     yeniAyKodu = 7;
-
                 }
-
                 else if (aidat.AidatAy == "Ağustos")
-
                 {
-
                     yeniAyKodu = 8;
-
                 }
-
                 else if (aidat.AidatAy == "Eylül")
-
                 {
-
                     yeniAyKodu = 9;
-
                 }
-
                 else if (aidat.AidatAy == "Ekim")
-
                 {
-
                     yeniAyKodu = 10;
-
                 }
-
                 else if (aidat.AidatAy == "Kasım")
-
                 {
-
                     yeniAyKodu = 11;
-
                 }
-
                 else if (aidat.AidatAy == "Aralık")
-
                 {
-
                     yeniAyKodu = 12;
-
                 }
-
                 else
-
                 {
-
                     yeniAyKodu = 0; // Hatalı ay girişi durumu için
-
                 }
 
 
 
                 // Şu anki ay ve yılı alıyoruz
 
-                int buAy = DateTime.Now.Month;
-
-                int buYil = DateTime.Now.Year;
-
+                int buyil = DateTime.Now.Year;
+                int buay = DateTime.Now.Month;
 
 
                 // Gelecek dönem eklenmemesi kontrolü
-
-                if (aidat.AidatYil != buYil || yeniAyKodu != buAy)
-
+                if (aidat.AidatYil != buyil || yeniAyKodu != buay)
                 {
-
                     string cumle = DateTime.Now.ToString("MMMM") + " ayındayız bu ay haricinde dönem ekleyemezsiniz. Ekleyemediğiniz Dönem varsa tüm daireleri tek tek borçlandırmalısınız";
-
                     TempData["Hata"] = cumle;
-
                     return View();
-
                 }
 
 
-
-
-
-                var sonKasaDonemi = db.Kasas
-
-                       .Where(x => x.BinaID == BinaID)
-
-                       .OrderByDescending(x => x.KasaYil)
-
-                       .ThenByDescending(x => x.AyKodu)
-
-                       .FirstOrDefault();
-
-
-
+                var sonKasaDonemi = db.Kasas.Where(x => x.BinaID == BinaID).OrderByDescending(x => x.KasaYil).ThenByDescending(x => x.AyKodu).FirstOrDefault();
                 // Eğer daha önce bir dönem eklendiyse ve yeni dönem eski bir dönemse hata döndür
 
                 if (sonKasaDonemi != null && aidat.AidatYil < sonKasaDonemi.KasaYil && yeniAyKodu < sonKasaDonemi.AyKodu)
 
                 {
-
                     TempData["Hata"] = "Önceki aylara dönem ekleyemezsiniz!";
-
                     return View();
-
                 }
 
 
+                DateTime bugun = DateTime.Now;
+                DateTime oncekiAy = bugun.AddMonths(-1);
 
-                var acilisliste = db.AcilisBakiyes.Where(x => x.BinaID == BinaID).FirstOrDefault();
+                int oncekiYil = oncekiAy.Year;
+                int oncekiAyKodu = oncekiAy.Month;
 
-                decimal? acilisaidat;
+                // Önce son kasayı kontrol ediyoruz
+                var son_kasa = db.Kasas
+                    .Where(x => x.KasaYil == oncekiYil && x.AyKodu == oncekiAyKodu && x.BinaID == BinaID)
+                    .FirstOrDefault();
 
-                decimal? acilisek;
-
-                if (acilisliste == null)
-
+                // Eğer yoksa veritabanına ekliyoruz
+                if (son_kasa == null)
                 {
+                    var ayAdi = new DateTime(oncekiYil, oncekiAyKodu, 1)
+    .ToString("MMMM", new System.Globalization.CultureInfo("tr-TR"));
 
-                    acilisaidat = 0;
 
-                    acilisek = 0;
+                    var eklenensonkasa = db.Kasas.Where(x => x.BinaID == BinaID).OrderByDescending(x => x.KasaID).FirstOrDefault();
 
+                    decimal eklenecekaidat, eklenecekek;
+                    if (eklenensonkasa != null)
+                    {
+                        eklenecekaidat = Convert.ToDecimal(eklenensonkasa.KasaAidat);
+                        eklenecekek = Convert.ToDecimal(eklenensonkasa.KasaEk);
+
+                    }
+                    else
+                    {
+                        eklenecekaidat = Convert.ToDecimal(acilisbakiyesieklendimi.AidatTutar);
+                        eklenecekek = Convert.ToDecimal(acilisbakiyesieklendimi.EkTutar);
+                    }
+
+                    var yeniKasa = new Kasa
+                    {
+                        KasaYil = oncekiYil,
+                        AyKodu = oncekiAyKodu,
+                        BinaID = BinaID,
+                        KasaEk = eklenecekek,
+                        KasaAidat = eklenecekaidat,
+                        KasaAy = ayAdi,
+                        KasaToplam = eklenecekek + eklenecekaidat
+                    };
+
+                    db.Kasas.Add(yeniKasa);
+                    db.SaveChanges();
                 }
 
-                else
+                // Ek ve Aidat'ı tekrar yeni sorgu ile alıyoruz (eklenmiş olabilir)
+                var son_kasa2 = db.Kasas
+                    .Where(x => x.KasaYil == oncekiYil && x.AyKodu == oncekiAyKodu && x.BinaID == BinaID)
+                    .FirstOrDefault();
 
-                {
-
-                    acilisaidat = acilisliste.AidatTutar;
-
-                    acilisek = acilisliste.EkTutar;
-
-                }
+                decimal kasaek = Convert.ToDecimal(son_kasa2.KasaEk);
+                decimal kasaaidat = Convert.ToDecimal(son_kasa2.KasaAidat);
 
 
+                int yil = oncekiAy.Year;
+                int ay = oncekiAy.Month;
 
+                var makbuzIDListesi = db.Makbuzs
+                    .Where(x => x.BinaID == BinaID && x.Durum == "A" &&
+                                x.MakbuzTarihi.Value.Year == yil &&
+                                x.MakbuzTarihi.Value.Month == ay)
+                    .Select(x => x.MakbuzID)
+                    .ToList();
 
+                var makbuzToplam = db.MakbuzSatirs
+                    .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "A" &&
+                                makbuzIDListesi.Contains((int)x.MakbuzID))
+                    .Sum(x => (decimal?)x.Tutar) ?? 0;
 
-                var makbuztoplam = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "A").Sum(x => (decimal?)x.Tutar) ?? 0;
+                var ektoplam2 = db.MakbuzSatirs
+                    .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "E" &&
+                                makbuzIDListesi.Contains((int)x.MakbuzID))
+                    .Sum(x => (decimal?)x.Tutar) ?? 0;
 
-                var ektoplam2 = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "E").Sum(x => (decimal?)x.Tutar) ?? 0;
+                var ektoplam1 = db.Tahsilats
+                    .Where(x => x.BinaID == BinaID && x.Durum == "A" &&
+                                x.TahsilatTarih.Value.Year == yil &&
+                                x.TahsilatTarih.Value.Month == ay)
+                    .Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
 
-                var ektoplam1 = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                var giderektoplam = db.Giders
+                    .Where(x => x.GiderTuruID == 6 && x.Durum == "A" && x.BinaID == BinaID &&
+                                x.GiderTarih.Value.Year == yil &&
+                                x.GiderTarih.Value.Month == ay)
+                    .Sum(x => (decimal?)x.GiderTutar) ?? 0;
 
-                var giderektoplam = db.Giders.Where(x => x.GiderTuruID == 6 && x.Durum == "A" && x.BinaID == BinaID).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                var gidertoplam = db.Giders
+                    .Where(x => x.GiderTuruID != 6 && x.Durum == "A" && x.BinaID == BinaID &&
+                                x.GiderTarih.Value.Year == yil &&
+                                x.GiderTarih.Value.Month == ay)
+                    .Sum(x => (decimal?)x.GiderTutar) ?? 0;
 
-                var gidertoplam = db.Giders.Where(x => x.GiderTuruID != 6 && x.Durum == "A" && x.BinaID == BinaID).Sum(x => (decimal?)x.GiderTutar) ?? 0;
-
-
-
-                var aidattoplam = (makbuztoplam + acilisaidat) - gidertoplam;
-
-                var ektoplam = (ektoplam1 + ektoplam2 + acilisek) - giderektoplam;
-
-
-
+                var aidattoplam = (makbuzToplam + kasaaidat) - gidertoplam;
+                var ektoplam = (ektoplam1 + ektoplam2 + kasaek) - giderektoplam;
                 var fulltoplam = aidattoplam + ektoplam;
 
 
-
                 if (aidat.AidatTutar != null)
-
                 {
-
                     if (donemeklendimi == null)
-
                     {
-
                         var daireler = db.Dairelers.Where(x => x.BinaID == BinaID).ToList();
 
                         foreach (var item in daireler)
-
                         {
-
                             if (item.YonetimdeMi == "E")
-
                             {
-
                                 continue;
-
                             }
 
                             var daireno = item.DaireNo;
-
                             var borc = item.Borc;
 
-
-
                             Aidat aidat1 = new Aidat()
-
                             {
-
                                 AidatAy = aidat.AidatAy,
-
                                 AidatYil = aidat.AidatYil,
-
                                 AidatTutar = aidat.AidatTutar,
-
                                 DaireNo = daireno,
-
                                 BinaID = BinaID,
-
                                 ZamEklendiMi = "H",
-
                                 Durum = "A",
-
                             };
 
                             db.Aidats.Add(aidat1);
-
                             db.SaveChanges();
-
-
-
                             var sakin = db.Dairelers.Where(x => x.BinaID == BinaID && x.DaireNo == daireno).FirstOrDefault();
-
                             sakin.Borc += aidat.AidatTutar;
-
                             db.SaveChanges();
-
-
 
                         }
-
-
-
-
-
                         Kasa kasa = new Kasa()
-
                         {
-
                             KasaAy = aidat.AidatAy,
-
                             KasaYil = aidat.AidatYil,
-
                             KasaAidat = aidattoplam,
-
                             KasaEk = ektoplam,
-
                             KasaToplam = fulltoplam,
-
                             BinaID = BinaID,
-
                             AyKodu = DateTime.Now.Month
-
-
-
                         };
 
                         db.Kasas.Add(kasa);
-
                         db.SaveChanges();
 
                         Hareketler hareketler = new Hareketler()
-
                         {
-
                             BinaID = BinaID,
-
                             KullaniciID = KullaniciID,
-
                             OlayAciklama = aidat.AidatTutar + " tl tutarında " + aidat.AidatAy + " - " + aidat.AidatYil + " Dönemi Eklenmiştir.",
-
                             Tarih = DateTime.Now,
-
                             Tur = "Ekleme",
-
                         };
 
                         db.Hareketlers.Add(hareketler);
-
                         db.SaveChanges();
-
-
-
-
-
-
-
                     }
-
                 }
 
                 var donemeklendimi2 = db.Eks.Where(x => x.BinaID == BinaID && x.EkAy == aidat.AidatAy && x.EkYil == aidat.AidatYil && x.Durum == "A").FirstOrDefault();
 
-
-
                 if (ek.EkTutar != null)
-
                 {
-
                     if (donemeklendimi2 == null)
-
                     {
-
                         var daireler2 = db.Dairelers.Where(x => x.BinaID == BinaID).ToList();
 
                         foreach (var item in daireler2)
-
                         {
-
                             if (item.YonetimdeMi == "E")
-
                             {
-
                                 continue;
-
                             }
 
-
-
                             var daireno = item.DaireNo;
-
                             var borc = item.Borc;
 
 
-
                             Ek ek1 = new Ek()
-
                             {
-
                                 EkAy = aidat.AidatAy,
-
                                 EkYil = aidat.AidatYil,
-
                                 EkTutar = ek.EkTutar,
-
                                 DaireNo = daireno,
-
                                 BinaID = BinaID,
-
                                 Durum = "A",
-
                             };
 
                             db.Eks.Add(ek1);
-
                             db.SaveChanges();
-
-
-
                             var sakin = db.Dairelers.Where(x => x.BinaID == BinaID && x.DaireNo == daireno).FirstOrDefault();
-
                             sakin.Borc += ek.EkTutar;
-
                             db.SaveChanges();
-
-
-
                         }
 
-
-
-
-
                         Hareketler hareketler1 = new Hareketler()
-
                         {
-
                             BinaID = BinaID,
-
                             KullaniciID = KullaniciID,
-
                             OlayAciklama = ek.EkTutar + " tl tutarında " + aidat.AidatAy + " - " + aidat.AidatYil + " Dönemi Eklenmiştir.",
-
                             Tarih = DateTime.Now,
-
                             Tur = "Ekleme",
-
                         };
 
                         db.Hareketlers.Add(hareketler1);
-
                         db.SaveChanges();
-
                     }
 
                 }
 
 
-
-
-
                 if (ek.EkTutar != null && donemeklendimi != null && donemeklendimi2 == null)
-
                 {
-
                     TempData["Basarili"] = "Aidat Daha Önce Eklendiği İçin Sadece Ek Eklendi";
-
-
-
                 }
-
                 else if (donemeklendimi == null && donemeklendimi2 != null)
-
                 {
-
                     TempData["Basarili"] = "Ek Daha Önce Eklendiği İçin Sadece Aidat Eklendi";
-
                 }
-
                 else if (donemeklendimi == null && donemeklendimi2 == null)
-
                 {
-
                     TempData["Basarili"] = "Dönem Başarıyla Eklendi";
-
-
-
                 }
-
                 else if (donemeklendimi != null && donemeklendimi2 != null)
-
                 {
 
                     TempData["Hata"] = "Bu Dönem Daha Önce Eklendiği İçin İşlem Başarısız Oldu!";
-
-
-
                 }
-
                 else
-
                 {
-
                     TempData["Hata"] = "Bu Dönem Daha Önce Eklendiği İçin İşlem Başarısız Oldu!";
-
                 }
-
-
 
             }
-
             catch (Exception)
-
             {
-
-
-
                 TempData["Hata"] = "Bir Hata Oluştu!";
-
             }
 
             return View();
 
         }
 
-        // Helper method to convert month name to code
-        private int GetMonthCode(string monthName)
-        {
-            switch (monthName)
-            {
-                case "Ocak": return 1;
-                case "Şubat": return 2;
-                case "Mart": return 3;
-                case "Nisan": return 4;
-                case "Mayıs": return 5;
-                case "Haziran": return 6;
-                case "Temmuz": return 7;
-                case "Ağustos": return 8;
-                case "Eylül": return 9;
-                case "Ekim": return 10;
-                case "Kasım": return 11;
-                case "Aralık": return 12;
-                default: return 0;
-            }
-        }
 
         public ActionResult EklenenAidatlar()
         {
