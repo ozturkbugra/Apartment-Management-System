@@ -1195,7 +1195,7 @@ namespace ApartmanAidatTakip.Controllers
                     son = son.Value.Date.AddDays(1).AddTicks(-1); // Saat kısmını 23:59:59 yapar
                 }
 
-                ViewBag.Gider = db.GiderViews.Where(x => x.GiderTuruID == GiderTuruID && x.BinaID == BinaID && x.GiderTarih >= ilk && x.GiderTarih <= son && x.Durum=="A").ToList();
+                ViewBag.Gider = db.GiderViews.Where(x => x.GiderTuruID == GiderTuruID && x.BinaID == BinaID && x.GiderTarih >= ilk && x.GiderTarih <= son && x.Durum=="A").OrderByDescending(x=> x.GiderID).ToList();
                 ViewBag.Toplam = db.GiderViews.Where(x => x.GiderTuruID == GiderTuruID && x.BinaID == BinaID && x.GiderTarih >= ilk && x.GiderTarih <= son && x.Durum == "A").Sum(x => (decimal?)x.GiderTutar) ?? 0;
             }
             else
