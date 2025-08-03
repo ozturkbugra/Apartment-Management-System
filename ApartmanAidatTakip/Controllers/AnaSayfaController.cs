@@ -49,7 +49,7 @@ namespace ApartmanAidatTakip.Controllers
             double percent = (kalanGun / 365.0) * 100;
 
 
-            ViewBag.Percent= Math.Round(percent);
+            ViewBag.Percent = Math.Round(percent);
 
             ViewBag.Duyurular = db.Duyurulars.Where(x => x.Durum == "A").OrderByDescending(x => x.ID).ToList();
 
@@ -76,11 +76,11 @@ namespace ApartmanAidatTakip.Controllers
             }
         }
 
-        
+
         public ActionResult Login()
         {
             DateTime simdi = DateTime.Now.Date;
-            ViewBag.Binalar = db.Binalars.Where(x => x.SozlesmeBitisTarihi >= simdi && x.Durum == "A").OrderBy(x=> x.BinaKullaniciAdi).ToList();
+            ViewBag.Binalar = db.Binalars.Where(x => x.SozlesmeBitisTarihi >= simdi && x.Durum == "A").OrderBy(x => x.BinaKullaniciAdi).ToList();
             return View();
         }
 
@@ -103,7 +103,7 @@ namespace ApartmanAidatTakip.Controllers
                 userCookie.Values["BinaAdres"] = HttpUtility.UrlEncode(a.Adres.ToString());
                 userCookie.Values["Parola"] = HttpUtility.UrlEncode(a.Parola.ToString());
                 userCookie.Values["LisansTarih"] = HttpUtility.UrlEncode(tarih.Value.ToString("dd/MM/yyyy"));
-                
+
                 // Cookie'nin geçerlilik süresini belirleyin (örneğin 1 gün)
                 if (remember != null)
                 {
@@ -146,17 +146,17 @@ namespace ApartmanAidatTakip.Controllers
 
             var aktifmi = db.KullanicilarViews.Where(x => x.KullaniciID == KullaniciID).FirstOrDefault();
 
-            if(aktifmi.KullaniciDurumu == "P")
+            if (aktifmi.KullaniciDurumu == "P")
             {
                 HttpCookie userCookie2 = new HttpCookie("KullaniciBilgileri");
                 userCookie2.Expires = DateTime.Now.AddDays(-1);
                 Response.Cookies.Add(userCookie2);
-                return RedirectToAction("Login","AnaSayfa");
+                return RedirectToAction("Login", "AnaSayfa");
             }
 
             string parola = userCookie.Values["Parola"].ToString();
 
-            if(aktifmi.Parola != parola)
+            if (aktifmi.Parola != parola)
             {
                 HttpCookie userCookie2 = new HttpCookie("KullaniciBilgileri");
                 userCookie2.Expires = DateTime.Now.AddDays(-1);
@@ -165,7 +165,7 @@ namespace ApartmanAidatTakip.Controllers
             }
 
             DateTime tarih = DateTime.Now.Date;
-            
+
             if (tarih > aktifmi.SozlesmeBitisTarihi)
             {
                 HttpCookie userCookie2 = new HttpCookie("KullaniciBilgileri");
@@ -197,9 +197,9 @@ namespace ApartmanAidatTakip.Controllers
             decimal? acilisbakiye;
             decimal? ekacilis;
             decimal? aidatacilis;
-            if(acilis == null)
+            if (acilis == null)
             {
-                 acilisbakiye = 0;
+                acilisbakiye = 0;
                 ekacilis = 0;
                 aidatacilis = 0;
             }
@@ -211,11 +211,11 @@ namespace ApartmanAidatTakip.Controllers
 
             }
 
-            
+
 
             int ay = DateTime.Now.Month;
             int yil = DateTime.Now.Year;
-            var aygider = db.Giders.Where(x=> x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+            var aygider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
             var makbuzgelir = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil).Sum(x => (decimal?)x.MabuzTutar) ?? 0;
             var tahsilatgelir = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
             var demirbasgider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTuruID == 6).Sum(x => (decimal?)x.GiderTutar) ?? 0;
@@ -231,11 +231,11 @@ namespace ApartmanAidatTakip.Controllers
             ViewBag.ToplamGider = gider;
             ViewBag.Kasa = (makbuz + tahsilat + acilisbakiye) - gider;
 
-            
+
             ViewBag.EkBakiye = (tahsilat + ekacilis) - demirbasgider;
-          
-           
-            
+
+
+
             ViewBag.AidatBakiye = ViewBag.Kasa - ViewBag.EkBakiye;
 
             decimal eskimakbuz = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == previousMonth && x.MakbuzTarihi.Value.Year == currentYear).Sum(x => (decimal?)x.MabuzTutar) ?? 0;
@@ -315,17 +315,17 @@ namespace ApartmanAidatTakip.Controllers
             ViewBag.Giderler = db.GiderViews
                 .Where(x => x.BinaID == BinaID && x.Durum == "A"
                             && x.GiderTarih.Value.Month == currentMonth
-                            && x.GiderTarih.Value.Year == currentYear).OrderByDescending(x=> x.GiderID)
+                            && x.GiderTarih.Value.Year == currentYear).OrderByDescending(x => x.GiderID)
                 .ToList();
 
 
             ViewBag.Makbuzlar = db.MakbuzViews.Where(x => x.BinaID == BinaID && x.Durum == "A"
             && x.MakbuzTarihi.Value.Month == currentMonth && x.MakbuzTarihi.Value.Year == currentYear
-            ).OrderByDescending(x=> x.MakbuzID).ToList();
+            ).OrderByDescending(x => x.MakbuzID).ToList();
 
             ViewBag.Tahsilatlar = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A"
             && x.TahsilatTarih.Value.Month == currentMonth && x.TahsilatTarih.Value.Year == currentYear
-            ).OrderByDescending(x=> x.TahsilatID).ToList();
+            ).OrderByDescending(x => x.TahsilatID).ToList();
 
             return View();
         }
@@ -429,7 +429,7 @@ namespace ApartmanAidatTakip.Controllers
 
             var sorgu = db.Dairelers.Where(x => x.BinaID == BinaID).FirstOrDefault();
 
-            if(sorgu != null)
+            if (sorgu != null)
             {
                 TempData["Hata"] = "Bu binaya ait daire kaydı yapılmıştır. Bu yüzden toplu halde daire ekleyemezsiniz. Tek tek daireleri tanımlamanız gerekmektedir.";
                 return RedirectToAction("Sakinler", "AnaSayfa");
@@ -457,12 +457,12 @@ namespace ApartmanAidatTakip.Controllers
 
                         List<Daireler> daireListesi = new List<Daireler>();
 
-                        
+
                         int dairesayisi = 1;
 
                         for (int row = 2; row <= rowCount; row++) // 1. satır başlık olduğu için 2'den başlıyoruz
                         {
-                            
+
                             eklenensakinsayisi++; // Her yeni eklemede artır
 
                             var daire = new Daireler
@@ -570,7 +570,7 @@ namespace ApartmanAidatTakip.Controllers
 
         public ActionResult Password()
         {
-            
+
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
 
@@ -650,7 +650,7 @@ namespace ApartmanAidatTakip.Controllers
             }
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
-            
+
             ViewBag.Daireler = db.Dairelers.Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
             Session["Aktif"] = "DaireBorclandir";
             Sabit();
@@ -785,10 +785,96 @@ namespace ApartmanAidatTakip.Controllers
                 ViewBag.Daireler = db.Dairelers.Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
             }
 
-            
+
 
             return View();
         }
+
+
+        [HttpPost]
+        public ActionResult EkstraAidatEkEkle(Aidat aidat, string Tur)
+        {
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+            try
+            {
+                string ayadi = DateTime.Now.ToString("MMMM");
+                int yil = DateTime.Now.Year;
+
+                if (Tur == "1")
+                {
+
+                    var aidatsayi = db.Aidats.Where(x => x.BinaID == BinaID && x.DaireNo == aidat.DaireNo && x.AidatAy.Contains(ayadi) && x.AidatYil == yil).Count();
+
+                    aidatsayi++;
+
+                    aidat.AidatAy = ayadi + "-" + aidatsayi;
+                    aidat.AidatYil = yil;
+                    aidat.BinaID = BinaID;
+                    aidat.Durum = "A";
+                    aidat.ZamEklendiMi = "H";
+                    db.Aidats.Add(aidat);
+                    db.SaveChanges();
+
+                    var dairesorgu = db.Dairelers.Where(x => x.BinaID == BinaID && x.DaireNo == aidat.DaireNo).FirstOrDefault();
+                    dairesorgu.Borc += aidat.AidatTutar;
+                    db.SaveChanges();
+                    TempData["Basarili"] = "Ekstra Aidat Eklenmiştir";
+
+
+                }
+                else
+                {
+                    var eksayi = db.Eks.Where(x => x.BinaID == BinaID && x.DaireNo == aidat.DaireNo && x.EkAy.Contains(ayadi) && x.EkYil == yil).Count();
+                    eksayi++;
+
+                    Ek yeniek = new Ek()
+                    {
+                        EkAy = ayadi + "-" + eksayi,
+                        EkYil = yil,
+                        BinaID = BinaID,
+                        DaireNo = aidat.DaireNo,
+                        Durum = "A",
+                        EkTutar = aidat.AidatTutar
+
+                    };
+                    db.Eks.Add(yeniek);
+                    db.SaveChanges();
+
+                    var dairesorgu = db.Dairelers.Where(x => x.BinaID == BinaID && x.DaireNo == aidat.DaireNo).FirstOrDefault();
+                    dairesorgu.Borc += aidat.AidatTutar;
+                    db.SaveChanges();
+                    TempData["Basarili"] = "Ekstra Ek Eklenmiştir";
+
+
+                }
+
+                Hareketler hareketler = new Hareketler()
+                {
+                    BinaID = BinaID,
+                    KullaniciID = KullaniciID,
+                    OlayAciklama = aidat.DaireNo + " ekstra borçlandırılmıştır",
+                    Tarih = DateTime.Now,
+                    Tur = "Ekleme",
+                };
+                db.Hareketlers.Add(hareketler);
+                db.SaveChanges();
+
+                ViewBag.Daireler = db.Dairelers.Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
+
+            }
+            catch (Exception)
+            {
+                TempData["Hata"] = "Bir Hata Oluştu !";
+                ViewBag.Daireler = db.Dairelers.Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
+            }
+
+
+
+            return RedirectToAction("DaireBorclandir", "AnaSayfa");
+        }
+
 
         public ActionResult DonemEkle()
         {
@@ -804,295 +890,598 @@ namespace ApartmanAidatTakip.Controllers
         }
 
         [HttpPost]
+
         public ActionResult DonemEkle(Aidat aidat, Ek ek)
         {
+
             try
             {
 
-
-
                 HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+
                 int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+
                 int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+
                 var donemeklendimi = db.Aidats.Where(x => x.BinaID == BinaID && x.AidatAy == aidat.AidatAy && x.AidatYil == aidat.AidatYil && x.Durum == "A").FirstOrDefault();
+
+
+
 
 
                 var acilisbakiyesieklendimi = db.AcilisBakiyes.Where(x => x.BinaID == BinaID).FirstOrDefault();
 
-                if(acilisbakiyesieklendimi == null)
+
+
+                if (acilisbakiyesieklendimi == null)
+
                 {
+
                     TempData["Hata"] = "Açılış bakiyesi eklemediğiniz için dönem eklenemedi. Açılış bakiyeniz yoksa 0 olarak ekleyiniz";
+
                     return View();
+
                 }
+
+
 
                 var tds = db.Binalars.Where(x => x.BinaID == BinaID).FirstOrDefault();
+
                 int? tanimlanandairesayisi = tds.DaireSayisi;
-                if(tanimlanandairesayisi == null)
+
+                if (tanimlanandairesayisi == null)
+
                 {
+
                     tanimlanandairesayisi = 0;
+
                 }
+
                 int? eds = db.Dairelers.Where(x => x.BinaID == BinaID).Count();
 
-                if(eds == null)
+
+
+                if (eds == null)
+
                 {
+
                     eds = 0;
+
                 }
 
-                if(tanimlanandairesayisi != eds)
+
+
+                if (tanimlanandairesayisi != eds)
+
                 {
-                    TempData["Hata"] = "Eksik Daire Sakini Tanımlaması nedeniyle dönem ekleme işlemi gerçekleştirilemedi. Eklemeniz Gereken Daire Sayısı: " + tanimlanandairesayisi ;
+
+                    TempData["Hata"] = "Eksik Daire Sakini Tanımlaması nedeniyle dönem ekleme işlemi gerçekleştirilemedi. Eklemeniz Gereken Daire Sayısı: " + tanimlanandairesayisi;
+
                     return View();
+
                 }
+
+
 
                 int yeniAyKodu;
+
                 if (aidat.AidatAy == "Ocak")
+
                 {
+
                     yeniAyKodu = 1;
+
                 }
+
                 else if (aidat.AidatAy == "Şubat")
+
                 {
+
                     yeniAyKodu = 2;
+
                 }
+
                 else if (aidat.AidatAy == "Mart")
+
                 {
+
                     yeniAyKodu = 3;
+
                 }
+
                 else if (aidat.AidatAy == "Nisan")
+
                 {
+
                     yeniAyKodu = 4;
+
                 }
+
                 else if (aidat.AidatAy == "Mayıs")
+
                 {
+
                     yeniAyKodu = 5;
+
                 }
+
                 else if (aidat.AidatAy == "Haziran")
+
                 {
+
                     yeniAyKodu = 6;
+
                 }
+
                 else if (aidat.AidatAy == "Temmuz")
+
                 {
+
                     yeniAyKodu = 7;
+
                 }
+
                 else if (aidat.AidatAy == "Ağustos")
+
                 {
+
                     yeniAyKodu = 8;
+
                 }
+
                 else if (aidat.AidatAy == "Eylül")
+
                 {
+
                     yeniAyKodu = 9;
+
                 }
+
                 else if (aidat.AidatAy == "Ekim")
+
                 {
+
                     yeniAyKodu = 10;
+
                 }
+
                 else if (aidat.AidatAy == "Kasım")
+
                 {
+
                     yeniAyKodu = 11;
+
                 }
+
                 else if (aidat.AidatAy == "Aralık")
+
                 {
+
                     yeniAyKodu = 12;
+
                 }
+
                 else
+
                 {
+
                     yeniAyKodu = 0; // Hatalı ay girişi durumu için
+
                 }
+
+
 
                 // Şu anki ay ve yılı alıyoruz
+
                 int buAy = DateTime.Now.Month;
+
                 int buYil = DateTime.Now.Year;
 
+
+
                 // Gelecek dönem eklenmemesi kontrolü
+
                 if (aidat.AidatYil != buYil || yeniAyKodu != buAy)
+
                 {
+
                     string cumle = DateTime.Now.ToString("MMMM") + " ayındayız bu ay haricinde dönem ekleyemezsiniz. Ekleyemediğiniz Dönem varsa tüm daireleri tek tek borçlandırmalısınız";
+
                     TempData["Hata"] = cumle;
+
                     return View();
+
                 }
+
+
+
 
 
                 var sonKasaDonemi = db.Kasas
-                              .Where(x => x.BinaID == BinaID)
-                              .OrderByDescending(x => x.KasaYil)
-                              .ThenByDescending(x => x.AyKodu)
-                              .FirstOrDefault();
+
+                       .Where(x => x.BinaID == BinaID)
+
+                       .OrderByDescending(x => x.KasaYil)
+
+                       .ThenByDescending(x => x.AyKodu)
+
+                       .FirstOrDefault();
+
+
 
                 // Eğer daha önce bir dönem eklendiyse ve yeni dönem eski bir dönemse hata döndür
-                if(sonKasaDonemi != null && aidat.AidatYil < sonKasaDonemi.KasaYil && yeniAyKodu < sonKasaDonemi.AyKodu)
+
+                if (sonKasaDonemi != null && aidat.AidatYil < sonKasaDonemi.KasaYil && yeniAyKodu < sonKasaDonemi.AyKodu)
+
                 {
+
                     TempData["Hata"] = "Önceki aylara dönem ekleyemezsiniz!";
+
                     return View();
+
                 }
+
+
 
                 var acilisliste = db.AcilisBakiyes.Where(x => x.BinaID == BinaID).FirstOrDefault();
+
                 decimal? acilisaidat;
+
                 decimal? acilisek;
-                if(acilisliste == null)
+
+                if (acilisliste == null)
+
                 {
+
                     acilisaidat = 0;
+
                     acilisek = 0;
-                }
-                else
-                {
-                    acilisaidat = acilisliste.AidatTutar;
-                    acilisek = acilisliste.EkTutar;
+
                 }
 
-                
-                var makbuztoplam = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "A").Sum(x=> (decimal?)x.Tutar)??0;
-                var ektoplam2 = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "E").Sum(x=> (decimal?)x.Tutar)??0;
-                var ektoplam1 = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x=> (decimal?)x.TahsilatTutar)??0;
-                var giderektoplam = db.Giders.Where(x=> x.GiderTuruID ==6 && x.Durum=="A" && x.BinaID == BinaID).Sum(x => (decimal?)x.GiderTutar) ?? 0;
-                var gidertoplam = db.Giders.Where(x=> x.GiderTuruID != 6 && x.Durum=="A" && x.BinaID == BinaID).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                else
+
+                {
+
+                    acilisaidat = acilisliste.AidatTutar;
+
+                    acilisek = acilisliste.EkTutar;
+
+                }
+
+
+
+
+
+                var makbuztoplam = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "A").Sum(x => (decimal?)x.Tutar) ?? 0;
+
+                var ektoplam2 = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "E").Sum(x => (decimal?)x.Tutar) ?? 0;
+
+                var ektoplam1 = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+
+                var giderektoplam = db.Giders.Where(x => x.GiderTuruID == 6 && x.Durum == "A" && x.BinaID == BinaID).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+
+                var gidertoplam = db.Giders.Where(x => x.GiderTuruID != 6 && x.Durum == "A" && x.BinaID == BinaID).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+
+
 
                 var aidattoplam = (makbuztoplam + acilisaidat) - gidertoplam;
+
                 var ektoplam = (ektoplam1 + ektoplam2 + acilisek) - giderektoplam;
+
+
 
                 var fulltoplam = aidattoplam + ektoplam;
 
+
+
                 if (aidat.AidatTutar != null)
+
                 {
+
                     if (donemeklendimi == null)
+
                     {
+
                         var daireler = db.Dairelers.Where(x => x.BinaID == BinaID).ToList();
+
                         foreach (var item in daireler)
+
                         {
-                            if(item.YonetimdeMi == "E")
+
+                            if (item.YonetimdeMi == "E")
+
                             {
+
                                 continue;
+
                             }
+
                             var daireno = item.DaireNo;
+
                             var borc = item.Borc;
 
+
+
                             Aidat aidat1 = new Aidat()
+
                             {
+
                                 AidatAy = aidat.AidatAy,
+
                                 AidatYil = aidat.AidatYil,
+
                                 AidatTutar = aidat.AidatTutar,
+
                                 DaireNo = daireno,
+
                                 BinaID = BinaID,
+
                                 ZamEklendiMi = "H",
+
                                 Durum = "A",
+
                             };
+
                             db.Aidats.Add(aidat1);
+
                             db.SaveChanges();
+
+
 
                             var sakin = db.Dairelers.Where(x => x.BinaID == BinaID && x.DaireNo == daireno).FirstOrDefault();
+
                             sakin.Borc += aidat.AidatTutar;
+
                             db.SaveChanges();
 
+
+
                         }
+
+
+
 
 
                         Kasa kasa = new Kasa()
+
                         {
+
                             KasaAy = aidat.AidatAy,
+
                             KasaYil = aidat.AidatYil,
+
                             KasaAidat = aidattoplam,
+
                             KasaEk = ektoplam,
+
                             KasaToplam = fulltoplam,
+
                             BinaID = BinaID,
+
                             AyKodu = DateTime.Now.Month
 
+
+
                         };
+
                         db.Kasas.Add(kasa);
+
                         db.SaveChanges();
+
                         Hareketler hareketler = new Hareketler()
+
                         {
+
                             BinaID = BinaID,
+
                             KullaniciID = KullaniciID,
+
                             OlayAciklama = aidat.AidatTutar + " tl tutarında " + aidat.AidatAy + " - " + aidat.AidatYil + " Dönemi Eklenmiştir.",
+
                             Tarih = DateTime.Now,
+
                             Tur = "Ekleme",
+
                         };
+
                         db.Hareketlers.Add(hareketler);
+
                         db.SaveChanges();
+
+
+
+
 
 
 
                     }
+
                 }
+
                 var donemeklendimi2 = db.Eks.Where(x => x.BinaID == BinaID && x.EkAy == aidat.AidatAy && x.EkYil == aidat.AidatYil && x.Durum == "A").FirstOrDefault();
 
+
+
                 if (ek.EkTutar != null)
+
                 {
+
                     if (donemeklendimi2 == null)
+
                     {
+
                         var daireler2 = db.Dairelers.Where(x => x.BinaID == BinaID).ToList();
+
                         foreach (var item in daireler2)
+
                         {
+
                             if (item.YonetimdeMi == "E")
+
                             {
+
                                 continue;
+
                             }
 
+
+
                             var daireno = item.DaireNo;
+
                             var borc = item.Borc;
 
+
+
                             Ek ek1 = new Ek()
+
                             {
+
                                 EkAy = aidat.AidatAy,
+
                                 EkYil = aidat.AidatYil,
+
                                 EkTutar = ek.EkTutar,
+
                                 DaireNo = daireno,
+
                                 BinaID = BinaID,
+
                                 Durum = "A",
+
                             };
+
                             db.Eks.Add(ek1);
+
                             db.SaveChanges();
 
+
+
                             var sakin = db.Dairelers.Where(x => x.BinaID == BinaID && x.DaireNo == daireno).FirstOrDefault();
+
                             sakin.Borc += ek.EkTutar;
+
                             db.SaveChanges();
+
+
 
                         }
 
 
+
+
+
                         Hareketler hareketler1 = new Hareketler()
+
                         {
+
                             BinaID = BinaID,
+
                             KullaniciID = KullaniciID,
+
                             OlayAciklama = ek.EkTutar + " tl tutarında " + aidat.AidatAy + " - " + aidat.AidatYil + " Dönemi Eklenmiştir.",
+
                             Tarih = DateTime.Now,
+
                             Tur = "Ekleme",
+
                         };
+
                         db.Hareketlers.Add(hareketler1);
+
                         db.SaveChanges();
+
                     }
+
                 }
+
+
+
 
 
                 if (ek.EkTutar != null && donemeklendimi != null && donemeklendimi2 == null)
+
                 {
+
                     TempData["Basarili"] = "Aidat Daha Önce Eklendiği İçin Sadece Ek Eklendi";
 
+
+
                 }
+
                 else if (donemeklendimi == null && donemeklendimi2 != null)
+
                 {
+
                     TempData["Basarili"] = "Ek Daha Önce Eklendiği İçin Sadece Aidat Eklendi";
+
                 }
+
                 else if (donemeklendimi == null && donemeklendimi2 == null)
+
                 {
+
                     TempData["Basarili"] = "Dönem Başarıyla Eklendi";
 
+
+
                 }
+
                 else if (donemeklendimi != null && donemeklendimi2 != null)
+
                 {
+
+                    TempData["Hata"] = "Bu Dönem Daha Önce Eklendiği İçin İşlem Başarısız Oldu!";
+
+
+
+                }
+
+                else
+
+                {
+
                     TempData["Hata"] = "Bu Dönem Daha Önce Eklendiği İçin İşlem Başarısız Oldu!";
 
                 }
-                else
-                {
-                    TempData["Hata"] = "Bu Dönem Daha Önce Eklendiği İçin İşlem Başarısız Oldu!";
-                }
+
+
 
             }
+
             catch (Exception)
+
             {
 
+
+
                 TempData["Hata"] = "Bir Hata Oluştu!";
+
             }
+
             return View();
+
+        }
+
+        // Helper method to convert month name to code
+        private int GetMonthCode(string monthName)
+        {
+            switch (monthName)
+            {
+                case "Ocak": return 1;
+                case "Şubat": return 2;
+                case "Mart": return 3;
+                case "Nisan": return 4;
+                case "Mayıs": return 5;
+                case "Haziran": return 6;
+                case "Temmuz": return 7;
+                case "Ağustos": return 8;
+                case "Eylül": return 9;
+                case "Ekim": return 10;
+                case "Kasım": return 11;
+                case "Aralık": return 12;
+                default: return 0;
+            }
         }
 
         public ActionResult EklenenAidatlar()
@@ -1106,7 +1495,7 @@ namespace ApartmanAidatTakip.Controllers
             Sabit();
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
-           
+
             ViewBag.Aidatlar = db.AidatViews.Where(x => x.BinaID == BinaID && x.Durum == "A").OrderByDescending(x => x.AidatID).ToList();
             return View();
 
@@ -1204,7 +1593,7 @@ namespace ApartmanAidatTakip.Controllers
 
                     var DaireIDsorgu = db.Dairelers.Where(x => x.BinaID == BinaID && x.DaireNo == DaireNo2).FirstOrDefault();
                     var DaireID = DaireIDsorgu.DaireID;
-                    var makbuzvarmi = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.AyAdi == Aidatlar.AidatAy && x.YilAdi == Aidatlar.AidatYil && x.Durum=="A" && x.DaireID == DaireID).FirstOrDefault();
+                    var makbuzvarmi = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.AyAdi == Aidatlar.AidatAy && x.YilAdi == Aidatlar.AidatYil && x.Durum == "A" && x.DaireID == DaireID).FirstOrDefault();
                     if (makbuzvarmi == null)
                     {
                         Aidatlar.Durum = "S";
@@ -1347,7 +1736,7 @@ namespace ApartmanAidatTakip.Controllers
                 int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
                 var Ekler = db.Eks.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkID == id).FirstOrDefault();
 
-                
+
 
 
                 if (id != null && Ekler != null)
@@ -1426,7 +1815,7 @@ namespace ApartmanAidatTakip.Controllers
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
             int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
-            
+
             try
             {
                 var songider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A").OrderByDescending(x => x.GiderNo).FirstOrDefault();
@@ -1484,7 +1873,7 @@ namespace ApartmanAidatTakip.Controllers
                 return RedirectToAction("Index", "AnaSayfa");
             }
 
-           
+
 
             // Gider ve bina bilgilerini al
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
@@ -1494,7 +1883,7 @@ namespace ApartmanAidatTakip.Controllers
 
             var kontrol = db.Giders.Where(x => x.BinaID == BinaID && x.GiderID == GiderID).FirstOrDefault();
 
-            if(kontrol == null)
+            if (kontrol == null)
             {
                 return RedirectToAction("Index", "AnaSayfa");
             }
@@ -1573,7 +1962,7 @@ namespace ApartmanAidatTakip.Controllers
             totalCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             table.AddCell(totalCell);
             table.AddCell(new PdfPCell(new Phrase(gider.GiderTutar.HasValue ? gider.GiderTutar.Value.ToString("C2") : "0,00 TL", tableFont)));
-            
+
             document.Add(table);
 
             // Not ve İmza kısmı için tablo
@@ -1588,10 +1977,10 @@ namespace ApartmanAidatTakip.Controllers
             ));
             reminderCell.HorizontalAlignment = Element.ALIGN_LEFT;
             reminderCell.Border = PdfPCell.NO_BORDER;
-          
+
 
             // İmza Kısmı (%25)
-        
+
             PdfPCell imzaCell = new PdfPCell(new Paragraph("İMZA", new Font(bfArialTurkish, 12, Font.BOLD, BaseColor.BLACK)));
             imzaCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             imzaCell.Border = PdfPCell.NO_BORDER;
@@ -1629,7 +2018,7 @@ namespace ApartmanAidatTakip.Controllers
             string adSoyad = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["AdSoyad"]);
             string binaAdi = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdi"]);
             string binaAdres = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdres"]);
-          
+
             var borcluDaireler = db.Dairelers.Where(x => x.BinaID == BinaID && x.Borc > 0).OrderBy(x => x.DaireNo).ToList();
             var toplamAlacak = borcluDaireler.Sum(x => x.Borc);
 
@@ -1796,13 +2185,13 @@ namespace ApartmanAidatTakip.Controllers
             int AyKontrol = DateTime.Now.Month;
             int YilKontrol = DateTime.Now.Year;
 
-            if(gidervarmi.GiderTarih.Value.Month != AyKontrol || gidervarmi.GiderTarih.Value.Year != YilKontrol)
+            if (gidervarmi.GiderTarih.Value.Month != AyKontrol || gidervarmi.GiderTarih.Value.Year != YilKontrol)
             {
                 TempData["Hata"] = "Bulunduğunuz Dönem dışındaki verileri silemezsiniz";
                 return RedirectToAction("Giderler", "AnaSayfa");
             }
-            
-           
+
+
             if (gidervarmi != null)
             {
                 gidervarmi.Durum = "P";
@@ -1859,7 +2248,7 @@ namespace ApartmanAidatTakip.Controllers
 
             try
             {
-               
+
                 var sontahsilat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A").OrderByDescending(x => x.TahsilatNo).FirstOrDefault();
                 //Eğer son makbuz varsa numarasını al, yoksa 0 olarak başla
                 int tno = sontahsilat?.TahsilatNo ?? 0; // Nullable int türü için null kontrolü ve varsayılan değer 0
@@ -2013,14 +2402,14 @@ namespace ApartmanAidatTakip.Controllers
             ));
             reminderCell.HorizontalAlignment = Element.ALIGN_LEFT;
             reminderCell.Border = PdfPCell.NO_BORDER;
-      
+
 
             // İmza Kısmı (%25)
             PdfPCell imzaCell = new PdfPCell(new Paragraph("KAŞE - İMZA", new Font(bfArialTurkish, 12, Font.BOLD, BaseColor.BLACK)));
             imzaCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             imzaCell.Border = PdfPCell.NO_BORDER;
             imzaCell.PaddingRight = 50f; // Sağdan boşluk
-      
+
 
             // Hücreleri tabloya ekle
             footerTable.AddCell(reminderCell);
@@ -2062,7 +2451,7 @@ namespace ApartmanAidatTakip.Controllers
                 TempData["Hata"] = "Bulunduğunuz Dönem dışındaki verileri silemezsiniz";
                 return RedirectToAction("Tahsilat", "AnaSayfa");
             }
-           
+
             if (tahsilatvarmi != null)
             {
                 tahsilatvarmi.Durum = "P";
@@ -2155,8 +2544,8 @@ namespace ApartmanAidatTakip.Controllers
             {
                 ViewBag.Durum = false;
             }
-            
-            if(a == 0)
+
+            if (a == 0)
             {
                 ViewBag.Durum = true;
             }
@@ -2174,7 +2563,7 @@ namespace ApartmanAidatTakip.Controllers
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
             var a = db.AcilisBakiyes.Where(x => x.BinaID == BinaID).FirstOrDefault();
 
-            if(a == null)
+            if (a == null)
             {
                 decimal ektutar = Convert.ToDecimal(acilisBakiye.EkTutar);
                 decimal aidattutar = Convert.ToDecimal(acilisBakiye.AidatTutar);
@@ -2193,9 +2582,9 @@ namespace ApartmanAidatTakip.Controllers
                 TempData["Hata"] = "Bir Hata Oluştu";
             }
 
-            
 
-            return RedirectToAction("AcilisBakiye","AnaSayfa");
+
+            return RedirectToAction("AcilisBakiye", "AnaSayfa");
         }
 
 
@@ -2211,13 +2600,13 @@ namespace ApartmanAidatTakip.Controllers
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
 
-           
-           
+
+
             if (DaireNo == null)
             {
                 ViewBag.DaireNo = null;
             }
-            
+
             if (DaireNo != null)
             {
                 var varmi = db.Dairelers.Where(x => x.DaireNo == DaireNo && x.BinaID == BinaID).FirstOrDefault();
@@ -2233,7 +2622,7 @@ namespace ApartmanAidatTakip.Controllers
                 ViewBag.DaireNo = DaireNo;
 
             }
-            
+
 
             return View();
         }
@@ -2256,7 +2645,7 @@ namespace ApartmanAidatTakip.Controllers
             if (durum == null)
             {
                 oa = db.Aidats
-                .Where(x => x.Durum == "A" &&  x.ZamEklendiMi == "H" && x.BinaID == BinaID && !(x.AidatYil == yil && x.AidatAy == ay))
+                .Where(x => x.Durum == "A" && x.ZamEklendiMi == "H" && x.BinaID == BinaID && !(x.AidatYil == yil && x.AidatAy == ay))
                 .ToList();
             }
             else
@@ -2265,7 +2654,7 @@ namespace ApartmanAidatTakip.Controllers
                  .Where(x => x.Durum == "A" && x.BinaID == BinaID && !(x.AidatYil == yil && x.AidatAy == ay))
                  .ToList();
             }
-            
+
             if (oa == null || oa.Count == 0)
             {
                 TempData["Hata"] = "Ödenmeyen geçmiş aidat dönemi bulunamadı";
@@ -2292,7 +2681,7 @@ namespace ApartmanAidatTakip.Controllers
             {
                 BinaID = BinaID,
                 KullaniciID = KullaniciID,
-                OlayAciklama = tl  + " tutarında gecikme zammı eklendi",
+                OlayAciklama = tl + " tutarında gecikme zammı eklendi",
                 Tarih = DateTime.Now,
                 Tur = "Ekleme",
             };
