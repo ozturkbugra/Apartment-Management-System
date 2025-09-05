@@ -137,7 +137,7 @@ namespace ApartmanAidatTakip.Controllers
             if (Session["DonemSorgu"] == null || Session["DonemSorgu"].ToString() == "0")
             {
                 TempData["Hata"] = DateTime.Now.ToString("MMMM") +
-                                   " Dönemini eklemediğiniz için bu işlemi yapamazsınız";
+                                   " Dönemini eklemediğiniz için bu işlemi yapamazsınız eğer dönem eklediyseniz sayfayı yenileyip tekrar deneyiniz.";
                 return RedirectToAction("Index", "Makbuz");
             }
 
