@@ -133,13 +133,7 @@ namespace ApartmanAidatTakip.Controllers
             }
 
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
-
-            if (Session["DonemSorgu"] == null || Session["DonemSorgu"].ToString() == "0")
-            {
-                TempData["Hata"] = DateTime.Now.ToString("MMMM") +
-                                   " Dönemini eklemediğiniz için bu işlemi yapamazsınız eğer dönem eklediyseniz sayfayı yenileyip tekrar deneyiniz.";
-                return RedirectToAction("Index", "Makbuz");
-            }
+                      
 
             if (makbuz == null || makbuz.DaireID == 0)
             {
