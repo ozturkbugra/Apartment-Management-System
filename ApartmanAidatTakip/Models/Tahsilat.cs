@@ -21,5 +21,6 @@ namespace ApartmanAidatTakip.Models
         public Nullable<int> BinaID { get; set; }
         public string Durum { get; set; }
         public Nullable<int> TahsilatNo { get; set; }
+        public Nullable<bool> DemirbasMi { get; set; }
     }
 }

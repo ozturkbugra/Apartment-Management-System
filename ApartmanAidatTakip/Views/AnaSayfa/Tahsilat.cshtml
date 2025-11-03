@@ -40,9 +40,14 @@
                 <div class="modal-body">
 
                     <input type="text" name="TahsilatAciklama" placeholder="Açıklama" id="TahsilatAciklama" class="form-control" maxlength="500" required/>
-
+                    <br />
                     <input type="text" name="TahsilatTutar" placeholder="Tutar" id="TahsilatTutar" class="form-control mt-3" onkeydown="preventDotAndComma(event)" required/>
-
+                    <br />
+                    <label>Demirbaş Geliri Mi?</label>
+                    <select class="form-select" name="DemirbasMi">
+                        <option value="True">Evet</option>
+                        <option value="False">Hayır</option>
+                    </select>
                 </div>
                 <div class="modal-footer">
 

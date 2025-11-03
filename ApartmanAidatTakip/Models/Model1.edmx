@@ -184,6 +184,7 @@
           <Property Name="TahsilatTarih" Type="date" />
           <Property Name="BinaID" Type="int" />
           <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+          <Property Name="DemirbasMi" Type="bit" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'AptVT.dbo.AidatView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
@@ -617,6 +618,7 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
           <Property Name="BinaID" Type="Int32" />
           <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
           <Property Name="TahsilatNo" Type="Int32" />
+          <Property Name="DemirbasMi" Type="Boolean" />
         </EntityType>
         <EntityType Name="AidatView">
           <Key>
@@ -977,6 +979,7 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
           <EntitySetMapping Name="Tahsilats">
             <EntityTypeMapping TypeName="AptVTModel.Tahsilat">
               <MappingFragment StoreEntitySet="Tahsilat">
+                <ScalarProperty Name="DemirbasMi" ColumnName="DemirbasMi" />
                 <ScalarProperty Name="TahsilatNo" ColumnName="TahsilatNo" />
                 <ScalarProperty Name="TahsilatID" ColumnName="TahsilatID" />
                 <ScalarProperty Name="TahsilatAciklama" ColumnName="TahsilatAciklama" />
