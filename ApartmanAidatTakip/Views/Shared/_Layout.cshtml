@@ -173,9 +173,13 @@
     <!-- ======= Sidebar ======= -->
     <aside id="sidebar" class="sidebar">
 
+        @{
+            var aktif = Session["Aktif"] != null ? Session["Aktif"].ToString() : "";
+        }
+
         <ul class="sidebar-nav" id="sidebar-nav">
 
-            @if (Session["Aktif"].ToString() == "Anasayfa")
+            @if (aktif == "Anasayfa")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa">
@@ -184,8 +188,7 @@
                     </a>
                 </li>
             }
-
-            @if (Session["Aktif"].ToString() != "Anasayfa")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa">
@@ -193,9 +196,9 @@
                         <span>Ana Sayfa</span>
                     </a>
                 </li>
-
             }
-            @if (Session["Aktif"].ToString() == "AcilisBakiye")
+
+            @if (aktif == "AcilisBakiye")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/AcilisBakiye">
@@ -203,9 +206,8 @@
                         <span>Açılış Bakiyesi</span>
                     </a>
                 </li>
-
             }
-            @if (Session["Aktif"].ToString() != "AcilisBakiye")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/AcilisBakiye">
@@ -213,9 +215,9 @@
                         <span>Açılış Bakiyesi</span>
                     </a>
                 </li>
-
             }
-            @if (Session["Aktif"].ToString() == "Sakinler")
+
+            @if (aktif == "Sakinler")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/Sakinler">
@@ -224,7 +226,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "Sakinler")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/Sakinler">
@@ -233,7 +235,8 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() == "DaireBorclandir")
+
+            @if (aktif == "DaireBorclandir")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/DaireBorclandir">
@@ -242,7 +245,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "DaireBorclandir")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/DaireBorclandir">
@@ -251,7 +254,8 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() == "DonemEkle")
+
+            @if (aktif == "DonemEkle")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/DonemEkle">
@@ -260,7 +264,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "DonemEkle")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/DonemEkle">
@@ -270,12 +274,10 @@
                 </li>
             }
 
-
-
             <hr />
             <li class="nav-heading">İşlemler</li>
 
-            @if (Session["Aktif"].ToString() == "Makbuz")
+            @if (aktif == "Makbuz")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/Makbuz">
@@ -284,7 +286,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "Makbuz")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/Makbuz">
@@ -294,9 +296,7 @@
                 </li>
             }
 
-
-
-            @if (Session["Aktif"].ToString() == "Giderler")
+            @if (aktif == "Giderler")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/Giderler">
@@ -305,7 +305,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "Giderler")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/Giderler">
@@ -315,8 +315,7 @@
                 </li>
             }
 
-
-            @if (Session["Aktif"].ToString() == "Tahsilat")
+            @if (aktif == "Tahsilat")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/Tahsilat">
@@ -325,7 +324,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "Tahsilat")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/Tahsilat">
@@ -338,7 +337,7 @@
             <hr />
             <li class="nav-heading">DİĞER</li>
 
-            @if (Session["Aktif"].ToString() == "EklenenAidatlar")
+            @if (aktif == "EklenenAidatlar")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/EklenenAidatlar">
@@ -347,7 +346,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "EklenenAidatlar")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/EklenenAidatlar">
@@ -357,18 +356,16 @@
                 </li>
             }
 
-            @if (Session["Aktif"].ToString() == "EklenenEkler")
+            @if (aktif == "EklenenEkler")
             {
-
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/EklenenEkler">
                         <i class="bi bi-envelope-plus"></i>
                         <span>Eklenen Ekler</span>
                     </a>
                 </li>
-
             }
-            @if (Session["Aktif"].ToString() != "EklenenEkler")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/EklenenEkler">
@@ -377,7 +374,8 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() == "Ara")
+
+            @if (aktif == "Ara")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/Makbuz/Ara">
@@ -386,7 +384,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "Ara")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/Makbuz/Ara">
@@ -395,7 +393,8 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() == "DaireSorgu")
+
+            @if (aktif == "DaireSorgu")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/DaireSorgu">
@@ -404,7 +403,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "DaireSorgu")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/DaireSorgu">
@@ -413,7 +412,8 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() == "Notlar")
+
+            @if (aktif == "Notlar")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/Notlar">
@@ -422,7 +422,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "Notlar")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/Notlar">
@@ -432,12 +432,11 @@
                 </li>
             }
 
-
             <hr />
             <li class="nav-heading">Raporlar</li>
-            @if (Session["Aktif"].ToString() == "BorcluDaireler")
-            {
 
+            @if (aktif == "BorcluDaireler")
+            {
                 <li class="nav-item">
                     <a class="nav-link" href="/AnaSayfa/BorcluDaireler">
                         <i class="bi bi-person-video2"></i>
@@ -445,7 +444,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "BorcluDaireler")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/AnaSayfa/BorcluDaireler">
@@ -454,7 +453,8 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() == "GelirGider")
+
+            @if (aktif == "GelirGider")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/Raporlar/GelirGider">
@@ -463,7 +463,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "GelirGider")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/Raporlar/GelirGider">
@@ -473,7 +473,7 @@
                 </li>
             }
 
-            @if (Session["Aktif"].ToString() == "DetayliGelirGider")
+            @if (aktif == "DetayliGelirGider")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/Raporlar/DetayliGelirGider?yil=@DateTime.Now.Year&ay=@DateTime.Now.Month">
@@ -482,7 +482,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "DetayliGelirGider")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/Raporlar/DetayliGelirGider?yil=@DateTime.Now.Year&ay=@DateTime.Now.Month">
@@ -492,7 +492,7 @@
                 </li>
             }
 
-            @if (Session["Aktif"].ToString() == "DenetciRaporu")
+            @if (aktif == "DenetciRaporu")
             {
                 <li class="nav-item">
                     <a class="nav-link" href="/Raporlar/DenetciRaporu">
@@ -501,7 +501,7 @@
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "DenetciRaporu")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/Raporlar/DenetciRaporu">
@@ -511,16 +511,16 @@
                 </li>
             }
 
-            @if (Session["Aktif"].ToString() == "TureGoreGiderler")
+            @if (aktif == "TureGoreGiderler")
             {
                 <li class="nav-item">
-                    <a class="nav-link " href="/Raporlar/TureGoreGiderler">
+                    <a class="nav-link" href="/Raporlar/TureGoreGiderler">
                         <i class="bi bi-file-minus-fill"></i>
                         <span>Türe Göre Giderler</span>
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "TureGoreGiderler")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/Raporlar/TureGoreGiderler">
@@ -530,17 +530,16 @@
                 </li>
             }
 
-
-            @if (Session["Aktif"].ToString() == "DevirBakiyeleri")
+            @if (aktif == "DevirBakiyeleri")
             {
                 <li class="nav-item">
-                    <a class="nav-link " href="/Raporlar/DevirBakiyeleri">
+                    <a class="nav-link" href="/Raporlar/DevirBakiyeleri">
                         <i class="bi bi-file-minus-fill"></i>
-                        <span>Türe Göre Giderler</span>
+                        <span>Devir Bakiyeleri</span>
                     </a>
                 </li>
             }
-            @if (Session["Aktif"].ToString() != "DevirBakiyeleri")
+            else
             {
                 <li class="nav-item">
                     <a class="nav-link collapsed" href="/Raporlar/DevirBakiyeleri">
@@ -550,11 +549,8 @@
                 </li>
             }
 
-
-
-
-
         </ul>
+
 
     </aside><!-- End Sidebar-->
     <main id="main" class="main">

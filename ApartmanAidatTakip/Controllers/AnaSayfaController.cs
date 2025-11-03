@@ -224,35 +224,68 @@ namespace ApartmanAidatTakip.Controllers
 
             if (son_kasa == null)
             {
-                int ay = DateTime.Now.Month;
-                int yil = DateTime.Now.Year;
-                var aygider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
-                var makbuzgelir = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil).Sum(x => (decimal?)x.MabuzTutar) ?? 0;
-                var tahsilatgelir = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
-                var demirbasgider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTuruID == 6).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                var bironcekikasa = db.Kasas.Take(1).Where(x=> x.BinaID == BinaID).OrderByDescending(x => x.KasaID).FirstOrDefault();
+                if(bironcekikasa == null)
+                {
+                    int ay = DateTime.Now.Month;
+                    int yil = DateTime.Now.Year;
+                    var aygider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                    var makbuzgelir = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil).Sum(x => (decimal?)x.MabuzTutar) ?? 0;
+                    var tahsilatgelir = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                    var demirbasgider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTuruID == 6).Sum(x => (decimal?)x.GiderTutar) ?? 0;
 
-                ViewBag.aygelir = makbuzgelir + tahsilatgelir;
-                ViewBag.aygider = aygider;
-                ViewBag.alacak = db.Dairelers.Where(x => x.BinaID == BinaID).Sum(x => (decimal?)x.Borc) ?? 0;
+                    ViewBag.aygelir = makbuzgelir + tahsilatgelir;
+                    ViewBag.aygider = aygider;
+                    ViewBag.alacak = db.Dairelers.Where(x => x.BinaID == BinaID).Sum(x => (decimal?)x.Borc) ?? 0;
 
-                var makbuzIDListesi = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Year == yil).Select(x => x.MakbuzID).ToList();
-                decimal makbuz = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && makbuzIDListesi.Contains((int)x.MakbuzID)).Sum(x => (decimal?)x.Tutar) ?? 0;
-                decimal tahsilat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
-                decimal gider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
-                ViewBag.ToplamGelir = makbuz + tahsilat;
-                ViewBag.ToplamGider = gider;
-
-
-                decimal tummakbuz = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.Tutar) ?? 0;
-                decimal tahsilat2 = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "E").Sum(x => (decimal?)x.Tutar) ?? 0;
-                decimal tahsilat3 = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
-                decimal gider2 = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                    var makbuzIDListesi = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Year == yil).Select(x => x.MakbuzID).ToList();
+                    decimal makbuz = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && makbuzIDListesi.Contains((int)x.MakbuzID)).Sum(x => (decimal?)x.Tutar) ?? 0;
+                    decimal tahsilat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                    decimal gider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                    ViewBag.ToplamGelir = makbuz + tahsilat;
+                    ViewBag.ToplamGider = gider;
 
 
-                ViewBag.Kasa = (acilisbakiye + tummakbuz + tahsilat3) - gider2;
+                    decimal tummakbuz = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.Tutar) ?? 0;
+                    decimal tahsilat2 = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "E").Sum(x => (decimal?)x.Tutar) ?? 0;
+                    decimal tahsilat3 = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                    decimal gider2 = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A").Sum(x => (decimal?)x.GiderTutar) ?? 0;
 
-                ViewBag.EkBakiye = (tahsilat3 + ekacilis + tahsilat2) - demirbasgider;
-                ViewBag.AidatBakiye = ViewBag.Kasa - ViewBag.EkBakiye;
+
+                    ViewBag.Kasa = (acilisbakiye + tummakbuz + tahsilat3) - gider2;
+
+                    ViewBag.EkBakiye = (tahsilat3 + ekacilis + tahsilat2) - demirbasgider;
+                    ViewBag.AidatBakiye = ViewBag.Kasa - ViewBag.EkBakiye;
+                }
+                else
+                {
+                    int ay = DateTime.Now.Month;
+                    int yil = DateTime.Now.Year;
+                    var aygider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                    var makbuzgelir = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil).Sum(x => (decimal?)x.MabuzTutar) ?? 0;
+                    var tahsilatgelir = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                    var demirbasgider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTuruID == 6 && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+
+                    ViewBag.aygelir = makbuzgelir + tahsilatgelir;
+                    ViewBag.aygider = aygider;
+                    ViewBag.alacak = db.Dairelers.Where(x => x.BinaID == BinaID).Sum(x => (decimal?)x.Borc) ?? 0;
+
+
+                    var makbuzIDListesi = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Year == yil).Select(x => x.MakbuzID).ToList();
+                    decimal makbuz = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && makbuzIDListesi.Contains((int)x.MakbuzID)).Sum(x => (decimal?)x.Tutar) ?? 0;
+                    decimal tahsilat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == yil).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                    decimal gider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Year == yil).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                    ViewBag.ToplamGelir = makbuz + tahsilat;
+                    ViewBag.ToplamGider = gider;
+
+                    ViewBag.Kasa = (bironcekikasa.KasaToplam + makbuzgelir + tahsilatgelir) - aygider;
+
+                    ViewBag.EkBakiye = (tahsilatgelir + bironcekikasa.KasaEk) - demirbasgider;
+
+                    ViewBag.AidatBakiye = ViewBag.Kasa - ViewBag.EkBakiye;
+                }
+
+               
 
 
             }
@@ -604,6 +637,7 @@ namespace ApartmanAidatTakip.Controllers
                 a.DaireDurum = daireler.DaireDurum;
                 a.TC = daireler.TC;
                 a.Telefon = daireler.Telefon;
+                a.YonetimdeMi = daireler.YonetimdeMi;
                 db.SaveChanges();
                 Hareketler hareketler = new Hareketler()
                 {
