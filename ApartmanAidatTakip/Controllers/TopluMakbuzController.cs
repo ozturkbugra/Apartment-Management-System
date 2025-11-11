@@ -93,7 +93,7 @@ namespace ApartmanAidatTakip.Controllers
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
 
-            // Herhangi bir seçim yoksa hata döndür
+            // Aidat yada ek boşsa hata ver
             if ((SecilenAidatlar == null || !SecilenAidatlar.Any()) &&
                 (SecilenEkler == null || !SecilenEkler.Any()))
             {
@@ -102,13 +102,11 @@ namespace ApartmanAidatTakip.Controllers
             }
             var dairesorgu = db.Dairelers.Where(x => x.DaireID == daireID).FirstOrDefault();
 
+            // İşlemleri transaction ile yap
             using (var tran = db.Database.BeginTransaction())
             {
                 try
                 {
-                    // DaireID'yi almak için örnek bir aidat ya da ek kaydından çekelim
-
-                    // Toplam tutar
                     decimal toplamTutar = 0;
 
                     if (SecilenAidatlar != null && SecilenAidatlar.Any())
@@ -121,15 +119,18 @@ namespace ApartmanAidatTakip.Controllers
                             .Where(x => SecilenEkler.Contains(x.EkID))
                             .Sum(x => (decimal?)x.EkTutar) ?? 0;
 
+                    // Dairenin borcunu güncelle
                     dairesorgu.Borc = dairesorgu.Borc - toplamTutar;
 
                     var sonmakbuz = db.Makbuzs.OrderByDescending(x => x.MakbuzID).FirstOrDefault(x=> x.BinaID == BinaID && x.Durum == "A");
+                    
+                    // Yeni makbuz numarasını belirleme
                     var yenino = sonmakbuz.MakbuzNo + 1;
 
-                    // Yeni makbuz oluştur
+                    //makbuz ekle
                     Makbuz yeni = new Makbuz
                     {
-                        MakbuzNo = yenino, // örnek basit numara
+                        MakbuzNo = yenino, 
                         BinaID = BinaID,
                         DaireID = daireID,
                         MabuzTutar = toplamTutar,
@@ -141,13 +142,13 @@ namespace ApartmanAidatTakip.Controllers
                     db.Makbuzs.Add(yeni);
                     db.SaveChanges();
 
-                    // Seçilen aidatlar için satır oluştur
+                   // aidat satırlarını ekle
                     if (SecilenAidatlar != null)
                     {
                         var aidatlar = db.Aidats.Where(x => SecilenAidatlar.Contains(x.AidatID)).ToList();
                         foreach (var a in aidatlar)
                         {
-                            a.Durum = "P"; // ödendi olarak işaretle
+                            a.Durum = "P"; 
 
                             db.MakbuzSatirs.Add(new MakbuzSatir
                             {
@@ -155,7 +156,7 @@ namespace ApartmanAidatTakip.Controllers
                                 AyAdi = a.AidatAy,
                                 YilAdi = a.AidatYil,
                                 Tutar = a.AidatTutar,
-                                DaireID = a.DaireNo,
+                                DaireID = dairesorgu.DaireID,
                                 BinaID = a.BinaID,
                                 Durum = "A",
                                 EkMiAidatMi = "A"
@@ -163,13 +164,13 @@ namespace ApartmanAidatTakip.Controllers
                         }
                     }
 
-                    // Seçilen ekler için satır oluştur
+                    //ek satırlarını ekle
                     if (SecilenEkler != null)
                     {
                         var ekler = db.Eks.Where(x => SecilenEkler.Contains(x.EkID)).ToList();
                         foreach (var e in ekler)
                         {
-                            e.Durum = "P"; // ödendi olarak işaretle
+                            e.Durum = "P"; 
 
                             db.MakbuzSatirs.Add(new MakbuzSatir
                             {
@@ -177,7 +178,7 @@ namespace ApartmanAidatTakip.Controllers
                                 AyAdi = e.EkAy,
                                 YilAdi = e.EkYil,
                                 Tutar = e.EkTutar,
-                                DaireID = e.DaireNo,
+                                DaireID = dairesorgu.DaireID,
                                 BinaID = e.BinaID,
                                 Durum = "A",
                                 EkMiAidatMi = "E"
@@ -186,12 +187,14 @@ namespace ApartmanAidatTakip.Controllers
                     }
 
                     db.SaveChanges();
+                    // başarılıysa commit et
                     tran.Commit();
 
                     TempData["Basarili"] = "Toplu makbuz başarıyla oluşturuldu.";
                 }
                 catch (Exception ex)
                 {
+                    // hata varsa rollback yap
                     tran.Rollback();
                     TempData["Hata"] = "Hata oluştu: " + ex.Message;
                 }
