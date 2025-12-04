@@ -351,6 +351,7 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
           <Property Name="BinaAdi" Type="nvarchar(max)" />
           <Property Name="Durum" Type="nvarchar" MaxLength="1" />
           <Property Name="TahsilatNo" Type="int" />
+          <Property Name="DemirbasMi" Type="bit" />
         </EntityType>
         <EntityContainer Name="AptVTModelStoreContainer">
           <EntitySet Name="AcilisBakiye" EntityType="Self.AcilisBakiye" Schema="dbo" store:Type="Tables" />
@@ -501,7 +502,8 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
     [TahsilatView].[BinaID] AS [BinaID], 
     [TahsilatView].[BinaAdi] AS [BinaAdi], 
     [TahsilatView].[Durum] AS [Durum], 
-    [TahsilatView].[TahsilatNo] AS [TahsilatNo]
+    [TahsilatView].[TahsilatNo] AS [TahsilatNo], 
+    [TahsilatView].[DemirbasMi] AS [DemirbasMi]
     FROM [dbo].[TahsilatView] AS [TahsilatView]</DefiningQuery>
           </EntitySet>
         </EntityContainer>
@@ -712,19 +714,6 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
           <Property Name="DaireDurum" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
           <Property Name="Borc" Type="Decimal" Precision="18" Scale="2" />
         </EntityType>
-        <EntityType Name="TahsilatView">
-          <Key>
-            <PropertyRef Name="TahsilatID" />
-          </Key>
-          <Property Name="TahsilatID" Type="Int32" Nullable="false" />
-          <Property Name="TahsilatAciklama" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="TahsilatTutar" Type="Decimal" Precision="18" Scale="2" />
-          <Property Name="TahsilatTarih" Type="DateTime" Precision="0" />
-          <Property Name="BinaID" Type="Int32" />
-          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
-          <Property Name="TahsilatNo" Type="Int32" />
-        </EntityType>
         <EntityContainer Name="AptVTEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="Aidats" EntityType="Self.Aidat" />
           <EntitySet Name="Dairelers" EntityType="Self.Daireler" />
@@ -741,7 +730,6 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
           <EntitySet Name="HareketViews" EntityType="Self.HareketView" />
           <EntitySet Name="KasaViews" EntityType="Self.KasaView" />
           <EntitySet Name="MakbuzViews" EntityType="Self.MakbuzView" />
-          <EntitySet Name="TahsilatViews" EntityType="Self.TahsilatView" />
           <EntitySet Name="Binalars" EntityType="AptVTModel.Binalar" />
           <EntitySet Name="Kullanicilars" EntityType="AptVTModel.Kullanicilar" />
           <EntitySet Name="KullanicilarViews" EntityType="AptVTModel.KullanicilarView" />
@@ -750,6 +738,7 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
           <EntitySet Name="AcilisBakiyes" EntityType="AptVTModel.AcilisBakiye" />
           <EntitySet Name="Duyurulars" EntityType="AptVTModel.Duyurular" />
           <EntitySet Name="Notlars" EntityType="AptVTModel.Notlar" />
+          <EntitySet Name="TahsilatViews" EntityType="AptVTModel.TahsilatView" />
         </EntityContainer>
         <EntityType Name="Binalar">
           <Key>
@@ -863,6 +852,20 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
           <Property Name="Aciklama" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="BinaID" Type="Int32" />
           <Property Name="BorcAciklama" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="TahsilatView">
+          <Key>
+            <PropertyRef Name="TahsilatID" />
+          </Key>
+          <Property Name="TahsilatID" Type="Int32" Nullable="false" />
+          <Property Name="TahsilatAciklama" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="TahsilatTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="TahsilatTarih" Type="DateTime" Precision="0" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="BinaAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="TahsilatNo" Type="Int32" />
+          <Property Name="DemirbasMi" Type="Boolean" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -1086,20 +1089,6 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="TahsilatViews">
-            <EntityTypeMapping TypeName="AptVTModel.TahsilatView">
-              <MappingFragment StoreEntitySet="TahsilatView">
-                <ScalarProperty Name="TahsilatNo" ColumnName="TahsilatNo" />
-                <ScalarProperty Name="TahsilatID" ColumnName="TahsilatID" />
-                <ScalarProperty Name="TahsilatAciklama" ColumnName="TahsilatAciklama" />
-                <ScalarProperty Name="TahsilatTutar" ColumnName="TahsilatTutar" />
-                <ScalarProperty Name="TahsilatTarih" ColumnName="TahsilatTarih" />
-                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
-                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
-                <ScalarProperty Name="Durum" ColumnName="Durum" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Binalars">
             <EntityTypeMapping TypeName="AptVTModel.Binalar">
               <MappingFragment StoreEntitySet="Binalar">
@@ -1217,6 +1206,21 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
                 <ScalarProperty Name="BinaID" ColumnName="BinaID" />
                 <ScalarProperty Name="Aciklama" ColumnName="Aciklama" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TahsilatViews">
+            <EntityTypeMapping TypeName="AptVTModel.TahsilatView">
+              <MappingFragment StoreEntitySet="TahsilatView">
+                <ScalarProperty Name="DemirbasMi" ColumnName="DemirbasMi" />
+                <ScalarProperty Name="TahsilatNo" ColumnName="TahsilatNo" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+                <ScalarProperty Name="BinaAdi" ColumnName="BinaAdi" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="TahsilatTarih" ColumnName="TahsilatTarih" />
+                <ScalarProperty Name="TahsilatTutar" ColumnName="TahsilatTutar" />
+                <ScalarProperty Name="TahsilatAciklama" ColumnName="TahsilatAciklama" />
+                <ScalarProperty Name="TahsilatID" ColumnName="TahsilatID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

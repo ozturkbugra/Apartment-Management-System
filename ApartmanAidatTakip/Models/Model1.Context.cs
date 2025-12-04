@@ -40,7 +40,6 @@ namespace ApartmanAidatTakip.Models
         public virtual DbSet<HareketView> HareketViews { get; set; }
         public virtual DbSet<KasaView> KasaViews { get; set; }
         public virtual DbSet<MakbuzView> MakbuzViews { get; set; }
-        public virtual DbSet<TahsilatView> TahsilatViews { get; set; }
         public virtual DbSet<Binalar> Binalars { get; set; }
         public virtual DbSet<Kullanicilar> Kullanicilars { get; set; }
         public virtual DbSet<KullanicilarView> KullanicilarViews { get; set; }
@@ -49,5 +48,6 @@ namespace ApartmanAidatTakip.Models
         public virtual DbSet<AcilisBakiye> AcilisBakiyes { get; set; }
         public virtual DbSet<Duyurular> Duyurulars { get; set; }
         public virtual DbSet<Notlar> Notlars { get; set; }
+        public virtual DbSet<TahsilatView> TahsilatViews { get; set; }
     }
 }

@@ -39,9 +39,9 @@
 
                 <div class="modal-body">
 
-                    <input type="text" name="TahsilatAciklama" placeholder="Açıklama" id="TahsilatAciklama" class="form-control" maxlength="500" required/>
+                    <input type="text" name="TahsilatAciklama" placeholder="Açıklama" id="TahsilatAciklama" class="form-control" maxlength="500" required />
                     <br />
-                    <input type="text" name="TahsilatTutar" placeholder="Tutar" id="TahsilatTutar" class="form-control mt-3" onkeydown="preventDotAndComma(event)" required/>
+                    <input type="text" name="TahsilatTutar" placeholder="Tutar" id="TahsilatTutar" class="form-control mt-3" onkeydown="preventDotAndComma(event)" required />
                     <br />
                     <label>Demirbaş Geliri Mi?</label>
                     <select class="form-select" name="DemirbasMi">
@@ -69,6 +69,7 @@
                     <th scope="col">Tahsilat No</th>
                     <th scope="col">Açıklama</th>
                     <th scope="col">Tutar</th>
+                    <th scope="col">Tür</th>
 
                     <th scope="col"></th>
                 </tr>
@@ -82,12 +83,24 @@
 
                         <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
                         <td>@item.TahsilatNo</td>
-                      
+
                         <td>
                             @(item.TahsilatAciklama.Length > 10 ? item.TahsilatAciklama.Substring(0, Math.Min(10, item.TahsilatAciklama.Length - 2)) + "..." : item.TahsilatAciklama.Substring(2))
                         </td>
 
                         <td>@item.TahsilatTutar.ToString("N2") @tl</td>
+                        @if (item.DemirbasMi == true)
+                        {
+
+
+                            <td>Demirbaş</td>
+                        }
+                        else
+                        {
+                            <td>Aidat</td>
+
+                        }
+
 
                         <td><a href="/AnaSayfa/TahsilatSil/@item.TahsilatID" class="badge bg-danger" onclick="confirmDelete(event, @item.TahsilatID)">Sil</a> </td>
 

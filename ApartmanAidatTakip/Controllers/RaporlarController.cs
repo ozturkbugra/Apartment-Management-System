@@ -54,11 +54,13 @@ namespace ApartmanAidatTakip.Controllers
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
-
                 return RedirectToAction("Login", "AnaSayfa");
             }
+
             Session["Aktif"] = "GelirGider";
+            
             Sabit();
+            
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
             if (ilk != null && son != null)
@@ -499,7 +501,8 @@ namespace ApartmanAidatTakip.Controllers
                 var eskikasa = db.Kasas.Where(x => x.BinaID == BinaID && x.AyKodu == ay && x.KasaYil == yil).FirstOrDefault();
 
                 var makbuzlar = db.Makbuzs.Where(x => x.BinaID == BinaID && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil && x.Durum == "A").ToList();
-                var tahsilatlar = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil && x.Durum == "A").Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                var tahsilatlardemirbas = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil && x.Durum == "A" && x.DemirbasMi == true).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                var tahsilatlaraidat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil && x.Durum == "A" && x.DemirbasMi == false).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
 
                 decimal aidattoplam = 0;
                 decimal ektoplam = 0;
@@ -528,9 +531,9 @@ namespace ApartmanAidatTakip.Controllers
                     eskikasatoplamiaidat = eskikasa.KasaAidat;
                 }
 
-                var yenikasa = (aidattoplam + ektoplam + eskikasatoplami + tahsilatlar) - toplamgider;
+                var yenikasa = (aidattoplam + ektoplam + eskikasatoplami + tahsilatlardemirbas + tahsilatlaraidat) - toplamgider;
 
-                var yenikasaek = (eskikasatoplamiek + ektoplam + tahsilatlar) - demirbas;
+                var yenikasaek = (eskikasatoplamiek + ektoplam + tahsilatlardemirbas) - demirbas;
                 var yenikasaaidat = yenikasa - yenikasaek;
 
                 ViewBag.yenikasa = yenikasa;
@@ -539,8 +542,8 @@ namespace ApartmanAidatTakip.Controllers
 
 
                 ViewBag.aidat = aidattoplam;
-                ViewBag.ek = ektoplam + tahsilatlar;
-                ViewBag.gelirtoplam = aidattoplam + ektoplam + tahsilatlar;
+                ViewBag.ek = ektoplam + tahsilatlardemirbas;
+                ViewBag.gelirtoplam = aidattoplam + ektoplam + tahsilatlardemirbas + tahsilatlaraidat;
 
                 ViewBag.eskikasa = eskikasatoplami;
                 ViewBag.eskikasaek = eskikasatoplamiek;
@@ -652,7 +655,8 @@ namespace ApartmanAidatTakip.Controllers
             var eskikasa = db.Kasas.Where(x => x.BinaID == BinaID && x.AyKodu == ay && x.KasaYil == yil).FirstOrDefault();
 
             var makbuzlar = db.Makbuzs.Where(x => x.BinaID == BinaID && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil && x.Durum == "A").ToList();
-            var tahsilatlar = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil && x.Durum == "A").Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+            var tahsilatlardemirbas = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil && x.Durum == "A" && x.DemirbasMi == true).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+            var tahsilatlaraidat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih.Value.Month == ay && x.TahsilatTarih.Value.Year == yil && x.Durum == "A" && x.DemirbasMi == false).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
 
             decimal aidattoplam = 0;
             decimal ektoplam = 0;
@@ -681,9 +685,9 @@ namespace ApartmanAidatTakip.Controllers
                 eskikasatoplamiaidat = eskikasa.KasaAidat;
             }
 
-            var yenikasa = (aidattoplam + ektoplam + eskikasatoplami + tahsilatlar) - toplamgider;
+            var yenikasa = (aidattoplam + ektoplam + eskikasatoplami + tahsilatlardemirbas + tahsilatlaraidat) - toplamgider;
 
-            var yenikasaek = (eskikasatoplamiek + ektoplam + tahsilatlar) - demirbas;
+            var yenikasaek = (eskikasatoplamiek + ektoplam + tahsilatlardemirbas) - demirbas;
             var yenikasaaidat = yenikasa - yenikasaek;
 
             ViewBag.yenikasa = yenikasa;
@@ -692,8 +696,8 @@ namespace ApartmanAidatTakip.Controllers
 
 
             ViewBag.aidat = aidattoplam;
-            ViewBag.ek = ektoplam + tahsilatlar;
-            ViewBag.gelirtoplam = aidattoplam + ektoplam + tahsilatlar;
+            ViewBag.ek = ektoplam + tahsilatlardemirbas;
+            ViewBag.gelirtoplam = aidattoplam + ektoplam + tahsilatlardemirbas + tahsilatlaraidat;
 
             ViewBag.eskikasa = eskikasatoplami;
             ViewBag.eskikasaek = eskikasatoplamiek;
@@ -906,7 +910,8 @@ namespace ApartmanAidatTakip.Controllers
                 var toplamgider = db.Giders.Where(x => x.BinaID == BinaID && x.GiderTarih >= ilk && x.GiderTarih <= son && x.Durum == "A").Sum(x => (decimal?)x.GiderTutar) ?? 0;
 
                 var makbuzlar = db.Makbuzs.Where(x => x.BinaID == BinaID && x.MakbuzTarihi >= ilk && x.MakbuzTarihi <= son && x.Durum == "A").ToList();
-                var tahsilatlar = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih >= ilk && x.TahsilatTarih <= son && x.Durum == "A").Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                var tahsilatlarek = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih >= ilk && x.TahsilatTarih <= son && x.Durum == "A" && x.DemirbasMi == true).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                var tahsilatlaraidat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih >= ilk && x.TahsilatTarih <= son && x.Durum == "A" && x.DemirbasMi == false).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
 
                 decimal aidattoplam = 0;
                 decimal ektoplam = 0;
@@ -923,10 +928,10 @@ namespace ApartmanAidatTakip.Controllers
                     ektoplam += ekmakbuz;
                 }
 
-                var toplamgelir = aidattoplam + ektoplam + tahsilatlar;
+                var toplamgelir = aidattoplam + ektoplam + tahsilatlarek + tahsilatlaraidat;
                 
-                ViewBag.aidat = aidattoplam;
-                ViewBag.ek = ektoplam + tahsilatlar;
+                ViewBag.aidat = aidattoplam + tahsilatlaraidat;
+                ViewBag.ek = ektoplam + tahsilatlarek;
                 ViewBag.toplamgelir = toplamgelir;
                 ViewBag.elektrik = elektrik;
                 ViewBag.su = su;
@@ -1025,7 +1030,8 @@ namespace ApartmanAidatTakip.Controllers
                 var toplamgider = db.Giders.Where(x => x.BinaID == BinaID && x.GiderTarih >= ilk && x.GiderTarih <= son && x.Durum == "A").Sum(x => (decimal?)x.GiderTutar) ?? 0;
 
                 var makbuzlar = db.Makbuzs.Where(x => x.BinaID == BinaID && x.MakbuzTarihi >= ilk && x.MakbuzTarihi <= son && x.Durum == "A").ToList();
-                var tahsilatlar = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih >= ilk && x.TahsilatTarih <= son && x.Durum == "A").Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                var tahsilatlarek = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih >= ilk && x.TahsilatTarih <= son && x.Durum == "A" && x.DemirbasMi == true).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+                var tahsilatlaraidat = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih >= ilk && x.TahsilatTarih <= son && x.Durum == "A" && x.DemirbasMi == false).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
 
                 decimal aidattoplam = 0;
                 decimal ektoplam = 0;
@@ -1042,10 +1048,10 @@ namespace ApartmanAidatTakip.Controllers
                     ektoplam += ekmakbuz;
                 }
 
-                var toplamgelir = aidattoplam + ektoplam + tahsilatlar;
+                var toplamgelir = aidattoplam + ektoplam + tahsilatlarek + tahsilatlaraidat;
 
-                ViewBag.aidat = aidattoplam;
-                ViewBag.ek = ektoplam + tahsilatlar;
+                ViewBag.aidat = aidattoplam + tahsilatlaraidat;
+                ViewBag.ek = ektoplam + tahsilatlarek;
                 ViewBag.toplamgelir = toplamgelir;
                 ViewBag.elektrik = elektrik;
                 ViewBag.su = su;
@@ -1059,11 +1065,18 @@ namespace ApartmanAidatTakip.Controllers
                 ViewBag.yakitisinma = yakitisinma;
                 ViewBag.toplamgider = toplamgider;
 
-                ViewBag.Mevcut = toplamgelir - toplamgider;
-
                 ViewBag.toplamkasa = toplamgelir + ViewBag.KasaToplam - ViewBag.toplamgider;
                 ViewBag.toplamkasaek = ViewBag.ek + ViewBag.KasaEk - ViewBag.demirbas;
                 ViewBag.toplamkasaaidat = ViewBag.toplamkasa - ViewBag.toplamkasaek;
+
+
+
+
+
+
+
+                ViewBag.Mevcut = toplamgelir - toplamgider;
+
             }
 
 
