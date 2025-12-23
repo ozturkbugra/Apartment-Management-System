@@ -1185,6 +1185,16 @@ namespace ApartmanAidatTakip.Controllers
                         };
                         db.Hareketlers.Add(hareketler);
                         db.SaveChanges();
+
+                        var onaylanmayanmakbuzlar = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.OnayliMi == false).ToList();
+                        if (onaylanmayanmakbuzlar.Count > 0)
+                        {
+                            foreach (var makbuz in onaylanmayanmakbuzlar)
+                            {
+                                makbuz.OnayliMi = true;
+                            }
+                            db.SaveChanges();
+                        }
                     }
                 }
 
