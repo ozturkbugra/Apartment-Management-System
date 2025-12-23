@@ -12,15 +12,18 @@ namespace ApartmanAidatTakip.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Tahsilat
+    public partial class PesinOdemelerView
     {
-        public int TahsilatID { get; set; }
-        public string TahsilatAciklama { get; set; }
-        public Nullable<decimal> TahsilatTutar { get; set; }
-        public Nullable<System.DateTime> TahsilatTarih { get; set; }
-        public Nullable<int> BinaID { get; set; }
-        public string Durum { get; set; }
-        public Nullable<int> TahsilatNo { get; set; }
-        public Nullable<bool> DemirbasMi { get; set; }
+        public int DaireID { get; set; }
+        public Nullable<int> DaireNo { get; set; }
+        public string AdSoyad { get; set; }
+        public int Yil { get; set; }
+        public int BinaID { get; set; }
+        public string Telefon { get; set; }
+        public string YonetimdeMi { get; set; }
+        public Nullable<decimal> Borc { get; set; }
+        public string DaireDurum { get; set; }
+        public string TC { get; set; }
+        public int ID { get; set; }
     }
 }

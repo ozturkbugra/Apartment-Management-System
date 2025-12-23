@@ -1,0 +1,131 @@
+﻿
+@{
+    ViewBag.Title = "PesinOdemeler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="pagetitle">
+    <h1>Peşin Ödemeler</h1>
+</div><!-- End Page Title -->
+
+
+<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+    Peşin Ödeme Ekle
+</button>
+
+
+
+
+
+
+
+
+<div class="modal fade" id="verticalycentered" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Peşin Ödeme Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="/AnaSayfa/PesinOdemeEkle" method="post">
+
+                <div class="modal-body">
+                    <label>Daire Seçiniz</label>
+                    <select name="DaireID" class="form-select">
+                        @foreach (var item in ViewBag.Daireler)
+                        {
+                            <option value="@item.DaireID">@item.DaireNo No : @item.AdSoyad </option>
+                        }
+                    </select>
+                    
+                    <br />
+                    <h4>PEŞİN ÖDEDİĞİ YIL : @DateTime.Now.Year</h4>
+                  
+
+                </div>
+                <div class="modal-footer">
+
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div><!-- End Vertically centered Modal-->
+<br />
+<div class="card-body">
+    <h5 class="card-title">Gider Listesi</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless datatable">
+            <thead>
+                <tr>
+                    <th scope="col">Daire No</th>
+                    <th scope="col">Ad Soyad</th>
+                    <th scope="col">Peşin Ödenen Yıl</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.List)
+                {
+
+                    <tr>
+                        <td>@item.DaireNo</td>
+                        <td>@item.AdSoyad</td>
+                        <td>@item.Yil</td>
+                       
+                        <td>
+                            <a href="/AnaSayfa/PesinOdemeSil/@item.ID" class="badge bg-danger" onclick="confirmDeleteExpense(event, @item.ID)">Sil</a>
+
+                        </td>
+                    </tr>
+
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<br />
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                });
+            </text>
+        }
+    });
+
+
+</script>
+
+<script>
+    function confirmDeleteExpense(event, id) {
+        event.preventDefault(); // Linke tıklamayı engeller
+        var userConfirmed = confirm("Peşin ödemeyi silmek istediğinize emin misiniz?");
+        if (userConfirmed) {
+            window.location.href = '/AnaSayfa/PesinOdemeSil/' + id; // Kullanıcı onaylarsa silme işlemi yapılır
+        }
+    }
+</script>

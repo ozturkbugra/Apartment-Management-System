@@ -49,5 +49,7 @@ namespace ApartmanAidatTakip.Models
         public virtual DbSet<AcilisBakiye> AcilisBakiyes { get; set; }
         public virtual DbSet<Duyurular> Duyurulars { get; set; }
         public virtual DbSet<Notlar> Notlars { get; set; }
+        public virtual DbSet<PesinOdemeler> PesinOdemelers { get; set; }
+        public virtual DbSet<PesinOdemelerView> PesinOdemelerViews { get; set; }
     }
 }

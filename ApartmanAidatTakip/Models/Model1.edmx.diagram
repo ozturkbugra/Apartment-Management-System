@@ -29,6 +29,8 @@
         <EntityTypeShape EntityType="AptVTModel.AcilisBakiye" Width="1.5" PointX="13.375" PointY="9.75" />
         <EntityTypeShape EntityType="AptVTModel.Duyurular" Width="1.5" PointX="13.375" PointY="12.75" />
         <EntityTypeShape EntityType="AptVTModel.Notlar" Width="1.5" PointX="3.375" PointY="14.75" />
+        <EntityTypeShape EntityType="AptVTModel.PesinOdemeler" Width="1.5" PointX="15.375" PointY="0.75" />
+        <EntityTypeShape EntityType="AptVTModel.PesinOdemelerView" Width="1.5" PointX="15.375" PointY="3.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
