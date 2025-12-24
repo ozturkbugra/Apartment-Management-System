@@ -1183,5 +1183,368 @@ namespace ApartmanAidatTakip.Controllers
             ViewBag.Bakiyeler = db.Kasas.Where(x=> x.BinaID == BinaID).OrderByDescending(x => x.KasaID).ToList();
             return View();
         }
+
+
+        public ActionResult TureGoreGelirGiderTarihBazli(DateTime? ilk, DateTime? son, string raporturu)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            Session["Aktif"] = "TureGoreGelirGider";
+            Sabit();
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+
+            ViewBag.tarihdeger1 = ilk?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd");
+            ViewBag.tarihdeger2 = son?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd");
+            ViewBag.raporturu = raporturu;
+
+            if (ilk != null && son != null && !string.IsNullOrEmpty(raporturu))
+            {
+                DateTime baslangic = ilk.Value.Date;
+                DateTime bitis = son.Value.Date.AddDays(1).AddTicks(-1);
+
+                // --- 1. LİSTELEME SORGULARI (Sadece Seçilen Aralık) ---
+                var giderQuery = db.GiderViews.Where(x => x.BinaID == BinaID && x.GiderTarih >= baslangic && x.GiderTarih <= bitis && x.Durum == "A");
+                var tahsilatQuery = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih >= baslangic && x.TahsilatTarih <= bitis && x.Durum == "A");
+
+                string satirTuru = (raporturu == "Demirbas") ? "E" : "A";
+
+                if (raporturu == "Demirbas")
+                {
+                    giderQuery = giderQuery.Where(x => x.GiderTuruID == 6);
+                    tahsilatQuery = tahsilatQuery.Where(x => x.DemirbasMi == true);
+                }
+                else // Aidat
+                {
+                    giderQuery = giderQuery.Where(x => x.GiderTuruID != 6);
+                    tahsilatQuery = tahsilatQuery.Where(x => x.DemirbasMi == false);
+                }
+
+                ViewBag.Gider = giderQuery.OrderBy(x => x.GiderID).ToList();
+                ViewBag.TahsilatGelir = tahsilatQuery.OrderBy(x => x.TahsilatID).ToList();
+
+                var uygunMakbuzIDleri = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == satirTuru).Select(x => x.MakbuzID).Distinct().ToList();
+                ViewBag.MakbuzGelir = db.MakbuzViews.Where(x => x.BinaID == BinaID && x.MakbuzTarihi >= baslangic && x.MakbuzTarihi <= bitis && x.Durum == "A" && uygunMakbuzIDleri.Contains(x.MakbuzID)).OrderBy(x => x.MakbuzID).ToList();
+
+
+                // --- 2. KASA MEVCUDU HESAPLAMA (DOĞRU MANTIK: İLK TARİHİN KASASI) ---
+
+                decimal baslangicBakiyesi = 0;
+
+                // "ilk" tarih hangi yıl ve aysa, o ayın KASA kaydını bul.
+                // Çünkü o kayıttaki "KasaEk/KasaAidat" sütunu, o ayın BAŞLANGIÇ (Devir) bakiyesidir.
+                var baslangicAyKasa = db.Kasas.FirstOrDefault(x => x.BinaID == BinaID && x.KasaYil == ilk.Value.Year && x.AyKodu == ilk.Value.Month);
+
+                if (baslangicAyKasa != null)
+                {
+                    // SENARYO 1: Seçilen ayın Kasa kaydı var.
+                    // O ayın başlangıç devrini alıyoruz.
+                    if (raporturu == "Demirbas") baslangicBakiyesi = baslangicAyKasa.KasaEk ?? 0;
+                    else baslangicBakiyesi = baslangicAyKasa.KasaAidat ?? 0;
+                }
+                else
+                {
+                    // SENARYO 2: Seçilen ayın Kasa kaydı YOK (Henüz oluşmamış veya ilk ay).
+                    // O zaman en başa, ACILISBAKIYE tablosuna dönüyoruz.
+                    var acilis = db.AcilisBakiyes.FirstOrDefault(x => x.BinaID == BinaID);
+                    if (acilis != null)
+                    {
+                        if (raporturu == "Demirbas") baslangicBakiyesi = acilis.EkTutar ?? 0;
+                        else baslangicBakiyesi = acilis.AidatTutar ?? 0;
+                    }
+                }
+
+                // --- HAREKETLERİ HESAPLA (Sadece Seçilen Aralık) ---
+                // Başlangıç bakiyesini bulduk, şimdi üstüne bu aralıktaki hareketleri ekleyip çıkaracağız.
+
+                // Tahsilat Toplamı (Seçilen Aralık)
+                decimal aralikTahsilat = ((List<Tahsilat>)ViewBag.TahsilatGelir).Sum(x => x.TahsilatTutar ?? 0);
+
+                // Makbuz Toplamı (Seçilen Aralık)
+                decimal aralikMakbuz = ((List<MakbuzView>)ViewBag.MakbuzGelir).Sum(x => x.MabuzTutar ?? 0);
+
+                // Gider Toplamı (Seçilen Aralık)
+                decimal aralikGider = ((List<GiderView>)ViewBag.Gider).Sum(x => x.GiderTutar ?? 0);
+
+                // --- SONUÇ: BAŞLANGIÇ + (GELİR - GİDER) ---
+                decimal kasaMevcudu = (baslangicBakiyesi + aralikTahsilat + aralikMakbuz) - aralikGider;
+
+                ViewBag.KasaBaslik = (raporturu == "Demirbas" ? "DEMİRBAŞ" : "AİDAT") + " KASA MEVCUDU";
+                ViewBag.KasaTutar = kasaMevcudu;
+
+                // View'da kullanmak için toplamları da gönderelim
+                ViewBag.AralikGiderToplam = aralikGider;
+                ViewBag.AralikMakbuzToplam = aralikMakbuz;
+                ViewBag.AralikTahsilatToplam = aralikTahsilat;
+            }
+
+            return View();
+        }
+
+        public ActionResult TureGoreGelirPDF(DateTime? ilk, DateTime? son, string raporturu)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null) return RedirectToAction("Login", "AnaSayfa");
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            string binaAdi = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdi"]);
+
+            DateTime baslangic = ilk.Value.Date;
+            DateTime bitis = son.Value.Date.AddDays(1).AddTicks(-1);
+
+            // --- LİSTELEME SORGULARI ---
+            var tahsilatQuery = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih >= baslangic && x.TahsilatTarih <= bitis && x.Durum == "A");
+            string satirTuru = (raporturu == "Demirbas") ? "E" : "A";
+
+            if (raporturu == "Demirbas") tahsilatQuery = tahsilatQuery.Where(x => x.DemirbasMi == true);
+            else tahsilatQuery = tahsilatQuery.Where(x => x.DemirbasMi == false);
+
+            var uygunMakbuzIDleri = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == satirTuru).Select(x => x.MakbuzID).Distinct().ToList();
+            var makbuzGelir = db.MakbuzViews.Where(x => x.BinaID == BinaID && x.MakbuzTarihi >= baslangic && x.MakbuzTarihi <= bitis && x.Durum == "A" && uygunMakbuzIDleri.Contains(x.MakbuzID)).OrderBy(x => x.MakbuzID).ToList();
+            var tahsilatListesi = tahsilatQuery.OrderBy(x => x.TahsilatID).ToList();
+
+            // --- KASA HESAPLAMA (DOĞRU MANTIK) ---
+            decimal baslangicBakiyesi = 0;
+
+            // 1. "ilk" tarihin ayındaki Kasa kaydına bak
+            var baslangicAyKasa = db.Kasas.FirstOrDefault(x => x.BinaID == BinaID && x.KasaYil == ilk.Value.Year && x.AyKodu == ilk.Value.Month);
+
+            if (baslangicAyKasa != null)
+            {
+                if (raporturu == "Demirbas") baslangicBakiyesi = baslangicAyKasa.KasaEk ?? 0;
+                else baslangicBakiyesi = baslangicAyKasa.KasaAidat ?? 0;
+            }
+            else
+            {
+                // 2. Yoksa AcilisBakiye'ye git
+                var acilis = db.AcilisBakiyes.FirstOrDefault(x => x.BinaID == BinaID);
+                if (acilis != null)
+                {
+                    if (raporturu == "Demirbas") baslangicBakiyesi = acilis.EkTutar ?? 0;
+                    else baslangicBakiyesi = acilis.AidatTutar ?? 0;
+                }
+            }
+
+            // Seçilen aralıktaki toplamları hesapla (ViewBag'deki listelerden değil, yeniden sorgudan)
+            decimal aralikTahsilat = tahsilatListesi.Sum(x => x.TahsilatTutar ?? 0);
+            decimal aralikMakbuz = makbuzGelir.Sum(x => x.MabuzTutar ?? 0);
+
+            // Gideri de hesaplamamız lazım ki kasayı bulabilelim (Listelemesek bile)
+            var giderQuery = db.Giders.Where(x => x.BinaID == BinaID && x.GiderTarih >= baslangic && x.GiderTarih <= bitis && x.Durum == "A");
+            if (raporturu == "Demirbas") giderQuery = giderQuery.Where(x => x.GiderTuruID == 6);
+            else giderQuery = giderQuery.Where(x => x.GiderTuruID != 6);
+            decimal aralikGider = giderQuery.Sum(x => (decimal?)x.GiderTutar) ?? 0;
+
+            decimal kasaMevcudu = (baslangicBakiyesi + aralikTahsilat + aralikMakbuz) - aralikGider;
+
+            // --- PDF OLUŞTURMA ---
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4, 25, 25, 25, 25);
+                MemoryStream workStream = new MemoryStream();
+                PdfWriter.GetInstance(document, workStream).CloseStream = false;
+                document.Open();
+
+                string arialFontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
+                BaseFont bf = BaseFont.CreateFont(arialFontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                Font titleFont = new Font(bf, 14, Font.BOLD);
+                Font tableFont = new Font(bf, 9);
+                Font boldTableFont = new Font(bf, 10, Font.BOLD);
+                Font kasaFont = new Font(bf, 12, Font.BOLD);
+
+                string baslikTur = (raporturu == "Demirbas") ? "DEMİRBAŞ GELİR" : "AİDAT GELİR";
+                Paragraph title = new Paragraph($"{binaAdi} - {baslikTur} RAPORU", titleFont) { Alignment = Element.ALIGN_CENTER };
+                document.Add(title);
+                document.Add(new Paragraph($"Tarih Aralığı: {ilk?.ToString("dd/MM/yyyy")} - {son?.ToString("dd/MM/yyyy")}", tableFont) { Alignment = Element.ALIGN_CENTER });
+                document.Add(new Paragraph("\n"));
+
+                // MAKBUZ TABLOSU
+                if (makbuzGelir.Count > 0)
+                {
+                    document.Add(new Paragraph("Makbuz Gelirleri", boldTableFont));
+                    PdfPTable table = new PdfPTable(4) { WidthPercentage = 100 };
+                    table.SetWidths(new float[] { 2f, 3f, 2f, 2f });
+                    table.AddCell(new PdfPCell(new Phrase("Makbuz No", boldTableFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Tarih", boldTableFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Daire", boldTableFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Tutar", boldTableFont)));
+                    foreach (var item in makbuzGelir)
+                    {
+                        table.AddCell(new PdfPCell(new Phrase(item.MakbuzNo.ToString(), tableFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.MakbuzTarihi.Value.ToString("dd/MM/yyyy"), tableFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.DaireNo.ToString(), tableFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.MabuzTutar.Value.ToString("N2"), tableFont)));
+                    }
+                    document.Add(table);
+                    document.Add(new Paragraph($"Makbuz Toplam: {aralikMakbuz:N2} TL", boldTableFont) { Alignment = Element.ALIGN_RIGHT });
+                    document.Add(new Paragraph("\n"));
+                }
+
+                // TAHSİLAT TABLOSU
+                if (tahsilatListesi.Count > 0)
+                {
+                    document.Add(new Paragraph("Tahsilat Gelirleri", boldTableFont));
+                    PdfPTable table = new PdfPTable(4) { WidthPercentage = 100 };
+                    table.AddCell(new PdfPCell(new Phrase("No", boldTableFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Tarih", boldTableFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Açıklama", boldTableFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Tutar", boldTableFont)));
+                    foreach (var item in tahsilatListesi)
+                    {
+                        table.AddCell(new PdfPCell(new Phrase(item.TahsilatNo.ToString(), tableFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.TahsilatTarih.Value.ToString("dd/MM/yyyy"), tableFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.TahsilatAciklama, tableFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.TahsilatTutar.Value.ToString("N2"), tableFont)));
+                    }
+                    document.Add(table);
+                    document.Add(new Paragraph($"Tahsilat Toplam: {aralikTahsilat:N2} TL", boldTableFont) { Alignment = Element.ALIGN_RIGHT });
+                    document.Add(new Paragraph("\n"));
+                }
+
+                // KASA BİLGİSİ
+                PdfPTable kasaTable = new PdfPTable(1) { WidthPercentage = 100 };
+                string kasaBaslik = (raporturu == "Demirbas" ? "DEMİRBAŞ" : "AİDAT") + " KASA MEVCUDU";
+                PdfPCell cellKasa = new PdfPCell(new Phrase($"{kasaBaslik}: {kasaMevcudu:N2} TL", kasaFont));
+                cellKasa.HorizontalAlignment = Element.ALIGN_CENTER;
+                cellKasa.BackgroundColor = iTextSharp.text.BaseColor.LIGHT_GRAY;
+                cellKasa.Padding = 10;
+                kasaTable.AddCell(cellKasa);
+                document.Add(kasaTable);
+
+                document.Close();
+                byte[] byteInfo = workStream.ToArray();
+                workStream.Write(byteInfo, 0, byteInfo.Length);
+                workStream.Position = 0;
+
+                Response.AppendHeader("Content-Disposition", "inline; filename=GelirRaporu.pdf");
+                return File(workStream, "application/pdf");
+            }
+        }
+
+        public ActionResult TureGoreGiderPDF(DateTime? ilk, DateTime? son, string raporturu)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null) return RedirectToAction("Login", "AnaSayfa");
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            string binaAdi = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdi"]);
+
+            DateTime baslangic = ilk.Value.Date;
+            DateTime bitis = son.Value.Date.AddDays(1).AddTicks(-1);
+
+            // --- GİDER SORGUSU ---
+            var giderQuery = db.GiderViews.Where(x => x.BinaID == BinaID && x.GiderTarih >= baslangic && x.GiderTarih <= bitis && x.Durum == "A");
+            string satirTuru = (raporturu == "Demirbas") ? "E" : "A";
+
+            if (raporturu == "Demirbas") giderQuery = giderQuery.Where(x => x.GiderTuruID == 6);
+            else giderQuery = giderQuery.Where(x => x.GiderTuruID != 6);
+
+            var giderListesi = giderQuery.OrderBy(x => x.GiderID).ToList();
+
+            // --- KASA HESAPLAMA (DOĞRU MANTIK) ---
+            decimal baslangicBakiyesi = 0;
+            var baslangicAyKasa = db.Kasas.FirstOrDefault(x => x.BinaID == BinaID && x.KasaYil == ilk.Value.Year && x.AyKodu == ilk.Value.Month);
+
+            if (baslangicAyKasa != null)
+            {
+                if (raporturu == "Demirbas") baslangicBakiyesi = baslangicAyKasa.KasaEk ?? 0;
+                else baslangicBakiyesi = baslangicAyKasa.KasaAidat ?? 0;
+            }
+            else
+            {
+                var acilis = db.AcilisBakiyes.FirstOrDefault(x => x.BinaID == BinaID);
+                if (acilis != null)
+                {
+                    if (raporturu == "Demirbas") baslangicBakiyesi = acilis.EkTutar ?? 0;
+                    else baslangicBakiyesi = acilis.AidatTutar ?? 0;
+                }
+            }
+
+            // Aralıktaki Giderler
+            decimal aralikGider = giderListesi.Sum(x => x.GiderTutar ?? 0);
+
+            // Aralıktaki Gelirleri de hesaplamalıyız (Listelemesek bile)
+            var tahsilatQuery = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih >= baslangic && x.TahsilatTarih <= bitis && x.Durum == "A");
+            if (raporturu == "Demirbas") tahsilatQuery = tahsilatQuery.Where(x => x.DemirbasMi == true);
+            else tahsilatQuery = tahsilatQuery.Where(x => x.DemirbasMi == false);
+            decimal aralikTahsilat = tahsilatQuery.Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+
+            decimal aralikMakbuz = (from m in db.Makbuzs
+                                    join ms in db.MakbuzSatirs on m.MakbuzID equals ms.MakbuzID
+                                    where m.BinaID == BinaID && m.Durum == "A"
+                                          && m.MakbuzTarihi >= baslangic && m.MakbuzTarihi <= bitis
+                                          && ms.Durum == "A" && ms.EkMiAidatMi == satirTuru
+                                    select ms.Tutar).Sum() ?? 0;
+
+            decimal kasaMevcudu = (baslangicBakiyesi + aralikTahsilat + aralikMakbuz) - aralikGider;
+
+            // --- PDF OLUŞTURMA (Standart) ---
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4, 25, 25, 25, 25);
+                MemoryStream workStream = new MemoryStream();
+                PdfWriter.GetInstance(document, workStream).CloseStream = false;
+                document.Open();
+
+                string arialFontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
+                BaseFont bf = BaseFont.CreateFont(arialFontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                Font titleFont = new Font(bf, 14, Font.BOLD);
+                Font tableFont = new Font(bf, 9);
+                Font boldTableFont = new Font(bf, 10, Font.BOLD);
+                Font kasaFont = new Font(bf, 12, Font.BOLD);
+
+                string baslikTur = (raporturu == "Demirbas") ? "DEMİRBAŞ GİDER" : "AİDAT GİDER";
+                Paragraph title = new Paragraph($"{binaAdi} - {baslikTur} RAPORU", titleFont) { Alignment = Element.ALIGN_CENTER };
+                document.Add(title);
+                document.Add(new Paragraph($"Tarih Aralığı: {ilk?.ToString("dd/MM/yyyy")} - {son?.ToString("dd/MM/yyyy")}", tableFont) { Alignment = Element.ALIGN_CENTER });
+                document.Add(new Paragraph("\n"));
+
+                // GİDER TABLOSU
+                if (giderListesi.Count > 0)
+                {
+                    document.Add(new Paragraph("Giderler", boldTableFont));
+                    PdfPTable table = new PdfPTable(4) { WidthPercentage = 100 };
+                    table.AddCell(new PdfPCell(new Phrase("No", boldTableFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Tür", boldTableFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Tarih", boldTableFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Tutar", boldTableFont)));
+                    foreach (var item in giderListesi)
+                    {
+                        table.AddCell(new PdfPCell(new Phrase(item.GiderNo.ToString(), tableFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.GiderTuruAdi, tableFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.GiderTarih.Value.ToString("dd/MM/yyyy"), tableFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.GiderTutar.Value.ToString("N2"), tableFont)));
+                    }
+                    document.Add(table);
+                    document.Add(new Paragraph($"Gider Toplam: {aralikGider:N2} TL", boldTableFont) { Alignment = Element.ALIGN_RIGHT });
+                    document.Add(new Paragraph("\n"));
+                }
+
+                // KASA BİLGİSİ
+                PdfPTable kasaTable = new PdfPTable(1) { WidthPercentage = 100 };
+                string kasaBaslik = (raporturu == "Demirbas" ? "DEMİRBAŞ" : "AİDAT") + " KASA MEVCUDU";
+                PdfPCell cellKasa = new PdfPCell(new Phrase($"{kasaBaslik}: {kasaMevcudu:N2} TL", kasaFont));
+                cellKasa.HorizontalAlignment = Element.ALIGN_CENTER;
+                cellKasa.BackgroundColor = iTextSharp.text.BaseColor.LIGHT_GRAY;
+                cellKasa.Padding = 10;
+                kasaTable.AddCell(cellKasa);
+                document.Add(kasaTable);
+
+                document.Close();
+                byte[] byteInfo = workStream.ToArray();
+                workStream.Write(byteInfo, 0, byteInfo.Length);
+                workStream.Position = 0;
+
+                Response.AppendHeader("Content-Disposition", "inline; filename=GiderRaporu.pdf");
+                return File(workStream, "application/pdf");
+            }
+        }
+
+
+
     }
 }

@@ -1,0 +1,158 @@
+﻿@{
+    ViewBag.Title = "Türe Göre Rapor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<div class="pagetitle">
+    <h1>Türe Göre (Demirbaş/Aidat) Rapor</h1>
+</div>
+
+<div class="card">
+    <div class="card-body pt-3">
+        <form action="/Raporlar/TureGoreGelirGiderTarihBazli" method="get">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label>Başlangıç Tarihi</label>
+                    <input type="date" name="ilk" class="form-control" value="@ViewBag.tarihdeger1" required />
+                </div>
+                <div class="col-md-3">
+                    <label>Bitiş Tarihi</label>
+                    <input type="date" name="son" class="form-control" value="@ViewBag.tarihdeger2" required />
+                </div>
+                <div class="col-md-3">
+                    <label>Rapor Türü</label>
+                    <select class="form-select" name="raporturu">
+                        <option value="Aidat" @(ViewBag.raporturu == "Aidat" ? "selected" : "")>Aidat / İşletme</option>
+                        <option value="Demirbas" @(ViewBag.raporturu == "Demirbas" ? "selected" : "")>Demirbaş</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Rapor Getir</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (ViewBag.Gider != null)
+{
+    <div class="row mb-3">
+        <div class="col-md-6 text-center text-md-start mb-2">
+            <form action="/Raporlar/TureGoreGelirPDF" method="get" target="_blank" style="display:inline;">
+                <input type="hidden" name="ilk" value="@ViewBag.tarihdeger1" />
+                <input type="hidden" name="son" value="@ViewBag.tarihdeger2" />
+                <input type="hidden" name="raporturu" value="@ViewBag.raporturu" />
+                <button type="submit" class="btn btn-success w-100"><i class="bi bi-file-earmark-spreadsheet"></i> GELİR RAPORU YAZDIR</button>
+            </form>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+            <form action="/Raporlar/TureGoreGiderPDF" method="get" target="_blank" style="display:inline;">
+                <input type="hidden" name="ilk" value="@ViewBag.tarihdeger1" />
+                <input type="hidden" name="son" value="@ViewBag.tarihdeger2" />
+                <input type="hidden" name="raporturu" value="@ViewBag.raporturu" />
+                <button type="submit" class="btn btn-danger w-100"><i class="bi bi-file-earmark-pdf"></i> GİDER RAPORU YAZDIR</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">GELİRLER (@ViewBag.raporturu)</div>
+                <div class="card-body">
+                    <h5 class="card-title text-center">Makbuzlar</h5>
+                    <div class="table-responsive" style="max-height:400px; overflow:auto;">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tarih</th>
+                                    <th>Daire</th>
+                                    <th>Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.MakbuzGelir)
+                                {
+                                    <tr>
+                                        <td>@item.MakbuzNo</td>
+                                        <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
+                                        <td>@item.DaireNo</td>
+                                        <td class="text-success">@item.MabuzTutar.ToString("N2") @tl</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-end fw-bold p-2">Makbuz Toplam: @ViewBag.AralikMakbuzToplam.ToString("N2") @tl</div>
+                    <hr />
+
+                    <h5 class="card-title text-center">Diğer Tahsilatlar</h5>
+                    <div class="table-responsive" style="max-height:400px; overflow:auto;">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Açıklama</th>
+                                    <th>Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.TahsilatGelir)
+                                {
+                                    <tr>
+                                        <td>@item.TahsilatNo</td>
+                                        <td>@item.TahsilatAciklama</td>
+                                        <td class="text-success">@item.TahsilatTutar.ToString("N2") @tl</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-end fw-bold p-2">Tahsilat Toplam: @ViewBag.AralikTahsilatToplam.ToString("N2") @tl</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">GİDERLER (@ViewBag.raporturu)</div>
+                <div class="card-body">
+                    <div class="table-responsive" style="max-height:800px; overflow:auto;">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tür</th>
+                                    <th>Tarih</th>
+                                    <th>Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.Gider)
+                                {
+                                    <tr>
+                                        <td>@item.GiderNo</td>
+                                        <td>@item.GiderTuruAdi</td>
+                                        <td>@item.GiderTarih.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-danger">@item.GiderTutar.ToString("N2") @tl</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-end fw-bold p-2">Gider Toplam: @ViewBag.AralikGiderToplam.ToString("N2") @tl</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mt-3">
+            <div class="alert alert-primary text-center shadow-sm">
+                <h3>@ViewBag.KasaBaslik</h3>
+                <h1 class="display-4 fw-bold">@(((decimal)ViewBag.KasaTutar).ToString("N2")) @tl</h1>
+                <small class="text-muted">(Açılış/Devir + Tüm Zamanların Geliri - Tüm Zamanların Gideri)</small>
+            </div>
+        </div>
+    </div>
+}

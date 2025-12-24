@@ -221,412 +221,168 @@
 
         <ul class="sidebar-nav" id="sidebar-nav">
 
-            @if (aktif == "Anasayfa")
-            {
-                <li class="nav-item" id="Ana Sayfa">
-                    <a class="nav-link" href="/AnaSayfa">
-                        <i class="bi bi-house"></i>
-                        <span>Ana Sayfa</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Ana Sayfa">
-                    <a class="nav-link collapsed" href="/AnaSayfa">
-                        <i class="bi bi-house"></i>
-                        <span>Ana Sayfa</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Ana Sayfa">
+                <a class="nav-link @(aktif == "Anasayfa" ? "" : "collapsed")" href="/AnaSayfa">
+                    <i class="bi bi-grid-fill"></i>
+                    <span>Ana Sayfa</span>
+                </a>
+            </li>
 
-            @if (aktif == "AcilisBakiye")
-            {
-                <li class="nav-item" id="Açılış Bakiyesi">
-                    <a class="nav-link" href="/AnaSayfa/AcilisBakiye">
-                        <i class="bi bi-coin"></i>
-                        <span>Açılış Bakiyesi</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Açılış Bakiyesi">
-                    <a class="nav-link collapsed" href="/AnaSayfa/AcilisBakiye">
-                        <i class="bi bi-coin"></i>
-                        <span>Açılış Bakiyesi</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Açılış Bakiyesi">
+                <a class="nav-link @(aktif == "AcilisBakiye" ? "" : "collapsed")" href="/AnaSayfa/AcilisBakiye">
+                    <i class="bi bi-safe2-fill"></i>
+                    <span>Açılış Bakiyesi</span>
+                </a>
+            </li>
 
-            @if (aktif == "Sakinler")
-            {
-                <li class="nav-item" id="Daire Sakinleri">
-                    <a class="nav-link" href="/AnaSayfa/Sakinler">
-                        <i class="bi bi-person-vcard-fill"></i>
-                        <span>Daire Sakinleri</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Daire Sakinleri">
-                    <a class="nav-link collapsed" href="/AnaSayfa/Sakinler">
-                        <i class="bi bi-person-vcard-fill"></i>
-                        <span>Daire Sakinleri</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Daire Sakinleri">
+                <a class="nav-link @(aktif == "Sakinler" ? "" : "collapsed")" href="/AnaSayfa/Sakinler">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Daire Sakinleri</span>
+                </a>
+            </li>
 
-            @if (aktif == "DaireBorclandir")
-            {
-                <li class="nav-item" id="Daire Borçlandır">
-                    <a class="nav-link" href="/AnaSayfa/DaireBorclandir">
-                        <i class="bi bi-calendar-plus-fill"></i>
-                        <span>Daire Borçlandır</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Daire Borçlandır">
-                    <a class="nav-link collapsed" href="/AnaSayfa/DaireBorclandir">
-                        <i class="bi bi-calendar-plus-fill"></i>
-                        <span>Daire Borçlandır</span>
-                    </a>
-                </li>
-            }
-            @if (aktif == "PesinOdemeler")
-            {
-                <li class="nav-item" id="Peşin Ödemeler">
-                    <a class="nav-link" href="/AnaSayfa/PesinOdemeler">
-                        <i class="bi bi-coin"></i>
-                        <span>Peşin Ödemeler</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Peşin Ödemeler">
-                    <a class="nav-link collapsed" href="/AnaSayfa/PesinOdemeler">
-                        <i class="bi bi-coin"></i>
-                        <span>Peşin Ödemeler</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Daire Borçlandır">
+                <a class="nav-link @(aktif == "DaireBorclandir" ? "" : "collapsed")" href="/AnaSayfa/DaireBorclandir">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Daire Borçlandır</span>
+                </a>
+            </li>
 
-            @if (aktif == "DonemEkle")
-            {
-                <li class="nav-item" id="Dönem Ekle">
-                    <a class="nav-link" href="/AnaSayfa/DonemEkle">
-                        <i class="bi bi-window-plus"></i>
-                        <span>Dönem Ekle</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Dönem Ekle">
-                    <a class="nav-link collapsed" href="/AnaSayfa/DonemEkle">
-                        <i class="bi bi-window-plus"></i>
-                        <span>Dönem Ekle</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Peşin Ödemeler">
+                <a class="nav-link @(aktif == "PesinOdemeler" ? "" : "collapsed")" href="/AnaSayfa/PesinOdemeler">
+                    <i class="bi bi-wallet2"></i>
+                    <span>Peşin Ödemeler</span>
+                </a>
+            </li>
+
+            <li class="nav-item" id="Dönem Ekle">
+                <a class="nav-link @(aktif == "DonemEkle" ? "" : "collapsed")" href="/AnaSayfa/DonemEkle">
+                    <i class="bi bi-calendar-plus-fill"></i>
+                    <span>Dönem Ekle</span>
+                </a>
+            </li>
 
             <hr />
             <li class="nav-heading">İşlemler</li>
-            @if (aktif == "TopluMakbuz")
-            {
-                <li class="nav-item" id="Toplu Makbuz Oluştur">
-                    <a class="nav-link" href="/TopluMakbuz">
-                        <i class="bi bi-database-fill-add"></i>
-                        <span>Toplu Makbuz Oluştur</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Toplu Makbuz Oluştur">
-                    <a class="nav-link collapsed" href="/TopluMakbuz">
-                        <i class="bi bi-database-fill-add"></i>
-                        <span>Toplu Makbuz Oluştur</span>
-                    </a>
-                </li>
-            }
 
+            <li class="nav-item" id="Toplu Makbuz Oluştur">
+                <a class="nav-link @(aktif == "TopluMakbuz" ? "" : "collapsed")" href="/TopluMakbuz">
+                    <i class="bi bi-printer-fill"></i>
+                    <span>Toplu Makbuz Oluştur</span>
+                </a>
+            </li>
 
-            @if (aktif == "Makbuz")
-            {
-                <li class="nav-item" id="Makbuz Oluştur">
-                    <a class="nav-link" href="/Makbuz">
-                        <i class="bi bi-card-list"></i>
-                        <span>Makbuz Oluştur</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Makbuz Oluştur">
-                    <a class="nav-link collapsed" href="/Makbuz">
-                        <i class="bi bi-card-list"></i>
-                        <span>Makbuz Oluştur</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Makbuz Oluştur">
+                <a class="nav-link @(aktif == "Makbuz" ? "" : "collapsed")" href="/Makbuz">
+                    <i class="bi bi-receipt"></i>
+                    <span>Makbuz Oluştur</span>
+                </a>
+            </li>
 
-            @if (aktif == "Giderler")
-            {
-                <li class="nav-item" id="Giderler">
-                    <a class="nav-link" href="/AnaSayfa/Giderler">
-                        <i class="bi bi-file-earmark-x"></i>
-                        <span>Giderler</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Giderler">
-                    <a class="nav-link collapsed" href="/AnaSayfa/Giderler">
-                        <i class="bi bi-file-earmark-x"></i>
-                        <span>Giderler</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Giderler">
+                <a class="nav-link @(aktif == "Giderler" ? "" : "collapsed")" href="/AnaSayfa/Giderler">
+                    <i class="bi bi-dash-circle-fill"></i>
+                    <span>Giderler</span>
+                </a>
+            </li>
 
-            @if (aktif == "Tahsilat")
-            {
-                <li class="nav-item" id="Tahsilatlar">
-                    <a class="nav-link" href="/AnaSayfa/Tahsilat">
-                        <i class="bi bi-file-earmark-plus-fill"></i>
-                        <span>Tahsilatlar</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Tahsilatlar">
-                    <a class="nav-link collapsed" href="/AnaSayfa/Tahsilat">
-                        <i class="bi bi-file-earmark-plus-fill"></i>
-                        <span>Tahsilatlar</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Tahsilatlar">
+                <a class="nav-link @(aktif == "Tahsilat" ? "" : "collapsed")" href="/AnaSayfa/Tahsilat">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>Tahsilatlar</span>
+                </a>
+            </li>
 
             <hr />
             <li class="nav-heading">DİĞER</li>
 
-            @if (aktif == "EklenenAidatlar")
-            {
-                <li class="nav-item" id="Eklenen Aidatlar">
-                    <a class="nav-link" href="/AnaSayfa/EklenenAidatlar">
-                        <i class="bi bi-envelope-plus-fill"></i>
-                        <span>Eklenen Aidatlar</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Eklenen Aidatlar">
-                    <a class="nav-link collapsed" href="/AnaSayfa/EklenenAidatlar">
-                        <i class="bi bi-envelope-plus-fill"></i>
-                        <span>Eklenen Aidatlar</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Eklenen Aidatlar">
+                <a class="nav-link @(aktif == "EklenenAidatlar" ? "" : "collapsed")" href="/AnaSayfa/EklenenAidatlar">
+                    <i class="bi bi-building-check"></i>
+                    <span>Eklenen Aidatlar</span>
+                </a>
+            </li>
 
-            @if (aktif == "EklenenEkler")
-            {
-                <li class="nav-item" id="Eklenen Ekler">
-                    <a class="nav-link" href="/AnaSayfa/EklenenEkler">
-                        <i class="bi bi-envelope-plus"></i>
-                        <span>Eklenen Ekler</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Eklenen Ekler">
-                    <a class="nav-link collapsed" href="/AnaSayfa/EklenenEkler">
-                        <i class="bi bi-envelope-plus"></i>
-                        <span>Eklenen Ekler</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Eklenen Ekler (Demirbaşlar)">
+                <a class="nav-link @(aktif == "EklenenEkler" ? "" : "collapsed")" href="/AnaSayfa/EklenenEkler">
+                    <i class="bi bi-layers-fill"></i>
+                    <span>Eklenen Ekler (Demirbaşlar)</span>
+                </a>
+            </li>
 
-            @if (aktif == "Ara")
-            {
-                <li class="nav-item" id="Makbuz Ara">
-                    <a class="nav-link" href="/Makbuz/Ara">
-                        <i class="bi bi-search"></i>
-                        <span>Makbuz Ara</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Makbuz Ara">
-                    <a class="nav-link collapsed" href="/Makbuz/Ara">
-                        <i class="bi bi-search"></i>
-                        <span>Makbuz Ara</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Makbuz Ara">
+                <a class="nav-link @(aktif == "Ara" ? "" : "collapsed")" href="/Makbuz/Ara">
+                    <i class="bi bi-search"></i>
+                    <span>Makbuz Ara</span>
+                </a>
+            </li>
 
-            @if (aktif == "DaireSorgu")
-            {
-                <li class="nav-item" id="Daire Borç Sorgula">
-                    <a class="nav-link" href="/AnaSayfa/DaireSorgu">
-                        <i class="bi bi-person-workspace"></i>
-                        <span>Daire Borç Sorgula</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Daire Borç Sorgula">
-                    <a class="nav-link collapsed" href="/AnaSayfa/DaireSorgu">
-                        <i class="bi bi-person-workspace"></i>
-                        <span>Daire Borç Sorgula</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Daire Borç Sorgula">
+                <a class="nav-link @(aktif == "DaireSorgu" ? "" : "collapsed")" href="/AnaSayfa/DaireSorgu">
+                    <i class="bi bi-zoom-in"></i>
+                    <span>Daire Borç Sorgula</span>
+                </a>
+            </li>
 
-            @if (aktif == "Notlar")
-            {
-                <li class="nav-item" id="Notlarım">
-                    <a class="nav-link" href="/AnaSayfa/Notlar">
-                        <i class="bi bi-pencil-square"></i>
-                        <span>Notlarım</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Notlarım">
-                    <a class="nav-link collapsed" href="/AnaSayfa/Notlar">
-                        <i class="bi bi-pencil-square"></i>
-                        <span>Notlarım</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Notlarım">
+                <a class="nav-link @(aktif == "Notlar" ? "" : "collapsed")" href="/AnaSayfa/Notlar">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                    <span>Notlarım</span>
+                </a>
+            </li>
 
             <hr />
             <li class="nav-heading">Raporlar</li>
 
-            @if (aktif == "BorcluDaireler")
-            {
-                <li class="nav-item" id="Borçlu Daireler">
-                    <a class="nav-link" href="/AnaSayfa/BorcluDaireler">
-                        <i class="bi bi-person-video2"></i>
-                        <span>Borçlu Daireler</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Borçlu Daireler">
-                    <a class="nav-link collapsed" href="/AnaSayfa/BorcluDaireler">
-                        <i class="bi bi-person-video2"></i>
-                        <span>Borçlu Daireler</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Borçlu Daireler">
+                <a class="nav-link @(aktif == "BorcluDaireler" ? "" : "collapsed")" href="/AnaSayfa/BorcluDaireler">
+                    <i class="bi bi-person-exclamation"></i>
+                    <span>Borçlu Daireler</span>
+                </a>
+            </li>
 
-            @if (aktif == "GelirGider")
-            {
-                <li class="nav-item" id="Gelir Gider Raporu">
-                    <a class="nav-link" href="/Raporlar/GelirGider">
-                        <i class="bi bi-clipboard-data"></i>
-                        <span>Gelir Gider Raporu</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Gelir Gider Raporu">
-                    <a class="nav-link collapsed" href="/Raporlar/GelirGider">
-                        <i class="bi bi-clipboard-data"></i>
-                        <span>Gelir Gider Raporu</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Gelir Gider Raporu">
+                <a class="nav-link @(aktif == "GelirGider" ? "" : "collapsed")" href="/Raporlar/GelirGider">
+                    <i class="bi bi-pie-chart-fill"></i>
+                    <span>Gelir Gider Raporu</span>
+                </a>
+            </li>
 
-            @if (aktif == "DetayliGelirGider")
-            {
-                <li class="nav-item" id="Detaylı Gelir Gider Tablosu">
-                    <a class="nav-link" href="/Raporlar/DetayliGelirGider?yil=@DateTime.Now.Year&ay=@DateTime.Now.Month">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <span>Detaylı Gelir Gider Tablosu</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Detaylı Gelir Gider Tablosu">
-                    <a class="nav-link collapsed" href="/Raporlar/DetayliGelirGider?yil=@DateTime.Now.Year&ay=@DateTime.Now.Month">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <span>Detaylı Gelir Gider Tablosu</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Türe Göre Gelir Gider Raporu">
+                <a class="nav-link @(aktif == "TureGoreGelirGider" ? "" : "collapsed")" href="/Raporlar/TureGoreGelirGiderTarihBazli">
+                    <i class="bi bi-bar-chart-line-fill"></i>
+                    <span>Türe Göre Rapor</span>
+                </a>
+            </li>
 
-            @if (aktif == "DenetciRaporu")
-            {
-                <li class="nav-item" id="Denetçi Raporu">
-                    <a class="nav-link" href="/Raporlar/DenetciRaporu">
-                        <i class="bi bi-file-post"></i>
-                        <span>Denetçi Raporu</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Denetçi Raporu">
-                    <a class="nav-link collapsed" href="/Raporlar/DenetciRaporu">
-                        <i class="bi bi-file-post"></i>
-                        <span>Denetçi Raporu</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Detaylı Gelir Gider Tablosu">
+                <a class="nav-link @(aktif == "DetayliGelirGider" ? "" : "collapsed")" href="/Raporlar/DetayliGelirGider?yil=@DateTime.Now.Year&ay=@DateTime.Now.Month">
+                    <i class="bi bi-table"></i>
+                    <span>Detaylı Tablo</span>
+                </a>
+            </li>
 
-            @if (aktif == "TureGoreGiderler")
-            {
-                <li class="nav-item" id="Türe Göre Giderler">
-                    <a class="nav-link" href="/Raporlar/TureGoreGiderler">
-                        <i class="bi bi-file-minus-fill"></i>
-                        <span>Türe Göre Giderler</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Türe Göre Giderler">
-                    <a class="nav-link collapsed" href="/Raporlar/TureGoreGiderler">
-                        <i class="bi bi-file-minus-fill"></i>
-                        <span>Türe Göre Giderler</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Denetçi Raporu">
+                <a class="nav-link @(aktif == "DenetciRaporu" ? "" : "collapsed")" href="/Raporlar/DenetciRaporu">
+                    <i class="bi bi-clipboard2-check-fill"></i>
+                    <span>Denetçi Raporu</span>
+                </a>
+            </li>
 
-            @if (aktif == "DevirBakiyeleri")
-            {
-                <li class="nav-item" id="Devir Bakiyeleri">
-                    <a class="nav-link" href="/Raporlar/DevirBakiyeleri">
-                        <i class="bi bi-file-minus-fill"></i>
-                        <span>Devir Bakiyeleri</span>
-                    </a>
-                </li>
-            }
-            else
-            {
-                <li class="nav-item" id="Devir Bakiyeleri">
-                    <a class="nav-link collapsed" href="/Raporlar/DevirBakiyeleri">
-                        <i class="bi bi-file-minus-fill"></i>
-                        <span>Devir Bakiyeleri</span>
-                    </a>
-                </li>
-            }
+            <li class="nav-item" id="Türe Göre Giderler">
+                <a class="nav-link @(aktif == "TureGoreGiderler" ? "" : "collapsed")" href="/Raporlar/TureGoreGiderler">
+                    <i class="bi bi-graph-down-arrow"></i>
+                    <span>Türe Göre Giderler</span>
+                </a>
+            </li>
+
+            <li class="nav-item" id="Devir Bakiyeleri">
+                <a class="nav-link @(aktif == "DevirBakiyeleri" ? "" : "collapsed")" href="/Raporlar/DevirBakiyeleri">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <span>Devir Bakiyeleri</span>
+                </a>
+            </li>
 
         </ul>
 
