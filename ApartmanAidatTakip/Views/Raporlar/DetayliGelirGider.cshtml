@@ -1,20 +1,23 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Detaylı Gelir Gider Raporu";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Detaylı Gelir Gider Raporu</h2>
 @{
-    var item = DateTime.Now.ToString("MMMM");
+    string tl = " ₺";
 }
+
+<h2>Detaylı Gelir Gider Raporu</h2>
+
 <form action="/Raporlar/DetayliGelirGider" method="get">
-    <div class="row">
-        <div class="col-4">
-            <input type="text" maxlength="4" name="yil" class="form-control" value="@ViewBag.Yil" />
+    <div class="row align-items-end">
+        <div class="col-md-3">
+            <label>Yıl</label>
+            <input type="text" maxlength="4" name="yil" class="form-control" value="@ViewBag.Yil" required />
         </div>
-        <div class="col-4">
-            <select class="form-select" name="ay">
+        <div class="col-md-3">
+            <label>Ay</label>
+            <select class="form-select" name="ay" id="aySelect">
                 <option value="1" @(1 == ViewBag.Ay ? "selected" : "")>Ocak</option>
                 <option value="2" @(2 == ViewBag.Ay ? "selected" : "")>Şubat</option>
                 <option value="3" @(3 == ViewBag.Ay ? "selected" : "")>Mart</option>
@@ -29,36 +32,38 @@
                 <option value="12" @(12 == ViewBag.Ay ? "selected" : "")>Aralık</option>
             </select>
         </div>
+        <div class="col-md-3">
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" value="true" name="yillik" id="chkYillik" @(ViewBag.Yillik == true ? "checked" : "") onchange="toggleAy()">
+                <label class="form-check-label" for="chkYillik">
+                    <b>Yıllık Rapor (Kümülatif)</b>
+                </label>
+            </div>
+        </div>
 
-        <div class="col-4"> <button type="submit" class="btn btn-success">Listele</button></div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-success w-100">Listele</button>
+        </div>
     </div>
-
-
-
 </form>
-
-@{
-    string tl = " ₺";
-}
-
 
 @if (ViewBag.elektrik != null)
 {
     <br />
     <div class="row">
-        <div class="col-5"><h3>@ViewBag.Yazi </h3></div> 
-        <div class="col-3"><form action="/Raporlar/DetayliGelirGiderPDF" method="get" target="_blank">
-    <input type="hidden" name="ay" value="@ViewBag.Ay" />
-    <input type="hidden" name="yil" value="@ViewBag.Yil" />
-    <button type="submit" class="btn btn-success"> <i class="bi bi-printer"></i>  YAZDIR</button>
-
-</form></div> 
+        <div class="col-9"><h3>@ViewBag.Yazi </h3></div>
+        <div class="col-3">
+            <form action="/Raporlar/DetayliGelirGiderPDF" method="get" target="_blank">
+                <input type="hidden" name="ay" value="@ViewBag.Ay" />
+                <input type="hidden" name="yil" value="@ViewBag.Yil" />
+                <input type="hidden" name="yillik" value="@(ViewBag.Yillik == true ? "true" : "false")" />
+                <button type="submit" class="btn btn-success w-100"> <i class="bi bi-printer"></i> YAZDIR</button>
+            </form>
+        </div>
     </div>
-    
-    
+
     <br />
     <h4>Elektrik: @ViewBag.elektrik.ToString("N2") @tl</h4>
-
     <h4>Su: @ViewBag.su.ToString("N2") @tl</h4>
     <h4>Yakıt - Isınma Gideri: @ViewBag.yakitisinma.ToString("N2") @tl</h4>
     <h4>Yönetim Gideri: @ViewBag.yonetim.ToString("N2") @tl</h4>
@@ -75,13 +80,32 @@
     <h4>Ek Gelir: @ViewBag.ek.ToString("N2") @tl</h4>
     <h3 class="text-success">Toplam Gelir: @ViewBag.gelirtoplam.ToString("N2") @tl</h3>
     <br />
-    <h3 class="text-primary">Kasa Devir: @ViewBag.eskikasa.ToString("N2") @tl </h3>
+
+    <h3 class="text-primary">
+        @(ViewBag.Yillik == true ? "Geçen Yıldan Devir:" : "Geçen Aydan Devir:")
+        @ViewBag.eskikasa.ToString("N2") @tl
+    </h3>
     <h4 class="text-primary">(Aidat: @ViewBag.eskikasaaidat.ToString("N2") @tl | Ek: @ViewBag.eskikasaek.ToString("N2") @tl )</h4>
+
     <br />
     <h3 class="text-success">Toplam Kasa: @ViewBag.yenikasa.ToString("N2") @tl </h3>
     <h4 class="text-success">(Aidat: @ViewBag.yenikasaaidat.ToString("N2") @tl | Ek: @ViewBag.yenikasaek.ToString("N2") @tl )</h4>
-
-
-
 }
 
+<script>
+    function toggleAy() {
+        var isChecked = document.getElementById("chkYillik").checked;
+        var aySelect = document.getElementById("aySelect");
+
+        if (isChecked) {
+            aySelect.disabled = true; // Pasif yap
+        } else {
+            aySelect.disabled = false; // Aktif yap
+        }
+    }
+
+    // Sayfa yüklendiğinde durumu kontrol et (Listele dedikten sonra da doğru kalsın)
+    window.onload = function () {
+        toggleAy();
+    };
+</script>
