@@ -1,75 +1,206 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Notlar";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Veri varsa çek, yoksa boş bırak (Kod tekrarını önlemek için)
+    string aciklama = ViewBag.n != null ? ViewBag.n.Aciklama : "";
+    string borcAciklama = ViewBag.n != null ? ViewBag.n.BorcAciklama : "";
 }
 
-<h2>Notlar</h2>
-
-
-@using (Html.BeginForm("NotEkle", "AnaSayfa", FormMethod.Post))
-{
-
-
-    <div class="form-group">
-        <label>İçerik</label>
-
-
-
-        @if (ViewBag.n != null)
-        {
-            <textarea id="summernote" class="summernote" name="Aciklama" required>
-
-             @ViewBag.n.Aciklama
-         
-             </textarea>
-            <br />
-            <input type="text" class="form-control" name="BorcAciklama" value="@ViewBag.n.BorcAciklama"  placeholder="Borç Notu" />
-
-        }
-        else
-        {
-
-            <textarea id="summernote" class="summernote" name="Aciklama" required>
-
-           
-         
-             </textarea>
-            <br />
-
-            <input type="text" class="form-control" name="BorcAciklama" placeholder="Borç Notu"/>
-        }
-
-
-
-    </div>
-    <br />
-    <button type="submit" class="btn btn-success">Kaydet</button>
-}
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
+
+    /* Sol Taraf: Editör Kartı */
+    .editor-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        padding: 0;
+        overflow: hidden;
+        border: none;
+    }
+
+    /* Summernote Özelleştirme */
+    .note-editor.note-frame {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .note-toolbar {
+        background: #f8f9fa !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding: 10px 20px !important;
+        z-index: 50;
+    }
+
+    .note-editable {
+        padding: 30px !important;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+        line-height: 1.6;
+        min-height: 500px !important;
+    }
+
+    .note-resizebar {
+        display: none !important;
+    }
+
+    .note-statusbar {
+        display: none !important;
+    }
+
+    /* Sağ Taraf: Bilgi Kartı */
+    .info-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        padding: 25px;
+        position: sticky;
+        top: 20px;
+    }
+
+    .form-label-custom {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .form-control-custom {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+
+        .form-control-custom:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+    .btn-save {
+        background: var(--primary-grad);
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        transition: transform 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+        .btn-save:hover {
+            transform: translateY(-3px);
+            color: white;
+        }
+
+    .help-text {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin-top: 10px;
+        line-height: 1.4;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Notlar & Duyurular</h3>
+            <span class="text-muted small">Apartman sakinleri ve yönetim için notlarınızı düzenleyin.</span>
+        </div>
+    </div>
+
+    @using (Html.BeginForm("NotEkle", "AnaSayfa", FormMethod.Post))
+    {
+        <div class="row g-4">
+
+            <div class="col-lg-8">
+                <div class="editor-card">
+                    <textarea id="summernote" class="summernote" name="Aciklama" required>@aciklama</textarea>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="info-card">
+                    <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-sliders me-2"></i>Not Detayları</h5>
+
+                    <div class="mb-4">
+                        <label class="form-label-custom">Kısa Not / Borç Notu</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-sticky"></i></span>
+                            <input type="text" class="form-control form-control-custom border-start-0 ps-0" name="BorcAciklama" value="@borcAciklama" placeholder="Örn: Aidatlarınızı ayın 5'ine kadar..." />
+                        </div>
+                        <p class="help-text"><i class="bi bi-info-circle me-1"></i> Bu alan, makbuzlarda veya borç sorgulama ekranlarında kısa uyarı olarak görünebilir.</p>
+                    </div>
+
+                    <hr class="text-muted opacity-25 my-4">
+
+                    <button type="submit" class="btn-save">
+                        <i class="bi bi-save2-fill"></i> Değişiklikleri Kaydet
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
-
-
-<script>
-    $('.summernote').summernote({
-        tabsize: 10,
-        height: 500,
-
-    });
-</script>
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     $(document).ready(function() {
+        // Summernote Başlatma
+        $('#summernote').summernote({
+            placeholder: 'Notlarınızı ve duyurularınızı buraya detaylı bir şekilde yazabilirsiniz...',
+            tabsize: 2,
+            height: 600,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ]
+        });
+
+        // SweetAlert Bildirimleri
         @if (TempData["Hata"] != null)
         {
             <text>
                 Swal.fire({
                     icon: 'error',
                     title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33'
                 });
             </text>
         }
@@ -79,12 +210,13 @@
             <text>
                 Swal.fire({
                     icon: 'success',
-                    title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                    title: 'Kaydedildi!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#4f46e5',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
             </text>
         }
     });
-
-
 </script>

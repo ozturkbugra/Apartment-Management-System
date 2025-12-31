@@ -1,22 +1,158 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Aidat Düzenle";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="pagetitle">
-    <h1>Aidat Düzenle</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<br />
-<form action="/AnaSayfa/AidatDuzenle" method="post">
-    <input type="hidden" name="AidatID" value="@ViewBag.a.AidatID" />
-    <label> Daire No: @ViewBag.a.DaireNo </label>
-    <br />
-    <label> @ViewBag.a.AidatAy - @ViewBag.a.AidatYil </label>
-    <br />
-    <input type="text" name="AidatTutar" class="form-control" value="@ViewBag.a.AidatTutar" onkeydown="preventDotAndComma(event)" />
-    <br />
-    <button type="submit" class="btn btn-success">Güncelle</button>
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+    }
 
-</form>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
+
+    .edit-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        max-width: 600px;
+        margin: 40px auto;
+        border: none;
+    }
+
+    .card-header-custom {
+        background: var(--primary-grad);
+        padding: 30px;
+        color: white;
+        text-align: center;
+        position: relative;
+    }
+
+    .header-icon {
+        font-size: 3rem;
+        opacity: 0.2;
+        position: absolute;
+        right: 20px;
+        top: 10px;
+        transform: rotate(-15deg);
+    }
+
+    .info-badge {
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(5px);
+        padding: 8px 15px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .form-content {
+        padding: 40px;
+    }
+
+    .amount-input-group {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .currency-symbol {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.5rem;
+        color: #4f46e5;
+        font-weight: 600;
+        z-index: 10;
+    }
+
+    .form-control-amount {
+        padding: 15px 15px 15px 50px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #344767;
+        border-radius: 15px;
+        border: 2px solid #e2e8f0;
+        text-align: right;
+    }
+
+        .form-control-amount:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.1);
+        }
+
+    .btn-update {
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        background: var(--primary-grad);
+        color: white;
+        font-weight: 600;
+        border: none;
+        font-size: 1.1rem;
+        transition: transform 0.2s;
+        box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+    }
+
+        .btn-update:hover {
+            transform: translateY(-3px);
+            color: white;
+        }
+
+    .btn-cancel {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: #94a3b8;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .btn-cancel:hover {
+            color: #64748b;
+        }
+</style>
+
+<div class="container-fluid">
+    <div class="edit-card">
+
+        <div class="card-header-custom">
+            <i class="bi bi-calendar-check header-icon"></i>
+            <h3 class="fw-bold mb-1">Aidat Düzenle</h3>
+            <div class="d-flex justify-content-center gap-2">
+                <div class="info-badge"><i class="bi bi-house-door-fill"></i> Daire @ViewBag.a.DaireNo</div>
+                <div class="info-badge"><i class="bi bi-calendar3"></i> @ViewBag.a.AidatAy / @ViewBag.a.AidatYil</div>
+            </div>
+        </div>
+
+        <div class="form-content">
+            <form action="/AnaSayfa/AidatDuzenle" method="post">
+                <input type="hidden" name="AidatID" value="@ViewBag.a.AidatID" />
+
+                <label class="small text-uppercase fw-bold text-muted mb-2">Güncellenecek Tutar</label>
+                <div class="amount-input-group">
+                    <span class="currency-symbol">₺</span>
+                    <input type="text" name="AidatTutar" class="form-control form-control-amount" value="@ViewBag.a.AidatTutar" onkeydown="preventDotAndComma(event)" required />
+                </div>
+
+                <button type="submit" class="btn-update">
+                    <i class="bi bi-check-circle-fill me-2"></i> Tutarı Güncelle
+                </button>
+
+                <a href="/AnaSayfa/EklenenAidatlar" class="btn-cancel">İptal Et ve Geri Dön</a>
+            </form>
+        </div>
+
+    </div>
+</div>

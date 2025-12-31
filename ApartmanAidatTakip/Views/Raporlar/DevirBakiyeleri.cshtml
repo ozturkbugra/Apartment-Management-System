@@ -1,46 +1,155 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Devir Bakiyeleri";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Devir Bakiyeleri</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<div class="card-body">
-    <h5 class="card-title">Gider Listesi</h5>
-    <div class="table-responsive">
-        <table class="table table-borderless table-success datatable">
-            <thead>
-                <tr>
-                    
-                    <th scope="col">Devir Edilen Dönem</th>
-                    <th scope="col">Devir Eden Aidat Tutarı</th>
-                    <th scope="col">Devir Eden Demirbaş Tutarı</th>
-                    <th scope="col">Devir Eden Toplam Tutar</th>
-                    
-               
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --success-text: #059669;
+        --warning-text: #d97706;
+        --info-text: #0284c7;
+    }
 
-                 
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.Bakiyeler)
-                {
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
+    /* Kart Tasarımı */
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: none;
+        margin-top: 20px;
+    }
+
+    .card-header-custom {
+        padding: 20px 25px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+    }
+
+    /* Tablo Tasarımı */
+    .modern-table thead th {
+        background-color: #f8f9fa;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border: none;
+        padding: 15px 20px;
+        letter-spacing: 0.5px;
+    }
+
+    .modern-table tbody td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.95rem;
+    }
+
+    .modern-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Özel Rozetler */
+    .badge-period {
+        background: #e0e7ff;
+        color: #4f46e5;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .amount-aidat {
+        color: var(--info-text);
+        font-weight: 600;
+    }
+
+    .amount-demirbas {
+        color: var(--warning-text);
+        font-weight: 600;
+    }
+
+    .amount-total {
+        color: var(--success-text);
+        font-weight: 700;
+        font-size: 1.1rem;
+        background: #d1fae5;
+        padding: 5px 15px;
+        border-radius: 50px;
+        display: inline-block;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Kasa Devir Geçmişi</h3>
+            <span class="text-muted small">Dönemler arası aktarılan nakit bakiyeler</span>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="card-header-custom">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-clock-history me-2 text-primary"></i>Devir Listesi
+            </h5>
+            @*<span class="badge bg-light text-dark border">@(((List<object>)ViewBag.Bakiyeler).Count) Kayıt</span>*@
+        </div>
+
+        <div class="table-responsive">
+            <table class="table modern-table mb-0 datatable">
+                <thead>
                     <tr>
-                        <td>@item.KasaAy - @item.KasaYil dönemine devir</td>
-                        <td>@item.KasaAidat.ToString("N2") @tl</td>
-                        <td>@item.KasaEk.ToString("N2") @tl</td>
-                        <td>@item.KasaToplam.ToString("N2") @tl</td>
-                       
+                        <th scope="col"><i class="bi bi-calendar-range me-1"></i> Devir Dönemi</th>
+                        <th scope="col"><i class="bi bi-wallet2 me-1"></i> Aidat Kasası</th>
+                        <th scope="col"><i class="bi bi-box-seam me-1"></i> Demirbaş Kasası</th>
+                        <th scope="col"><i class="bi bi-safe2-fill me-1"></i> Toplam Devir</th>
                     </tr>
-
-                }
-
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Bakiyeler)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge-period">
+                                    <i class="bi bi-arrow-right-circle"></i> @item.KasaAy - @item.KasaYil
+                                </span>
+                                <small class="text-muted ms-2">dönemine devir</small>
+                            </td>
+                            <td>
+                                <span class="amount-aidat">@item.KasaAidat.ToString("N2") @tl</span>
+                            </td>
+                            <td>
+                                <span class="amount-demirbas">@item.KasaEk.ToString("N2") @tl</span>
+                            </td>
+                            <td>
+                                <span class="amount-total">
+                                    <i class="bi bi-check2-circle me-1"></i> @item.KasaToplam.ToString("N2") @tl
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

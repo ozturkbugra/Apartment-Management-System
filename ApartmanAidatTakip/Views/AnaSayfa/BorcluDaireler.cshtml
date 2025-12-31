@@ -1,55 +1,248 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Borçlu Daireler";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Borçlu Daireler</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<a href="/AnaSayfa/BorcluDairelerPDF" class="btn btn-success" target="_blank"><i class="bi bi-printer"></i> Yazdır</a> | <a href="/AnaSayfa/BorcluDairelerExcel" class="btn btn-success" target="_blank"><i class="bi bi-excel"></i> Excel'e Aktar</a>
-<br />
-<div class="card-body">
-    <h5 class="card-title">Daire Sakinleri Listesi</h5>
-    <div class="table-responsive">
-        <table class="table table-borderless table-striped datatable">
-            <thead>
-                <tr>
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --danger-text: #dc2626;
+        --whatsapp-color: #25D366;
+        --excel-color: #1D6F42;
+        --primary-color: #4f46e5;
+    }
 
-                    <th scope="col">Daire No</th>
-                    <th scope="col">Ad Soyad</th>
-                    <th scope="col">Telefon</th>
-                    <th scope="col">TC</th>
-                    <th scope="col">Durum</th>
-                    <th scope="col">Borç</th>
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.BorcluDaireler)
-                {
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
-                    <tr>
-                        @{ 
-                            string link = "https://wa.me/+90" + item.Telefon + "?text=Merhaba,%20"+ item.Borc.ToString("N0")+ "%20TL%20aidat%20borcunuz%20bulunmaktadır%20";
-                        }
- 
-                        <td>@item.DaireNo</td>
-                        <td>@item.AdSoyad</td>
-                        <td>@item.Telefon</td>
-                        <td>@item.TC</td>
-                        <td>@item.DaireDurum</td>
-                        <td>@item.Borc.ToString("N2") @tl</td>
-                        <td><a href="@link" class="btn btn-sm btn-success">WhatsApp'tan Mesaj Gönder</a></td>
-                    </tr>
+    /* Üst Aksiyon Barı */
+    .action-toolbar {
+        background: #fff;
+        padding: 15px 25px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
 
-                }
+    .toolbar-title h3 {
+        font-weight: 700;
+        margin: 0;
+        color: #1e293b;
+        font-size: 1.5rem;
+    }
 
-            </tbody>
-        </table>
+    .toolbar-title span {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .btn-toolbar {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        font-size: 0.9rem;
+    }
+
+    .btn-print-custom {
+        background-color: #e0f2fe;
+        color: #0284c7;
+    }
+
+        .btn-print-custom:hover {
+            background-color: #0284c7;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .btn-excel-custom {
+        background-color: #dcfce7;
+        color: var(--excel-color);
+    }
+
+        .btn-excel-custom:hover {
+            background-color: var(--excel-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    /* Tablo Kartı */
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border-top: 5px solid var(--danger-text);
+    }
+
+    .modern-table thead th {
+        background-color: #f8f9fa;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border: none;
+        padding: 15px 20px;
+    }
+
+    .modern-table tbody td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+
+    .modern-table tbody tr:hover {
+        background-color: #fff1f2;
+    }
+    /* Hafif kırmızı hover */
+
+    /* Bileşenler */
+    .daire-badge {
+        background: #f1f5f9;
+        color: #334155;
+        font-weight: 700;
+        padding: 8px 12px;
+        border-radius: 8px;
+        display: inline-block;
+        min-width: 80px;
+        text-align: center;
+    }
+
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-owner {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-tenant {
+        background: #e0f2fe;
+        color: #075985;
+    }
+
+    .debt-amount {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--danger-text);
+    }
+
+    .btn-whatsapp {
+        background-color: var(--whatsapp-color);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+        transition: all 0.2s;
+    }
+
+        .btn-whatsapp:hover {
+            background-color: #1da851;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(37, 211, 102, 0.4);
+        }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="action-toolbar">
+        <div class="toolbar-title">
+            <h3>Borçlu Daireler</h3>
+            <span><i class="bi bi-exclamation-circle-fill text-danger me-1"></i>Ödemesi geciken dairelerin listesi</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/AnaSayfa/BorcluDairelerPDF" class="btn-toolbar btn-print-custom" target="_blank">
+                <i class="bi bi-printer-fill"></i> Listeyi Yazdır
+            </a>
+            <a href="/AnaSayfa/BorcluDairelerExcel" class="btn-toolbar btn-excel-custom" target="_blank">
+                <i class="bi bi-file-earmark-excel-fill"></i> Excel'e Aktar
+            </a>
+        </div>
     </div>
+
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table modern-table mb-0 datatable">
+                <thead>
+                    <tr>
+                        <th>DAİRE BİLGİSİ</th>
+                        <th>Ad Soyad & İletİŞİm</th>
+                        <th>Durum & TC</th>
+                        <th>Toplam Borç</th>
+                        <th class="text-end">Aksİyon</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.BorcluDaireler)
+                    {
+                        // WhatsApp Link Oluşturma
+                        string link = "https://wa.me/+90" + item.Telefon + "?text=Merhaba,%20Sayın%20" + item.AdSoyad + ",%20" + item.Borc.ToString("N2") + "%20TL%20aidat%20borcunuz%20bulunmaktadır.%20Lütfen%20ödeme%20yapınız.";
+
+                        <tr>
+                            <td>
+                                <span class="daire-badge">
+                                    <i class="bi bi-house-door me-1"></i> No: @item.DaireNo
+                                </span>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                <div class="small text-muted"><i class="bi bi-telephone me-1"></i> @item.Telefon</div>
+                            </td>
+                            <td>
+                                @if (item.DaireDurum == "Ev Sahibi")
+                                {
+                                    <span class="status-badge status-owner mb-1 d-inline-block">Ev Sahibi</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-tenant mb-1 d-inline-block">Kiracı</span>
+                                }
+                                <div class="small text-muted">TC: @item.TC</div>
+                            </td>
+                            <td>
+                                <div class="debt-amount">@item.Borc.ToString("N2") @tl</div>
+                                <div class="small text-danger opacity-75">Ödenmesi Gereken</div>
+                            </td>
+                            <td class="text-end">
+                                <a href="@link" class="btn-whatsapp" target="_blank">
+                                    <i class="bi bi-whatsapp fs-6"></i> Hatırlat
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
-
-

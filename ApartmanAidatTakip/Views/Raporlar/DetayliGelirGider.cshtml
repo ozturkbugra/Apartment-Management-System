@@ -1,96 +1,414 @@
 ﻿@{
     ViewBag.Title = "Detaylı Gelir Gider Raporu";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
 }
 
-@{
-    string tl = " ₺";
-}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<h2>Detaylı Gelir Gider Raporu</h2>
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --success-soft: #dcfce7;
+        --success-text: #166534;
+        --danger-soft: #fee2e2;
+        --danger-text: #991b1b;
+        --info-soft: #e0f2fe;
+        --info-text: #075985;
+    }
 
-<form action="/Raporlar/DetayliGelirGider" method="get">
-    <div class="row align-items-end">
-        <div class="col-md-3">
-            <label>Yıl</label>
-            <input type="text" maxlength="4" name="yil" class="form-control" value="@ViewBag.Yil" required />
-        </div>
-        <div class="col-md-3">
-            <label>Ay</label>
-            <select class="form-select" name="ay" id="aySelect">
-                <option value="1" @(1 == ViewBag.Ay ? "selected" : "")>Ocak</option>
-                <option value="2" @(2 == ViewBag.Ay ? "selected" : "")>Şubat</option>
-                <option value="3" @(3 == ViewBag.Ay ? "selected" : "")>Mart</option>
-                <option value="4" @(4 == ViewBag.Ay ? "selected" : "")>Nisan</option>
-                <option value="5" @(5 == ViewBag.Ay ? "selected" : "")>Mayıs</option>
-                <option value="6" @(6 == ViewBag.Ay ? "selected" : "")>Haziran</option>
-                <option value="7" @(7 == ViewBag.Ay ? "selected" : "")>Temmuz</option>
-                <option value="8" @(8 == ViewBag.Ay ? "selected" : "")>Ağustos</option>
-                <option value="9" @(9 == ViewBag.Ay ? "selected" : "")>Eylül</option>
-                <option value="10" @(10 == ViewBag.Ay ? "selected" : "")>Ekim</option>
-                <option value="11" @(11 == ViewBag.Ay ? "selected" : "")>Kasım</option>
-                <option value="12" @(12 == ViewBag.Ay ? "selected" : "")>Aralık</option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" value="true" name="yillik" id="chkYillik" @(ViewBag.Yillik == true ? "checked" : "") onchange="toggleAy()">
-                <label class="form-check-label" for="chkYillik">
-                    <b>Yıllık Rapor (Kümülatif)</b>
-                </label>
-            </div>
-        </div>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-success w-100">Listele</button>
+    /* Filtre Kartı */
+    .filter-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 30px;
+        border-left: 5px solid #4f46e5;
+    }
+
+    .form-label-custom {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control-modern, .form-select-modern {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 15px;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+
+        .form-control-modern:focus, .form-select-modern:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+    .btn-analyze {
+        background: var(--primary-grad);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    /* Özet Kartları */
+    .summary-section {
+        margin-top: 30px;
+    }
+
+    .expense-item {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        border: 1px solid #f1f5f9;
+        transition: transform 0.2s;
+    }
+
+        .expense-item:hover {
+            transform: translateX(5px);
+            border-color: #e2e8f0;
+        }
+
+    .expense-label {
+        font-weight: 500;
+        color: #475569;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .expense-amount {
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .card-total {
+        border-radius: 16px;
+        padding: 25px;
+        color: white;
+        text-align: center;
+        box-shadow: var(--card-shadow);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .card-total-expense {
+        background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    }
+
+    .card-total-income {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    .total-title {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.9;
+        margin-bottom: 10px;
+    }
+
+    .total-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+    }
+
+    /* Kasa Akış Kartı */
+    .flow-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        margin-top: 30px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .flow-header {
+        background: #f8fafc;
+        padding: 15px 25px;
+        border-bottom: 1px solid #e2e8f0;
+        font-weight: 700;
+        color: #334155;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.9rem;
+    }
+
+    .flow-body {
+        padding: 30px;
+    }
+
+    .flow-step {
+        text-align: center;
+        position: relative;
+    }
+
+    .flow-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    .flow-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .flow-sub {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 5px;
+    }
+
+    .flow-arrow {
+        font-size: 1.5rem;
+        color: #cbd5e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    .final-balance {
+        color: #4f46e5;
+        font-size: 2rem;
+    }
+
+    .btn-print {
+        background: #334155;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+        .btn-print:hover {
+            background: #1e293b;
+            color: white;
+            transform: translateY(-2px);
+        }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Detaylı Gelir Gider Raporu</h3>
+            <span class="text-muted small">Detaylı gelir gider dağılımı ve kasa akışı</span>
         </div>
     </div>
-</form>
 
-@if (ViewBag.elektrik != null)
-{
-    <br />
-    <div class="row">
-        <div class="col-9"><h3>@ViewBag.Yazi </h3></div>
-        <div class="col-3">
-            <form action="/Raporlar/DetayliGelirGiderPDF" method="get" target="_blank">
+    <div class="filter-card">
+        <form action="/Raporlar/DetayliGelirGider" method="get">
+            <div class="row align-items-end g-3">
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label-custom">Yıl</label>
+                    <input type="text" maxlength="4" name="yil" class="form-control form-control-modern" value="@ViewBag.Yil" required />
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label-custom">Ay</label>
+                    <select class="form-select form-select-modern" name="ay" id="aySelect">
+                        <option value="1" @(1 == ViewBag.Ay ? "selected" : "")>Ocak</option>
+                        <option value="2" @(2 == ViewBag.Ay ? "selected" : "")>Şubat</option>
+                        <option value="3" @(3 == ViewBag.Ay ? "selected" : "")>Mart</option>
+                        <option value="4" @(4 == ViewBag.Ay ? "selected" : "")>Nisan</option>
+                        <option value="5" @(5 == ViewBag.Ay ? "selected" : "")>Mayıs</option>
+                        <option value="6" @(6 == ViewBag.Ay ? "selected" : "")>Haziran</option>
+                        <option value="7" @(7 == ViewBag.Ay ? "selected" : "")>Temmuz</option>
+                        <option value="8" @(8 == ViewBag.Ay ? "selected" : "")>Ağustos</option>
+                        <option value="9" @(9 == ViewBag.Ay ? "selected" : "")>Eylül</option>
+                        <option value="10" @(10 == ViewBag.Ay ? "selected" : "")>Ekim</option>
+                        <option value="11" @(11 == ViewBag.Ay ? "selected" : "")>Kasım</option>
+                        <option value="12" @(12 == ViewBag.Ay ? "selected" : "")>Aralık</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="form-check pt-3">
+                        <input class="form-check-input" type="checkbox" value="true" name="yillik" id="chkYillik" @(ViewBag.Yillik == true ? "checked" : "") onchange="toggleAy()">
+                        <label class="form-check-label fw-bold text-dark" for="chkYillik">
+                            Yıllık Rapor (Kümülatif)
+                        </label>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <button type="submit" class="btn-analyze">
+                        <i class="bi bi-pie-chart-fill me-2"></i> Raporla
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @if (ViewBag.elektrik != null)
+    {
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-3 shadow-sm border">
+            <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-file-text me-2"></i>@ViewBag.Yazi</h5>
+            <form action="/Raporlar/DetayliGelirGiderPDF" method="get" target="_blank" class="m-0">
                 <input type="hidden" name="ay" value="@ViewBag.Ay" />
                 <input type="hidden" name="yil" value="@ViewBag.Yil" />
                 <input type="hidden" name="yillik" value="@(ViewBag.Yillik == true ? "true" : "false")" />
-                <button type="submit" class="btn btn-success w-100"> <i class="bi bi-printer"></i> YAZDIR</button>
+                <button type="submit" class="btn-print">
+                    <i class="bi bi-printer"></i> PDF İndir
+                </button>
             </form>
         </div>
-    </div>
 
-    <br />
-    <h4>Elektrik: @ViewBag.elektrik.ToString("N2") @tl</h4>
-    <h4>Su: @ViewBag.su.ToString("N2") @tl</h4>
-    <h4>Yakıt - Isınma Gideri: @ViewBag.yakitisinma.ToString("N2") @tl</h4>
-    <h4>Yönetim Gideri: @ViewBag.yonetim.ToString("N2") @tl</h4>
-    <h4>Temizlik Gideri: @ViewBag.temizlik.ToString("N2") @tl</h4>
-    <h4>Bakım Onarım Gideri: @ViewBag.bakimonarim.ToString("N2") @tl</h4>
-    <h4>Demirbaş Gideri: @ViewBag.demirbas.ToString("N2") @tl</h4>
-    <h4>Görevli Maaş Gideri: @ViewBag.maas.ToString("N2") @tl</h4>
-    <h4>Görevli SSK Gideri: @ViewBag.ssk.ToString("N2") @tl</h4>
-    <h4>Diğer Gider: @ViewBag.diger.ToString("N2") @tl</h4>
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="expense-item">
+                            <span class="expense-label"><i class="bi bi-lightning-charge text-warning"></i> Elektrik</span>
+                            <span class="expense-amount">@ViewBag.elektrik.ToString("N2") @tl</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="expense-label"><i class="bi bi-droplet text-info"></i> Su</span>
+                            <span class="expense-amount">@ViewBag.su.ToString("N2") @tl</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="expense-label"><i class="bi bi-fire text-danger"></i> Yakıt/Isınma</span>
+                            <span class="expense-amount">@ViewBag.yakitisinma.ToString("N2") @tl</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="expense-label"><i class="bi bi-person-badge text-primary"></i> Yönetim</span>
+                            <span class="expense-amount">@ViewBag.yonetim.ToString("N2") @tl</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="expense-label"><i class="bi bi-bucket text-success"></i> Temizlik</span>
+                            <span class="expense-amount">@ViewBag.temizlik.ToString("N2") @tl</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="expense-item">
+                            <span class="expense-label"><i class="bi bi-tools text-secondary"></i> Bakım Onarım</span>
+                            <span class="expense-amount">@ViewBag.bakimonarim.ToString("N2") @tl</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="expense-label"><i class="bi bi-box-seam text-warning"></i> Demirbaş</span>
+                            <span class="expense-amount">@ViewBag.demirbas.ToString("N2") @tl</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="expense-label"><i class="bi bi-cash text-success"></i> Personel Maaş</span>
+                            <span class="expense-amount">@ViewBag.maas.ToString("N2") @tl</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="expense-label"><i class="bi bi-file-medical text-danger"></i> SSK/SGK</span>
+                            <span class="expense-amount">@ViewBag.ssk.ToString("N2") @tl</span>
+                        </div>
+                        <div class="expense-item">
+                            <span class="expense-label"><i class="bi bi-three-dots text-muted"></i> Diğer</span>
+                            <span class="expense-amount">@ViewBag.diger.ToString("N2") @tl</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <h3 class="text-danger">Toplam Gider: @ViewBag.toplamgider.ToString("N2") @tl</h3>
-    <br />
-    <h4>Aidat Geliri: @ViewBag.aidat.ToString("N2") @tl</h4>
-    <h4>Demirbaş Gelir: @ViewBag.ek.ToString("N2") @tl</h4>
-    <h3 class="text-success">Toplam Gelir: @ViewBag.gelirtoplam.ToString("N2") @tl</h3>
-    <br />
+            <div class="col-lg-4">
+                <div class="row g-3 h-100">
+                    <div class="col-12" style="height: 48%;">
+                        <div class="card-total card-total-expense">
+                            <div class="total-title">TOPLAM GİDER</div>
+                            <div class="total-value">@ViewBag.toplamgider.ToString("N2") @tl</div>
+                        </div>
+                    </div>
+                    <div class="col-12" style="height: 48%;">
+                        <div class="card-total card-total-income">
+                            <div class="total-title">TOPLAM GELİR</div>
+                            <div class="total-value">@ViewBag.gelirtoplam.ToString("N2") @tl</div>
+                            <div class="small mt-2 opacity-75">
+                                Aidat: @ViewBag.aidat.ToString("N2") @tl | Demirbaş: @ViewBag.ek.ToString("N2") @tl
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <h3 class="text-primary">
-        @(ViewBag.Yillik == true ? "Geçen Yıldan Devir:" : "Geçen Aydan Devir:")
-        @ViewBag.eskikasa.ToString("N2") @tl
-    </h3>
-    <h4 class="text-primary">(Aidat: @ViewBag.eskikasaaidat.ToString("N2") @tl | Demirbaş: @ViewBag.eskikasaek.ToString("N2") @tl )</h4>
+        <div class="flow-card">
+            <div class="flow-header"><i class="bi bi-safe2 me-2"></i> Kasa Akış Özetİ</div>
+            <div class="flow-body">
+                <div class="row align-items-center">
 
-    <br />
-    <h3 class="text-success">Toplam Kasa: @ViewBag.yenikasa.ToString("N2") @tl </h3>
-    <h4 class="text-success">(Aidat: @ViewBag.yenikasaaidat.ToString("N2") @tl | Demirbaş: @ViewBag.yenikasaek.ToString("N2") @tl )</h4>
-}
+                    <div class="col-md-3">
+                        <div class="flow-step">
+                            <div class="flow-label">@(ViewBag.Yillik == true ? "Geçen Yıldan Devir" : "Geçen Aydan Devir")</div>
+                            <div class="flow-value text-primary">@ViewBag.eskikasa.ToString("N2") @tl</div>
+                            <div class="flow-sub">Aidat: @ViewBag.eskikasaaidat.ToString("N2") | Demirbaş: @ViewBag.eskikasaek.ToString("N2")</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-1 d-none d-md-block">
+                        <div class="flow-arrow"><i class="bi bi-plus-lg"></i></div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="flow-step">
+                            <div class="flow-label">Dönem Net Farkı</div>
+                            @{
+                                decimal netFark = (decimal)ViewBag.gelirtoplam - (decimal)ViewBag.toplamgider;
+                                string renk = netFark >= 0 ? "text-success" : "text-danger";
+                                string icon = netFark >= 0 ? "+" : "";
+                            }
+                            <div class="flow-value @renk">@icon@netFark.ToString("N2") @tl</div>
+                            <div class="flow-sub">Gelir - Gider</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-1 d-none d-md-block">
+                        <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="flow-step">
+                            <div class="flow-label fw-bold text-dark">YENİ KASA MEVCUDU</div>
+                            <div class="flow-value final-balance">@ViewBag.yenikasa.ToString("N2") @tl</div>
+                            <div class="flow-sub text-dark">Aidat: @ViewBag.yenikasaaidat.ToString("N2") | Demirbaş: @ViewBag.yenikasaek.ToString("N2")</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
 
 <script>
     function toggleAy() {
@@ -104,7 +422,7 @@
         }
     }
 
-    // Sayfa yüklendiğinde durumu kontrol et (Listele dedikten sonra da doğru kalsın)
+    // Sayfa yüklendiğinde durumu kontrol et
     window.onload = function () {
         toggleAy();
     };

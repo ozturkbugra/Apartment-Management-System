@@ -1,88 +1,208 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Eklenen Aidatlar";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Eklenen Aidatlar</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<div class="card-body">
-    <h5 class="card-title">Aidat Listesi</h5>
-    <div class="table-responsive">
-        <table class="table table-borderless datatable">
-            <thead>
-                <tr>
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --primary-soft: #e0e7ff;
+        --primary-text: #4f46e5;
+    }
 
-                    <th scope="col">Daire No</th>
-                    <th scope="col">Ad Soyad</th>
-                    <th scope="col">Ay</th>
-                    <th scope="col">Yıl</th>
-                    <th scope="col">Tutar</th>
-                    
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.Aidatlar)
-                {
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
+    /* Kart Tasarımı */
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: none;
+        margin-top: 20px;
+    }
+
+    .card-header-custom {
+        padding: 20px 25px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+    }
+
+    /* Tablo Tasarımı */
+    .modern-table thead th {
+        background-color: #f8f9fa;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border: none;
+        padding: 15px 20px;
+    }
+
+    .modern-table tbody td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+
+    .modern-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Özel Rozetler */
+    .badge-period {
+        background: var(--primary-soft);
+        color: var(--primary-text);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .daire-badge {
+        background: #f1f5f9;
+        color: #334155;
+        font-weight: 700;
+        padding: 5px 10px;
+        border-radius: 6px;
+        margin-right: 5px;
+    }
+
+    /* Butonlar */
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-edit {
+        background: #fff7ed;
+        color: #ea580c;
+    }
+
+        .btn-edit:hover {
+            background: #ea580c;
+            color: white;
+        }
+
+    .btn-delete {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            color: white;
+        }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Aidat Kayıtları</h3>
+            <span class="text-muted small">Sisteme işlenmiş aidat borçlandırmaları</span>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="card-header-custom">
+            <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-calendar-event me-2"></i>Aidat Listesi</h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary">@ViewBag.Aidatlar.Count Kayıt</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table modern-table mb-0 datatable">
+                <thead>
                     <tr>
-
-                        <td>@item.DaireNo</td>
-                        <td>@item.AdSoyad</td>
-                        <td>@item.AidatAy</td>
-                        <td>@item.AidatYil</td>
-                        <td>@item.AidatTutar.ToString("N2") @tl</td>
-                     
-
-                        <td><a href="/AnaSayfa/AidatDuzenle/@item.AidatID" class="badge bg-warning">Düzenle</a> <a href="/AnaSayfa/AidatSil/@item.AidatID" class="badge bg-danger" onclick="confirmDeleteAidat(event, @item.AidatID)">Sil</a></td>
+                        <th scope="col">DAİRE BİLGİSİ</th>
+                        <th scope="col">Dönem</th>
+                        <th scope="col">Tutar</th>
+                        <th scope="col" class="text-end">İşlemler</th>
                     </tr>
-
-                }
-
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Aidatlar)
+                    {
+                        <tr>
+                            <td>
+                                <span class="daire-badge">No: @item.DaireNo</span>
+                                <span class="fw-bold text-dark">@item.AdSoyad</span>
+                            </td>
+                            <td>
+                                <span class="badge-period">
+                                    <i class="bi bi-calendar3 me-1"></i> @item.AidatAy / @item.AidatYil
+                                </span>
+                            </td>
+                            <td class="fw-bold text-success">@item.AidatTutar.ToString("N2") @tl</td>
+                            <td class="text-end">
+                                <a href="/AnaSayfa/AidatDuzenle/@item.AidatID" class="btn-icon btn-edit me-1" title="Düzenle">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button onclick="confirmDeleteAidat(event, @item.AidatID)" class="btn-icon btn-delete" title="Sil">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     function confirmDeleteAidat(event, id) {
-        event.preventDefault(); // Linkin varsayılan davranışını engeller
-        var userConfirmed = confirm("Bu aidatı silmek istediğinize emin misiniz?");
-        if (userConfirmed) {
-            window.location.href = '/AnaSayfa/AidatSil/' + id; // Onaylarsa yönlendirme yapılır
-        }
-    }
-</script>
+        event.preventDefault();
 
-<script>
+        Swal.fire({
+            title: 'Aidat Silinsin mi?',
+            text: "Bu aidat kaydını silmek istediğinize emin misiniz?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Evet, Sil',
+            cancelButtonText: 'İptal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/AnaSayfa/AidatSil/' + id;
+            }
+        });
+    }
+
     $(document).ready(function() {
         @if (TempData["Hata"] != null)
         {
             <text>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
-                });
+                Swal.fire({ icon: 'error', title: 'HATA!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))' });
             </text>
         }
 
         @if (TempData["Basarili"] != null)
         {
             <text>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
-                });
+                Swal.fire({ icon: 'success', title: 'Başarılı!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))', confirmButtonColor: '#059669' });
             </text>
         }
     });
-
-
 </script>

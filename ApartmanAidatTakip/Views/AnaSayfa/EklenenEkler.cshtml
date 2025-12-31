@@ -1,89 +1,208 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Eklenen Ekler";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Eklenen Demirbaşlar</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<div class="card-body">
-    <h5 class="card-title">Demirbaş Listesi</h5>
-    <div class="table-responsive">
-        <table class="table table-borderless datatable">
-            <thead>
-                <tr>
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --warning-soft: #fffbeb;
+        --warning-text: #d97706;
+    }
 
-                    <th scope="col">Daire No</th>
-                    <th scope="col">Ad Soyad</th>
-                    <th scope="col">Ay</th>
-                    <th scope="col">Yıl</th>
-                    <th scope="col">Tutar</th>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.Ekler)
-                {
+    /* Kart Tasarımı */
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: none;
+        margin-top: 20px;
+    }
 
+    .card-header-custom {
+        padding: 20px 25px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+    }
+
+    /* Tablo Tasarımı */
+    .modern-table thead th {
+        background-color: #f8f9fa;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border: none;
+        padding: 15px 20px;
+    }
+
+    .modern-table tbody td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+
+    .modern-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Özel Rozetler */
+    .badge-period-extra {
+        background: var(--warning-soft);
+        color: var(--warning-text);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .daire-badge {
+        background: #f1f5f9;
+        color: #334155;
+        font-weight: 700;
+        padding: 5px 10px;
+        border-radius: 6px;
+        margin-right: 5px;
+    }
+
+    /* Butonlar */
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-edit {
+        background: #f0f9ff;
+        color: #0284c7;
+    }
+
+        .btn-edit:hover {
+            background: #0284c7;
+            color: white;
+        }
+
+    .btn-delete {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            color: white;
+        }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Demirbaş Kayıtları</h3>
+            <span class="text-muted small">Ekstra ödeme ve demirbaş borçlandırmaları</span>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="card-header-custom">
+            <h5 class="fw-bold mb-0" style="color: #d97706;"><i class="bi bi-box-seam me-2"></i>Demirbaş Listesi</h5>
+            <span class="badge bg-warning bg-opacity-10 text-warning" style="color:#d97706 !important;">@ViewBag.Ekler.Count Kayıt</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table modern-table mb-0 datatable">
+                <thead>
                     <tr>
-
-                        <td>@item.DaireNo</td>
-                        <td>@item.AdSoyad</td>
-                        <td>@item.EkAy</td>
-                        <td>@item.EkYil</td>
-                        <td>@item.EkTutar.ToString("N2") @tl</td>
-
-
-                        <td><a href="/AnaSayfa/EkDuzenle/@item.EkID" class="badge bg-warning">Düzenle</a> <a href="/AnaSayfa/EkSil/@item.EkID" class="badge bg-danger" onclick="confirmDeleteExtra(event, @item.EkID)">Sil</a></td>
+                        <th scope="col">DAİRE BİLGİSİ</th>
+                        <th scope="col">Dönem</th>
+                        <th scope="col">Tutar</th>
+                        <th scope="col" class="text-end">İşlemler</th>
                     </tr>
-
-                }
-
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Ekler)
+                    {
+                        <tr>
+                            <td>
+                                <span class="daire-badge">No: @item.DaireNo</span>
+                                <span class="fw-bold text-dark">@item.AdSoyad</span>
+                            </td>
+                            <td>
+                                <span class="badge-period-extra">
+                                    <i class="bi bi-calendar3 me-1"></i> @item.EkAy / @item.EkYil
+                                </span>
+                            </td>
+                            <td class="fw-bold text-success">@item.EkTutar.ToString("N2") @tl</td>
+                            <td class="text-end">
+                                <a href="/AnaSayfa/EkDuzenle/@item.EkID" class="btn-icon btn-edit me-1" title="Düzenle">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button onclick="confirmDeleteExtra(event, @item.EkID)" class="btn-icon btn-delete" title="Sil">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     function confirmDeleteExtra(event, id) {
-        event.preventDefault(); // Linkin varsayılan davranışını engeller
-        var userConfirmed = confirm("Bu kaydı silmek istediğinize emin misiniz?");
-        if (userConfirmed) {
-            window.location.href = '/AnaSayfa/EkSil/' + id; // Onaylarsa yönlendirme yapılır
-        }
-    }
-</script>
+        event.preventDefault();
 
-<script>
+        Swal.fire({
+            title: 'Kayıt Silinsin mi?',
+            text: "Bu demirbaş kaydını silmek istediğinize emin misiniz?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Evet, Sil',
+            cancelButtonText: 'İptal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/AnaSayfa/EkSil/' + id;
+            }
+        });
+    }
+
     $(document).ready(function() {
         @if (TempData["Hata"] != null)
         {
             <text>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
-                });
+                Swal.fire({ icon: 'error', title: 'HATA!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))' });
             </text>
         }
 
         @if (TempData["Basarili"] != null)
         {
             <text>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
-                });
+                Swal.fire({ icon: 'success', title: 'Başarılı!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))', confirmButtonColor: '#059669' });
             </text>
         }
     });
-
-
 </script>
-

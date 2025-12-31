@@ -1,112 +1,261 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Daire Sorgulama";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Daire Borç Sorgula</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<form action="/AnaSayfa/DaireSorgu" method="get">
-    <div class="row">
-        <div class="col-lg-3 col-md-3 col-sm-6">
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --danger-soft: #fef2f2;
+        --danger-text: #dc2626;
+        --warning-soft: #fffbeb;
+        --warning-text: #d97706;
+    }
 
-            <input type="number" class="form-control" name="DaireNo" placeholder="Daire No" value="@ViewBag.DaireNo" />
-        </div>
-        <div class="col-lg-1 col-md-1 col-sm-6">
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
-            <div class="col-12"><button type="submit" class="btn btn-success">Ara</button></div>
-        </div>
-        @if (ViewBag.Aidat != null || ViewBag.Ek != null)
-        {
-            <div class="col-lg-3 col-md-3 col-sm-12">
-                
-                <h5>Ad Soyad: @ViewBag.b.AdSoyad</h5>
-                <h5>Durum: @ViewBag.b.DaireDurum</h5>
-                <h5>Borç: @ViewBag.b.Borc.ToString("N2") @tl</h5>
-                
+    /* Arama Alanı */
+    .search-wrapper {
+        background: #fff;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .search-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 5px;
+        background: var(--primary-grad);
+    }
+
+    .search-input-group {
+        max-width: 500px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .form-control-lg {
+        border-radius: 50px;
+        padding-left: 25px;
+        border: 2px solid #e2e8f0;
+        font-size: 1.1rem;
+        height: 60px;
+    }
+    .form-control-lg:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.1);
+    }
+
+    .btn-search-circle {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        height: 50px;
+        width: 50px;
+        border-radius: 50%;
+        background: var(--primary-grad);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+    }
+    .btn-search-circle:hover { transform: scale(1.05); }
+
+    /* Profil Kartı (Sonuç) */
+    .profile-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+        border-left: 5px solid #4f46e5;
+        animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        background: #e0e7ff;
+        color: #4f46e5;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-right: 20px;
+    }
+
+    .total-debt-box {
+        text-align: right;
+    }
+    .debt-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+    .debt-amount { font-size: 2rem; font-weight: 700; color: #dc2626; line-height: 1; }
+
+    /* Borç Tabloları */
+    .debt-table-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        height: 100%;
+        animation: fadeInUp 0.7s ease forwards;
+    }
+
+    .card-header-clean {
+        padding: 15px 20px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .header-danger { background: var(--danger-soft); color: var(--danger-text); }
+    .header-warning { background: var(--warning-soft); color: var(--warning-text); }
+
+    .modern-table td {
+        padding: 12px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-weight: 500;
+        color: #334155;
+    }
+    .modern-table tr:last-child td { border-bottom: none; }
+
+    /* Animasyon */
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="search-wrapper">
+        <h3 class="fw-bold mb-3 text-dark">Daire Borç Sorgulama</h3>
+        <p class="text-muted mb-4">Borç durumunu görüntülemek istediğiniz daire numarasını giriniz.</p>
+
+        <form action="/AnaSayfa/DaireSorgu" method="get">
+            <div class="search-input-group">
+                <input type="number" class="form-control form-control-lg" name="DaireNo" placeholder="Daire No (Örn: 5)" value="@ViewBag.DaireNo" required />
+                <button type="submit" class="btn-search-circle">
+                    <i class="bi bi-search fs-5"></i>
+                </button>
             </div>
-        }
-
+        </form>
     </div>
-    
-</form>
 
-@if (ViewBag.Aidat != null || ViewBag.Ek != null)
-{
-    
+    @if (ViewBag.Aidat != null || ViewBag.Ek != null)
+    {
+        <div class="profile-card">
+            <div class="d-flex align-items-center">
+                <div class="user-avatar">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark">@ViewBag.b.AdSoyad</h4>
+                    <div class="d-flex align-items-center mt-1">
+                        <span class="badge bg-dark me-2">Daire @ViewBag.DaireNo</span>
+                        <span class="badge bg-light text-dark border">@ViewBag.b.DaireDurum</span>
+                    </div>
+                </div>
+            </div>
 
-    <br />
-    <div class="row">
-        <div class="col-md-6 col-sm-12">
-            <div class="card-body">
-                <h5 class="card-title">Aidat Borçları</h5>
-                <div class="table-responsive">
-                    <table class="table table-borderless table-striped table-danger table-hover datatable">
-                        <thead>
-                            <tr>
-                                
-                                <th scope="col">Dönem</th>
-                                <th scope="col">Tutar</th>
+            <div class="total-debt-box mt-3 mt-md-0">
+                <div class="debt-label">Toplam Güncel Borç</div>
+                <div class="debt-amount">@ViewBag.b.Borc.ToString("N2") @tl</div>
+            </div>
+        </div>
 
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in ViewBag.Aidat)
-                            {
+        <div class="row g-4">
 
-                                <tr>
-
-                                    <td>@item.AidatAy - @item.AidatYil</td>
-
-                                    <td>@item.AidatTutar.ToString("N2") @tl</td>
+            <div class="col-lg-6">
+                <div class="debt-table-card">
+                    <div class="card-header-clean header-danger">
+                        <i class="bi bi-calendar-event"></i> Aİdat Borçları
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table modern-table mb-0 datatable">
+                            <thead>
+                                <tr class="text-muted small">
+                                    <th class="ps-4">Dönem</th>
+                                    <th class="text-end pe-4">Tutar</th>
                                 </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.Aidat)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-bold">@item.AidatAy - @item.AidatYil</td>
+                                        <td class="text-end pe-4 fw-bold text-danger">@item.AidatTutar.ToString("N2") @tl</td>
+                                    </tr>
+                                }
+                                @if (ViewBag.Aidat.Count == 0)
+                                {
+                                    <tr><td colspan="2" class="text-center py-4 text-muted small">Aidat borcu bulunmamaktadır.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-                            }
-
-                        </tbody>
-                    </table>
+            <div class="col-lg-6">
+                <div class="debt-table-card">
+                    <div class="card-header-clean header-warning">
+                        <i class="bi bi-box-seam"></i> Demİrbaş Borçları
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table modern-table mb-0 datatable">
+                            <thead>
+                                <tr class="text-muted small">
+                                    <th class="ps-4">Dönem</th>
+                                    <th class="text-end pe-4">Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.Ek)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-bold">@item.EkAy - @item.EkYil</td>
+                                        <td class="text-end pe-4 fw-bold" style="color: #d97706;">@item.EkTutar.ToString("N2") @tl</td>
+                                    </tr>
+                                }
+                                @if (ViewBag.Ek.Count == 0)
+                                {
+                                    <tr><td colspan="2" class="text-center py-4 text-muted small">Demirbaş borcu bulunmamaktadır.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-sm-12">
-            <div class="card-body">
-                <h5 class="card-title">Demirbaş Borçları</h5>
-                <div class="table-responsive">
-                    <table class="table table-borderless table-striped table-warning table-hover datatable">
-                        <thead>
-                            <tr>
-                           
-                                <th scope="col">Dönem</th>
-                                <th scope="col">Tutar</th>
+    }
 
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in ViewBag.Ek)
-                            {
-
-                                <tr>
-
-                                    <td>@item.EkAy - @item.EkYil</td>
-
-                                    <td>@item.EkTutar.ToString("N2") @tl</td>
-                                </tr>
-
-                            }
-
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-}
-
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -118,7 +267,8 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33'
                 });
             </text>
         }
@@ -129,11 +279,10 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#059669'
                 });
             </text>
         }
     });
-
-
 </script>

@@ -1,37 +1,230 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Sakin Düzenle";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Sakin Düzenle | Daire No: @ViewBag.s.DaireNo  </h2>
-<br />
-<form class="/AnaSayfa/SakinDuzenle" method="post">
-    <input type="hidden" name="DaireID" value="@ViewBag.s.DaireID" />
-    <br />
-    <label>Ad Soyad</label>
-    <input type="text" name="AdSoyad" value="@ViewBag.s.AdSoyad" class="form-control" required/>
-    <br />
-    <label>Telefon</label>
-    <input type="text" name="Telefon" value="@ViewBag.s.Telefon" class="form-control" maxlength="10" required/>
-    <br />
-    <label>TC</label>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <input type="text" name="TC" value="@ViewBag.s.TC" class="form-control" maxlength="11" required/>
-    <br />
-    <label>Yönetimde Mi?</label>
-    <select name="YonetimdeMi" class="form-select">
-        <option value="H" @(ViewBag.s.YonetimdeMi == "H" ? "selected" : "")>HAYIR</option>
-        <option value="E" @(ViewBag.s.YonetimdeMi == "E" ? "selected" : "")>EVET</option>
-    </select>
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --success-grad: linear-gradient(135deg, #059669 0%, #34d399 100%);
+    }
 
-    <br />
-    <label>Durum</label>
-    <select name="DaireDurum" class="form-select">
-        <option value="Ev Sahibi" @(ViewBag.s.DaireDurum == "Ev Sahibi" ? "selected" : "")>Ev Sahibi</option>
-        <option value="Kiracı" @(ViewBag.s.DaireDurum == "Kiracı" ? "selected" : "")>Kiracı</option>
-    </select>
-    <br />
-    <button type="submit" class="btn btn-success">Güncelle</button>
-</form>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
+    /* Kart Yapısı */
+    .edit-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        max-width: 800px;
+        margin: 40px auto;
+        border: none;
+    }
+
+    .card-header-custom {
+        background: var(--primary-grad);
+        padding: 30px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .daire-badge {
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(5px);
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .daire-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        opacity: 0.8;
+    }
+
+    .daire-num {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    /* Form Elemanları */
+    .form-body {
+        padding: 40px;
+    }
+
+    .form-label-custom {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-group-text {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        border-right: none;
+        color: #4f46e5;
+        border-radius: 10px 0 0 10px;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #e2e8f0;
+        padding: 12px 15px;
+        font-size: 1rem;
+        border-radius: 0 10px 10px 0; /* Input group için */
+    }
+
+        /* Select için border radius düzeltmesi (Input group değilse) */
+        .form-select:not(.rounded-end) {
+            border-radius: 10px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+    /* Butonlar */
+    .btn-update {
+        background: var(--success-grad);
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+        transition: transform 0.2s;
+    }
+
+        .btn-update:hover {
+            transform: translateY(-3px);
+            color: white;
+        }
+
+    .btn-cancel {
+        background: #f1f5f9;
+        color: #64748b;
+        border: none;
+        padding: 15px;
+        border-radius: 12px;
+        font-weight: 600;
+        width: 100%;
+        transition: background 0.2s;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+    }
+
+        .btn-cancel:hover {
+            background: #e2e8f0;
+            color: #475569;
+        }
+</style>
+
+<div class="container-fluid">
+
+    <div class="edit-card">
+        <div class="card-header-custom">
+            <div>
+                <h4 class="fw-bold mb-1">Kişi Bilgilerini Düzenle</h4>
+                <p class="mb-0 opacity-75 small">Daire sakini bilgilerini güncelleyin.</p>
+            </div>
+            <div class="daire-badge">
+                <span class="daire-label">Daire</span>
+                <span class="daire-num">@ViewBag.s.DaireNo</span>
+            </div>
+        </div>
+
+        <div class="form-body">
+            <form action="/AnaSayfa/SakinDuzenle" method="post">
+                <input type="hidden" name="DaireID" value="@ViewBag.s.DaireID" />
+
+                <div class="mb-4">
+                    <label class="form-label-custom">Ad Soyad</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                        <input type="text" name="AdSoyad" value="@ViewBag.s.AdSoyad" class="form-control" placeholder="Örn: Ahmet Yılmaz" required />
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Telefon</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
+                            <input type="text" name="Telefon" value="@ViewBag.s.Telefon" class="form-control" maxlength="10" placeholder="5XXXXXXXXX" required />
+                        </div>
+                        <div class="form-text small text-muted mt-1"><i class="bi bi-info-circle"></i> Başında 0 olmadan 10 hane giriniz.</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label-custom">TC KİMLİK No</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
+                            <input type="text" name="TC" value="@ViewBag.s.TC" class="form-control" maxlength="11" placeholder="11 Haneli TC" required />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <label class="form-label-custom">DAİRE Durumu</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-house-check"></i></span>
+                            <select name="DaireDurum" class="form-select rounded-end">
+                                <option value="Ev Sahibi" @(ViewBag.s.DaireDurum == "Ev Sahibi" ? "selected" : "")>Ev Sahibi</option>
+                                <option value="Kiracı" @(ViewBag.s.DaireDurum == "Kiracı" ? "selected" : "")>Kiracı</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label-custom">YÖNETİMDE Mİ?</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                            <select name="YonetimdeMi" class="form-select rounded-end">
+                                <option value="H" @(ViewBag.s.YonetimdeMi == "H" ? "selected" : "")>HAYIR</option>
+                                <option value="E" @(ViewBag.s.YonetimdeMi == "E" ? "selected" : "")>EVET</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a href="/AnaSayfa/Sakinler" class="btn-cancel">
+                            İptal Et
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <button type="submit" class="btn-update">
+                            <i class="bi bi-check-lg me-2"></i> Güncelle
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>

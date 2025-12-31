@@ -1,60 +1,380 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Denetçi Raporu";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Denetçi Raporu</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<form action="/Raporlar/DenetciRaporu" method="get">
-    <div class="row">
-        <div class="col-lg-4 col-md-4 col-sm-6"><input type="date" name="ilk" class="form-control" value="@ViewBag.tarihdeger1" /></div>
-        <div class="col-lg-4 col-md-4 col-sm-6"><input type="date" name="son" class="form-control" value="@ViewBag.tarihdeger2" /></div>
-        <div class="col-lg-4 col-md-4 col-sm-6"><button type="submit" class="btn btn-info">Listele</button></div>
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --dark-grad: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        --expense-soft: #fff1f2;
+        --expense-border: #fecdd3;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
+
+    /* Filtre Kartı */
+    .filter-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 30px;
+        border-left: 5px solid #4f46e5;
+    }
+
+    .form-label-custom {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control-modern {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 15px;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+
+        .form-control-modern:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+    .btn-audit {
+        background: var(--primary-grad);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+        .btn-audit:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    /* Rapor Başlık ve Yazdır */
+    .report-header-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        padding: 20px 30px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 25px;
+    }
+
+    .btn-print-official {
+        background: var(--dark-grad);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(30, 41, 59, 0.3);
+        transition: transform 0.2s;
+    }
+
+        .btn-print-official:hover {
+            transform: translateY(-3px);
+            color: white;
+        }
+
+    /* Gider Kalemleri (Grid) */
+    .expense-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .expense-box {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s;
+    }
+
+        .expense-box:hover {
+            border-color: #f43f5e;
+            box-shadow: 0 5px 15px rgba(244, 63, 94, 0.1);
+            transform: translateY(-3px);
+        }
+
+    .expense-icon {
+        font-size: 1.8rem;
+        color: #f43f5e;
+        margin-bottom: 10px;
+        display: inline-block;
+        background: var(--expense-soft);
+        padding: 10px;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        line-height: 40px;
+    }
+
+    .expense-title {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .expense-val {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    /* Özet Kartlar */
+    .summary-card {
+        border-radius: 16px;
+        padding: 25px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        box-shadow: var(--card-shadow);
+    }
+
+    .bg-income {
+        background: linear-gradient(135deg, #059669 0%, #34d399 100%);
+    }
+
+    .bg-expense {
+        background: linear-gradient(135deg, #dc2626 0%, #f87171 100%);
+    }
+
+    .summary-title {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+
+    .summary-amount {
+        font-size: 2rem;
+        font-weight: 800;
+    }
+
+    .summary-sub {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        margin-top: 5px;
+    }
+
+    /* Kasa Akış Kartı (Bottom) */
+    .balance-flow-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        padding: 30px;
+        margin-top: 30px;
+        border-top: 5px solid #0891b2;
+    }
+
+    .flow-item {
+        text-align: center;
+    }
+
+    .flow-label {
+        color: #64748b;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .flow-num {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0e7490;
+    }
+
+    .flow-detail {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 5px;
+    }
+
+    .final-balance {
+        font-size: 2.2rem;
+        color: #0891b2;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Denetim Paneli</h3>
+            <span class="text-muted small">Resmi denetçi raporu ve mali veriler</span>
+        </div>
     </div>
-</form>
-@{
-    string tl = " ₺";
-}
-<br />
 
-@if (ViewBag.elektrik != null)
-{
-    <br />
- 
-        
-      
-            <form action="/Raporlar/DenetciRaporuPDF" method="get" target="_blank">
+    <div class="filter-card">
+        <form action="/Raporlar/DenetciRaporu" method="get">
+            <div class="row align-items-end g-3">
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label-custom"><i class="bi bi-calendar-range me-1"></i> Dönem Başlangıcı</label>
+                    <input type="date" name="ilk" class="form-control form-control-modern" value="@ViewBag.tarihdeger1" required />
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label-custom"><i class="bi bi-calendar-check me-1"></i> Dönem BİTİŞİ</label>
+                    <input type="date" name="son" class="form-control form-control-modern" value="@ViewBag.tarihdeger2" required />
+                </div>
+                <div class="col-lg-4 col-md-12">
+                    <button type="submit" class="btn-audit">
+                        <i class="bi bi-search me-2"></i> Raporu Getir
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @if (ViewBag.elektrik != null)
+    {
+        <div class="report-header-card">
+            <div>
+                <h5 class="fw-bold mb-1 text-dark"><i class="bi bi-file-earmark-check-fill text-primary me-2"></i>Denetçi Rapor Özeti</h5>
+                <span class="text-muted small">Belirtilen tarih aralığındaki tüm hareketler</span>
+            </div>
+            <form action="/Raporlar/DenetciRaporuPDF" method="get" target="_blank" class="m-0">
                 <input type="hidden" name="ilk" value="@ViewBag.tarihdeger1" />
                 <input type="hidden" name="son" value="@ViewBag.tarihdeger2" />
-                <button type="submit" class="btn btn-success"> <i class="bi bi-printer"></i>  YAZDIR</button>
-
+                <button type="submit" class="btn-print-official">
+                    <i class="bi bi-printer-fill"></i> DENETÇİ RAPORUNU YAZDIR
+                </button>
             </form>
-       
-    <br />
-    <h4>Elektrik: @ViewBag.elektrik.ToString("N2") @tl</h4>
-    <h4>Su: @ViewBag.su.ToString("N2") @tl</h4>
-    <h4>Yakıt - Isınma Gideri: @ViewBag.yakitisinma.ToString("N2") @tl</h4>
-    <h4>Yönetim Gideri: @ViewBag.yonetim.ToString("N2") @tl</h4>
-    <h4>Temizlik Gideri: @ViewBag.temizlik.ToString("N2") @tl</h4>
-    <h4>Bakım Onarım Gideri: @ViewBag.bakimonarim.ToString("N2") @tl</h4>
-    <h4>Demirbaş Gideri: @ViewBag.demirbas.ToString("N2") @tl</h4>
-    <h4>Görevli Maaş Gideri: @ViewBag.maas.ToString("N2") @tl</h4>
-    <h4>Görevli SSK Gideri: @ViewBag.ssk.ToString("N2") @tl</h4>
-    <h4>Diğer Gider: @ViewBag.diger.ToString("N2") @tl</h4>
+        </div>
 
-    <h3 class="text-danger">Toplam Gider: @ViewBag.toplamgider.ToString("N2") @tl</h3>
-    <br />
-    <h4>Aidat Geliri: @ViewBag.aidat.ToString("N2") @tl</h4>
-    <h4>Ek Gelir: @ViewBag.ek.ToString("N2") @tl</h4>
-    <h3 class="text-success">Toplam Gelir: @ViewBag.toplamgelir.ToString("N2") @tl</h3>
-    <br />
-    <h3 class="text-primary">Kasa Devir: @ViewBag.KasaToplam.ToString("N2") @tl </h3>
-    <h4 class="text-primary">(Aidat: @ViewBag.KasaAidat.ToString("N2") @tl | Ek: @ViewBag.KasaEk.ToString("N2") @tl )</h4>
-    <br />
-    <h3 class="text-success"><b>Toplam Kasa:  @ViewBag.toplamkasa.ToString("N2") @tl</b></h3>
-    <h4 class="text-success"><b>(Aidat: @ViewBag.toplamkasaaidat.ToString("N2") @tl | Demirbaş: @ViewBag.toplamkasaek.ToString("N2") @tl )</b></h4>
+        <h6 class="text-uppercase fw-bold text-muted mb-3 ps-2">Gider Kalemleri Dağılımı</h6>
+        <div class="expense-grid">
+            <div class="expense-box">
+                <div class="expense-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+                <div class="expense-title">Elektrik</div>
+                <div class="expense-val">@ViewBag.elektrik.ToString("N2") @tl</div>
+            </div>
+            <div class="expense-box">
+                <div class="expense-icon"><i class="bi bi-droplet-fill"></i></div>
+                <div class="expense-title">Su</div>
+                <div class="expense-val">@ViewBag.su.ToString("N2") @tl</div>
+            </div>
+            <div class="expense-box">
+                <div class="expense-icon"><i class="bi bi-fire"></i></div>
+                <div class="expense-title">Yakıt/Isınma</div>
+                <div class="expense-val">@ViewBag.yakitisinma.ToString("N2") @tl</div>
+            </div>
+            <div class="expense-box">
+                <div class="expense-icon"><i class="bi bi-person-badge-fill"></i></div>
+                <div class="expense-title">Yönetim</div>
+                <div class="expense-val">@ViewBag.yonetim.ToString("N2") @tl</div>
+            </div>
+            <div class="expense-box">
+                <div class="expense-icon"><i class="bi bi-bucket-fill"></i></div>
+                <div class="expense-title">Temizlik</div>
+                <div class="expense-val">@ViewBag.temizlik.ToString("N2") @tl</div>
+            </div>
+            <div class="expense-box">
+                <div class="expense-icon"><i class="bi bi-tools"></i></div>
+                <div class="expense-title">Bakım Onarım</div>
+                <div class="expense-val">@ViewBag.bakimonarim.ToString("N2") @tl</div>
+            </div>
+            <div class="expense-box">
+                <div class="expense-icon"><i class="bi bi-box-seam-fill"></i></div>
+                <div class="expense-title">Demirbaş</div>
+                <div class="expense-val">@ViewBag.demirbas.ToString("N2") @tl</div>
+            </div>
+            <div class="expense-box">
+                <div class="expense-icon"><i class="bi bi-cash-coin"></i></div>
+                <div class="expense-title">Personel Maaş</div>
+                <div class="expense-val">@ViewBag.maas.ToString("N2") @tl</div>
+            </div>
+            <div class="expense-box">
+                <div class="expense-icon"><i class="bi bi-file-medical-fill"></i></div>
+                <div class="expense-title">SSK Gideri</div>
+                <div class="expense-val">@ViewBag.ssk.ToString("N2") @tl</div>
+            </div>
+            <div class="expense-box">
+                <div class="expense-icon"><i class="bi bi-three-dots"></i></div>
+                <div class="expense-title">Diğer Giderler</div>
+                <div class="expense-val">@ViewBag.diger.ToString("N2") @tl</div>
+            </div>
+        </div>
 
-}
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="summary-card bg-income">
+                    <div class="summary-title">Dönem İÇİ Toplam Gelİr</div>
+                    <div class="summary-amount">@ViewBag.toplamgelir.ToString("N2") @tl</div>
+                    <div class="summary-sub">
+                        <i class="bi bi-check-circle me-1"></i> Aidat: @ViewBag.aidat.ToString("N2") @tl &nbsp;|&nbsp; Demirbaş: @ViewBag.ek.ToString("N2") @tl
+                    </div>
+                    <i class="bi bi-graph-up-arrow position-absolute" style="font-size: 8rem; opacity: 0.1; right: -20px; bottom: -30px;"></i>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="summary-card bg-expense">
+                    <div class="summary-title">Dönem İÇİ Toplam Gİder</div>
+                    <div class="summary-amount">@ViewBag.toplamgider.ToString("N2") @tl</div>
+                    <div class="summary-sub">
+                        <i class="bi bi-exclamation-circle me-1"></i> Toplam Harcama Tutarı
+                    </div>
+                    <i class="bi bi-graph-down-arrow position-absolute" style="font-size: 8rem; opacity: 0.1; right: -20px; bottom: -30px;"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="balance-flow-card">
+            <h5 class="fw-bold mb-4 text-center text-dark"><i class="bi bi-safe2-fill me-2 text-info"></i>Kasa Durum Özeti</h5>
+            <div class="row align-items-center">
+                <div class="col-md-5">
+                    <div class="flow-item">
+                        <div class="flow-label">Geçen Dönemden Devir</div>
+                        <div class="flow-num text-secondary">@ViewBag.KasaToplam.ToString("N2") @tl</div>
+                        <div class="flow-detail">Aidat: @ViewBag.KasaAidat.ToString("N2") | Demirbaş: @ViewBag.KasaEk.ToString("N2")</div>
+                    </div>
+                </div>
+
+                <div class="col-md-2 text-center d-none d-md-block">
+                    <i class="bi bi-arrow-right-circle-fill fs-2 text-muted opacity-50"></i>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="flow-item">
+                        <div class="flow-label text-dark">GÜNCEL KASA MEVCUDU</div>
+                        <div class="flow-num final-balance">@ViewBag.toplamkasa.ToString("N2") @tl</div>
+                        <div class="flow-detail text-dark fw-bold">Aidat: @ViewBag.toplamkasaaidat.ToString("N2") | Demirbaş: @ViewBag.toplamkasaek.ToString("N2")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>

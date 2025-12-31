@@ -1,151 +1,335 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Makbuz Ara";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
 }
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<div class="pagetitle">
-    <h1>Makbuz Ara</h1>
-</div><!-- End Page Title -->
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+    }
 
-<form action="/Makbuz/Ara" method="get">
-    <div class="row">
-        <div class="col-lg-3 col-md-3 col-sm-6">
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
-            <input type="number" class="form-control" name="DaireNo" placeholder="Daire No" value="@ViewBag.DaireNo" />
-        </div>
-        <div class="col-lg-3 col-md-3 col-sm-6">
+    /* Arama Kartı */
+    .search-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        padding: 30px;
+        margin-bottom: 30px;
+        border-top: 5px solid #4f46e5;
+    }
 
-            <input type="number" class="form-control" name="MakbuzNo" placeholder="Makbuz No" value="@ViewBag.MakbuzNo" />
-        </div>
-        <div class="col-lg-3 col-md-3 col-sm-6">
+    .form-control-search {
+        border: 1px solid #e2e8f0;
+        padding: 12px 15px;
+        border-radius: 0 10px 10px 0;
+        font-size: 0.95rem;
+    }
 
-            <input type="number" class="form-control" name="GiderNo" placeholder="Gider No" value="@ViewBag.GiderNo" />
-        </div>
-        <div class="col-lg-3 col-md-3 col-sm-6">
+        .form-control-search:focus {
+            border-color: #4f46e5;
+            box-shadow: none;
+        }
 
-            <input type="number" class="form-control" name="TahsilatNo" placeholder="Tahsilat No" value="@ViewBag.TahsilatNo" />
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="col-12"><button type="submit" class="btn btn-success">Ara</button></div>
-    </div>
-</form>
+    .input-group-text {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        border-right: none;
+        color: #64748b;
+        border-radius: 10px 0 0 10px;
+    }
 
-@if (ViewBag.Makbuzlar != null)
-{
-    <div class="card-body">
-        <h5 class="card-title">Makbuzlar</h5>
-        <div class="table-responsive">
-            <table class="table table-borderless datatable">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th scope="col">Makbuz No</th>
-                        <th scope="col">Tarih</th>
-                        <th scope="col">Daire No</th>
-                        <th scope="col">Ad Soyad</th>
-                        <th scope="col">Tutar</th>
+    .btn-search {
+        background: var(--primary-grad);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
 
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in ViewBag.Makbuzlar)
-                    {
+        .btn-search:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
 
-                        <tr>
-                            <td><a href="/Makbuz/GeneratePDF?MakbuzID=@item.MakbuzID" class="badge bg-success" target="_blank"><i class="bi bi-printer"></i> Yazdır</a></td>
-                            <td>@item.MakbuzNo</td>
-                            <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
-                            <td>@item.DaireNo</td>
-                            <td>@item.AdSoyad</td>
-                            <td>@item.MabuzTutar</td>
-                        </tr>
+    /* Sekmeler (Tabs) */
+    .nav-tabs {
+        border-bottom: none;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
 
-                    }
+    .nav-link {
+        border: none;
+        border-radius: 10px;
+        color: #64748b;
+        font-weight: 600;
+        padding: 10px 20px;
+        background: #fff;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+    }
 
-                </tbody>
-            </table>
-        </div>
-    </div>
+        .nav-link.active {
+            background: #4f46e5;
+            color: white;
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+        }
 
-}
+        .nav-link:hover:not(.active) {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
 
-@if (ViewBag.GiderMakbuz != null)
-{
-    <br />
-    <div class="card-body">
-        <h5 class="card-title">Gider Makbuzları</h5>
-        <div class="table-responsive">
-            <table class="table table-borderless datatable">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th scope="col">Gider No</th>
-                        <th scope="col">Tarih</th>
-                        <th scope="col">Gider Türü</th>
-                        <th scope="col">Açıklama</th>
-                        <th scope="col">Tutar</th>
+    /* Tablo Alanı */
+    .result-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        min-height: 200px;
+    }
 
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in ViewBag.GiderMakbuz)
-                    {
+    .modern-table thead th {
+        background-color: #f8f9fa;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border: none;
+        padding: 15px 20px;
+    }
 
-                        <tr>
-                            <td><a href="/AnaSayfa/GiderMakbuz?GiderID=@item.GiderID" class="badge bg-success" target="_blank"><i class="bi bi-printer"></i> Yazdır</a></td>
-                            <td>@item.GiderNo</td>
-                            <td>@item.GiderTarih.ToString("dd/MM/yyyy")</td>
-                            <td>@item.GiderTuruAdi</td>
-                            <td>@item.GiderAciklama</td>
-                            <td>@item.GiderTutar</td>
-                        </tr>
+    .modern-table tbody td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
 
-                    }
+    .btn-print {
+        background: #dcfce7;
+        color: #166534;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
 
-                </tbody>
-            </table>
-        </div>
-    </div>
-}
+        .btn-print:hover {
+            background: #166534;
+            color: white;
+        }
+</style>
 
-@if (ViewBag.TahsilatMakbuz != null)
-{
-    <br />
-    <div class="card-body">
-        <h5 class="card-title">Tahsilat Makbuzları</h5>
-        <div class="table-responsive">
-            <table class="table table-borderless datatable">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th scope="col">Tahsilat No</th>
-                        <th scope="col">Tarih</th>
-                      
-                        <th scope="col">Açıklama</th>
-                        <th scope="col">Tutar</th>
+<div class="container-fluid py-4">
 
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in ViewBag.TahsilatMakbuz)
-                    {
-
-                        <tr>
-                            <td><a href="/AnaSayfa/TahsilatMakbuz?TahsilatID=@item.TahsilatID" class="badge bg-success" target="_blank"><i class="bi bi-printer"></i> Yazdır</a></td>
-                            <td>@item.TahsilatNo</td>
-                            <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
-                        
-                            <td>@item.TahsilatAciklama</td>
-                            <td>@item.TahsilatTutar</td>
-                        </tr>
-
-                    }
-
-                </tbody>
-            </table>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Arşiv Sorgulama</h3>
+            <span class="text-muted small">Eski makbuz ve işlem kayıtlarını filtreleyin.</span>
         </div>
     </div>
-}
+
+    <div class="search-card">
+        <form action="/Makbuz/Ara" method="get">
+            <div class="row g-3">
+                <div class="col-lg-3 col-md-6">
+                    <label class="small text-muted fw-bold mb-1">DAİRE NO</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-house-door"></i></span>
+                        <input type="number" class="form-control form-control-search" name="DaireNo" placeholder="Örn: 5" value="@ViewBag.DaireNo" />
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="small text-muted fw-bold mb-1">MAKBUZ NO</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-receipt"></i></span>
+                        <input type="number" class="form-control form-control-search" name="MakbuzNo" placeholder="Örn: 1024" value="@ViewBag.MakbuzNo" />
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="small text-muted fw-bold mb-1">GİDER NO</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-cart-x"></i></span>
+                        <input type="number" class="form-control form-control-search" name="GiderNo" placeholder="Örn: 55" value="@ViewBag.GiderNo" />
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="small text-muted fw-bold mb-1">TAHSİLAT NO</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-cash-coin"></i></span>
+                        <input type="number" class="form-control form-control-search" name="TahsilatNo" placeholder="Örn: 88" value="@ViewBag.TahsilatNo" />
+                    </div>
+                </div>
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn-search">
+                        <i class="bi bi-search me-2"></i> Detaylı Ara
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <ul class="nav nav-tabs justify-content-center justify-content-md-start" id="resultTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="income-tab" data-bs-toggle="tab" data-bs-target="#income" type="button" role="tab" aria-controls="income" aria-selected="true">
+                <i class="bi bi-wallet2 me-2"></i> Gelir Makbuzları
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="expense-tab" data-bs-toggle="tab" data-bs-target="#expense" type="button" role="tab" aria-controls="expense" aria-selected="false">
+                <i class="bi bi-cart-x me-2"></i> Gider Makbuzları
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="collection-tab" data-bs-toggle="tab" data-bs-target="#collection" type="button" role="tab" aria-controls="collection" aria-selected="false">
+                <i class="bi bi-cash-stack me-2"></i> Diğer Tahsilatlar
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+
+        <div class="tab-pane fade show active" id="income" role="tabpanel" aria-labelledby="income-tab">
+            <div class="result-card">
+                @if (ViewBag.Makbuzlar != null)
+                {
+                    <div class="table-responsive">
+                        <table class="table modern-table mb-0 datatable">
+                            <thead>
+                                <tr>
+                                    <th width="50">İşlem</th>
+                                    <th>Makbuz No</th>
+                                    <th>Tarİh</th>
+                                    <th>Daİre & KİŞİ</th>
+                                    <th>Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.Makbuzlar)
+                                {
+                                    <tr>
+                                        <td><a href="/Makbuz/GeneratePDF?MakbuzID=@item.MakbuzID" class="btn-print" target="_blank"><i class="bi bi-printer-fill"></i> Yazdır</a></td>
+                                        <td class="fw-bold">#@item.MakbuzNo</td>
+                                        <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                            <div class="small text-muted">Daire: @item.DaireNo</div>
+                                        </td>
+                                        <td class="fw-bold text-success">@item.MabuzTutar.ToString("N2") @tl</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted"><i class="bi bi-search display-4 d-block mb-3 opacity-25"></i>Kayıt bulunamadı veya arama yapılmadı.</div>
+                }
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="expense" role="tabpanel" aria-labelledby="expense-tab">
+            <div class="result-card">
+                @if (ViewBag.GiderMakbuz != null)
+                {
+                    <div class="table-responsive">
+                        <table class="table modern-table mb-0 datatable">
+                            <thead>
+                                <tr>
+                                    <th width="50">İşlem</th>
+                                    <th>Gider No</th>
+                                    <th>Tarih</th>
+                                    <th>Tür & Açıklama</th>
+                                    <th>Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.GiderMakbuz)
+                                {
+                                    <tr>
+                                        <td><a href="/AnaSayfa/GiderMakbuz?GiderID=@item.GiderID" class="btn-print" target="_blank"><i class="bi bi-printer-fill"></i> Yazdır</a></td>
+                                        <td class="fw-bold">#@item.GiderNo</td>
+                                        <td>@item.GiderTarih.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            <div class="badge bg-danger bg-opacity-10 text-danger mb-1">@item.GiderTuruAdi</div>
+                                            <div class="small text-muted">@item.GiderAciklama</div>
+                                        </td>
+                                        <td class="fw-bold text-danger">@item.GiderTutar.ToString("N2") @tl</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted"><i class="bi bi-search display-4 d-block mb-3 opacity-25"></i>Kayıt bulunamadı veya arama yapılmadı.</div>
+                }
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="collection" role="tabpanel" aria-labelledby="collection-tab">
+            <div class="result-card">
+                @if (ViewBag.TahsilatMakbuz != null)
+                {
+                    <div class="table-responsive">
+                        <table class="table modern-table mb-0 datatable">
+                            <thead>
+                                <tr>
+                                    <th width="50">İşlem</th>
+                                    <th>Tahsilat No</th>
+                                    <th>Tarih</th>
+                                    <th>Açıklama</th>
+                                    <th>Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.TahsilatMakbuz)
+                                {
+                                    <tr>
+                                        <td><a href="/AnaSayfa/TahsilatMakbuz?TahsilatID=@item.TahsilatID" class="btn-print" target="_blank"><i class="bi bi-printer-fill"></i> Yazdır</a></td>
+                                        <td class="fw-bold">#@item.TahsilatNo</td>
+                                        <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-muted">@item.TahsilatAciklama</td>
+                                        <td class="fw-bold text-success">@item.TahsilatTutar.ToString("N2") @tl</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted"><i class="bi bi-search display-4 d-block mb-3 opacity-25"></i>Kayıt bulunamadı veya arama yapılmadı.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Sekme değiştiğinde tablo sütunlarını yeniden hizala (Responsive DataTable sorunu için)
+    $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+        $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
+    });
+</script>

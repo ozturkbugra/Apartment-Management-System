@@ -4,122 +4,346 @@
     string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Gelir Gider Raporu</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<form action="/Raporlar/GelirGider" method="get">
-    <div class="row">
-        <div class="col-lg-4 col-md-4 col-sm-6"><input type="date" name="ilk" class="form-control" value="@ViewBag.tarihdeger1" /></div>
-        <div class="col-lg-4 col-md-4 col-sm-6"><input type="date" name="son" class="form-control" value="@ViewBag.tarihdeger2" /></div>
-        <div class="col-lg-4 col-md-4 col-sm-6"><button type="submit" class="btn btn-info">Listele</button></div>
-    </div>
-</form>
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --success-soft: #dcfce7;
+        --success-text: #166534;
+        --danger-soft: #fee2e2;
+        --danger-text: #991b1b;
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+    }
 
-@if (ViewBag.MakbuzGelir != null)
-{
-    <div class="row mt-3">
-        <div class="col-lg-6 col-md-6 col-sm-12">
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
-            <form action="/Raporlar/GelirPDF" method="get" target="_blank">
-                <input type="hidden" name="ilk" value="@ViewBag.tarihdeger1" />
-                <input type="hidden" name="son" value="@ViewBag.tarihdeger2" />
-                <button type="submit" class="btn btn-success"><i class="bi bi-printer"></i> Gelir Raporu Yazdır</button>
-            </form>
+    /* Filtreleme Barı */
+    .filter-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 30px;
+        border-left: 5px solid #4f46e5;
+    }
 
-            <p class="text-center"><b>GELİRLER</b></p>
+    .form-label-custom {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 8px;
+        display: block;
+    }
 
+    .form-control-modern {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 15px;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
 
+        .form-control-modern:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
 
-            <!-- Gelir Tablosu (Makbuz Geliri ve Tahsilat Geliri) -->
-            <div class="table-responsive">
-                <p class="text-center">Aidat Makbuzları</p>
-                <table class="table table-striped table-borderless datatable">
-                    <thead>
-                        <tr>
-                            <th scope="col">Makbuz No</th>
-                            <th scope="col">Tarih</th>
-                            <th scope="col">Daire No</th>
-                            <th scope="col">Tutar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in ViewBag.MakbuzGelir)
-                        {
-                            <tr>
-                                <td>@item.MakbuzNo</td>
-                                <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
-                                <td>@item.DaireNo</td>
-                                <td>@item.MabuzTutar.ToString("N2") @tl</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+    .btn-filter {
+        background: var(--primary-grad);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
 
-            <div class="table-responsive">
-                <p class="text-center">Tahsilat Makbuzları</p>
-                <table class="table table-striped table-borderless datatable">
-                    <thead>
-                        <tr>
-                            <th scope="col">Makbuz No</th>
-                            <th scope="col">Tarih</th>
-                            <th scope="col">Açıklama</th>
-                            <th scope="col">Tutar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in ViewBag.TahsilatGelir)
-                        {
-                            <tr>
-                                <td>@item.TahsilatNo</td>
-                                <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
-                                <td>@item.TahsilatAciklama</td>
-                                <td>@item.TahsilatTutar.ToString("N2") @tl</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+        .btn-filter:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    /* Rapor Kartları */
+    .report-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        height: 100%;
+        border-top: 4px solid transparent;
+    }
+
+    .card-income {
+        border-top-color: #22c55e;
+    }
+
+    .card-expense {
+        border-top-color: #ef4444;
+    }
+
+    .card-header-flex {
+        padding: 20px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fff;
+    }
+
+    .card-title-custom {
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-print {
+        font-size: 0.85rem;
+        padding: 8px 15px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: none;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .btn-print-income {
+        background: var(--success-soft);
+        color: var(--success-text);
+    }
+
+        .btn-print-income:hover {
+            background: #bbf7d0;
+        }
+
+    .btn-print-expense {
+        background: var(--danger-soft);
+        color: var(--danger-text);
+    }
+
+        .btn-print-expense:hover {
+            background: #fecaca;
+        }
+
+    /* Tablo Tasarımı */
+    .table-container {
+        padding: 0 15px 15px 15px;
+    }
+
+    .sub-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+        margin: 20px 0 10px 10px;
+        font-weight: 700;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .modern-table thead th {
+            background-color: #f8f9fa;
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modern-table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: #cbd5e1;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Finansal Raporlama</h3>
+            <span class="text-muted small">Tarih aralığına göre detaylı gelir-gider analizi</span>
         </div>
-
-        <div class="col-lg-6 col-md-6 col-sm-12">
-            <!-- Gider PDF için buton -->
-            <form action="/Raporlar/GiderPDF" method="get" target="_blank">
-                <input type="hidden" name="ilk" value="@ViewBag.tarihdeger1" />
-                <input type="hidden" name="son" value="@ViewBag.tarihdeger2" />
-                <button type="submit" class="btn btn-danger"><i class="bi bi-printer"></i> Gider Raporu Yazdır</button>
-            </form>
-
-            <p class="text-center"><b>GİDERLER</b></p>
-
-
-
-            <!-- Gider Tablosu -->
-            <div class="table-responsive">
-                <table class="table table-striped table-borderless datatable">
-                    <thead>
-                        <tr>
-                            <th scope="col">Makbuz No</th>
-                            <th scope="col">Gider Türü</th>
-                            <th scope="col">Tarih</th>
-                            <th scope="col">Tutar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in ViewBag.Gider)
-                        {
-                            <tr>
-                                <td>@item.GiderNo</td>
-                                <td>@item.GiderTuruAdi</td>
-                                <td>@item.GiderTarih.ToString("dd/MM/yyyy")</td>
-                                <td>@item.GiderTutar.ToString("N2") @tl</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
-}
 
+    <div class="filter-card">
+        <form action="/Raporlar/GelirGider" method="get">
+            <div class="row align-items-end g-3">
+                <div class="col-lg-5 col-md-5">
+                    <label class="form-label-custom"><i class="bi bi-calendar-range me-1"></i> Başlangıç Tarihi</label>
+                    <input type="date" name="ilk" class="form-control form-control-modern" value="@ViewBag.tarihdeger1" required />
+                </div>
+                <div class="col-lg-5 col-md-5">
+                    <label class="form-label-custom"><i class="bi bi-calendar-check me-1"></i> Bitiş Tarihi</label>
+                    <input type="date" name="son" class="form-control form-control-modern" value="@ViewBag.tarihdeger2" required />
+                </div>
+                <div class="col-lg-2 col-md-2">
+                    <button type="submit" class="btn-filter">
+                        <i class="bi bi-search me-2"></i> Raporla
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @if (ViewBag.MakbuzGelir != null)
+    {
+        <div class="row g-4">
+
+            <div class="col-lg-6">
+                <div class="report-card card-income">
+                    <div class="card-header-flex">
+                        <h5 class="card-title-custom text-success">
+                            <div class="bg-success bg-opacity-10 p-2 rounded-circle"><i class="bi bi-graph-up-arrow"></i></div>
+                            Gelir Raporu
+                        </h5>
+                        <form action="/Raporlar/GelirPDF" method="get" target="_blank" class="m-0">
+                            <input type="hidden" name="ilk" value="@ViewBag.tarihdeger1" />
+                            <input type="hidden" name="son" value="@ViewBag.tarihdeger2" />
+                            <button type="submit" class="btn-print btn-print-income">
+                                <i class="bi bi-printer-fill"></i> PDF Yazdır
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="sub-title"><i class="bi bi-receipt me-1"></i> Aİdat Makbuzları</div>
+                        <div class="table-responsive">
+                            <table class="modern-table datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Makbuz No</th>
+                                        <th>Tarİh</th>
+                                        <th>Daİre</th>
+                                        <th class="text-end">Tutar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in ViewBag.MakbuzGelir)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold text-dark">#@item.MakbuzNo</td>
+                                            <td class="text-muted">@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
+                                            <td><span class="badge bg-light text-dark border">No: @item.DaireNo</span></td>
+                                            <td class="text-end fw-bold text-success">@item.MabuzTutar.ToString("N2") @tl</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="sub-title mt-4"><i class="bi bi-cash-stack me-1"></i> Dİğer Tahsİlatlar</div>
+                        <div class="table-responsive">
+                            <table class="modern-table datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Makbuz No</th>
+                                        <th>Tarİh</th>
+                                        <th>Açıklama</th>
+                                        <th class="text-end">Tutar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in ViewBag.TahsilatGelir)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold text-dark">#@item.TahsilatNo</td>
+                                            <td class="text-muted">@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
+                                            <td class="text-muted small">@item.TahsilatAciklama</td>
+                                            <td class="text-end fw-bold text-success">@item.TahsilatTutar.ToString("N2") @tl</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="report-card card-expense">
+                    <div class="card-header-flex">
+                        <h5 class="card-title-custom text-danger">
+                            <div class="bg-danger bg-opacity-10 p-2 rounded-circle"><i class="bi bi-graph-down-arrow"></i></div>
+                            Gider Raporu
+                        </h5>
+                        <form action="/Raporlar/GiderPDF" method="get" target="_blank" class="m-0">
+                            <input type="hidden" name="ilk" value="@ViewBag.tarihdeger1" />
+                            <input type="hidden" name="son" value="@ViewBag.tarihdeger2" />
+                            <button type="submit" class="btn-print btn-print-expense">
+                                <i class="bi bi-printer-fill"></i> PDF Yazdır
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="sub-title"><i class="bi bi-cart-x me-1"></i> Yapılan Harcamalar</div>
+                        <div class="table-responsive">
+                            <table class="modern-table datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Gİder No</th>
+                                        <th>Kategorİ</th>
+                                        <th>Tarİh</th>
+                                        <th class="text-end">Tutar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in ViewBag.Gider)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold text-dark">#@item.GiderNo</td>
+                                            <td><span class="badge bg-danger bg-opacity-10 text-danger">@item.GiderTuruAdi</span></td>
+                                            <td class="text-muted">@item.GiderTarih.ToString("dd/MM/yyyy")</td>
+                                            <td class="text-end fw-bold text-danger">@item.GiderTutar.ToString("N2") @tl</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-bar-chart-line display-1 mb-3 d-block opacity-25"></i>
+            <h4 class="fw-bold text-dark">Rapor Oluşturulmadı</h4>
+            <p class="text-muted">Lütfen yukarıdaki alandan tarih aralığı seçerek <strong>Raporla</strong> butonuna basınız.</p>
+        </div>
+    }
+
+</div>
