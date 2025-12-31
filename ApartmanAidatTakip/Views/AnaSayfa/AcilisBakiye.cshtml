@@ -1,118 +1,285 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Açılış Bakiyesi";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
+    string mail = "info@bugraozturk.com.tr";
 }
 
-<div class="pagetitle">
-    <h1>Açılış Bakiyesi</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-@if (ViewBag.Durum == true)
-{
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --success-grad: linear-gradient(135deg, #059669 0%, #34d399 100%);
+        --glass-bg: rgba(255, 255, 255, 0.95);
+    }
 
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
-        Ekle
-    </button>
-}
-@if (ViewBag.Durum == false)
-{
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered" disabled>
-        Ekle
-    </button>
-}
+    /* Bilgi / Uyarı Kutusu */
+    .info-alert {
+        background: #fff3cd;
+        border-left: 5px solid #ffc107;
+        color: #856404;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
 
-@{
-    string mail = "info@bugrasoft.com";
- }
-<br />
-<p>Bu işlemi sadece 1 kere yapabilirsiniz yanlış işlem olduğunda bize mail atabilirsiniz <a href="mailto:@mail">@mail</a> </p>
+    .mail-link {
+        color: #856404;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    /* Başlangıç (Boş) Durum Kartı */
+    .setup-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: var(--card-shadow);
+        border: 2px dashed #cbd5e1;
+    }
+
+    .setup-icon {
+        font-size: 3rem;
+        color: #cbd5e1;
+        margin-bottom: 15px;
+    }
+
+    /* Dolu Bakiye Kartı */
+    .balance-card {
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.3s;
+        border: none;
+    }
+
+        .balance-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .card-header-grad {
+        background: var(--primary-grad);
+        padding: 25px;
+        color: white;
+        text-align: center;
+    }
+
+    .balance-amount {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 10px 0;
+    }
+
+    .balance-details {
+        padding: 20px;
+        display: flex;
+        justify-content: space-around;
+        background: #fff;
+    }
+
+    .detail-item {
+        text-align: center;
+        padding: 10px;
+        flex: 1;
+    }
+
+        .detail-item:first-child {
+            border-right: 1px solid #e2e8f0;
+        }
+
+    .detail-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .detail-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #344767;
+    }
+
+    /* Modal Form */
+    .input-group-text {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+    }
+
+    .form-control {
+        border: 1px solid #e2e8f0;
+        padding: 12px;
+    }
+
+        .form-control:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+    .btn-action-lg {
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Açılış Bakiyesi</h3>
+            <span class="text-muted small">Sistem başlangıç bakiyesini yönetin.</span>
+        </div>
+    </div>
+
+    <div class="info-alert">
+        <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+        <div>
+            <h6 class="fw-bold mb-1">Dikkat: Tek Seferlik İşlem</h6>
+            <p class="mb-0 small">
+                Açılış bakiyesi sisteme sadece bir kez girilebilir. Hatalı işlem yapmanız durumunda lütfen teknik destek ile iletişime geçiniz:
+                <a href="mailto:@mail" class="mail-link">@mail</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+
+            @if (ViewBag.Durum == true)
+            {
+                <div class="setup-card">
+                    <div class="setup-icon"><i class="bi bi-safe2"></i></div>
+                    <h4 class="fw-bold text-dark">Bakiye Kurulumu</h4>
+                    <p class="text-muted mb-4">Sistemi başlatmak için mevcut kasa bakiyenizi giriniz.</p>
+
+                    <button type="button" class="btn btn-success btn-action-lg bg-gradient" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+                        <i class="bi bi-plus-circle me-2"></i> Açılış Bakiyesi Ekle
+                    </button>
+                </div>
+            }
+
+            else
+            {
+                foreach (var item in ViewBag.Bakiye)
+                {
+                    <div class="balance-card">
+                        <div class="card-header-grad">
+                            <div class="opacity-75 small text-uppercase ls-1">TOPLAM AÇILIŞ BAKİYESİ</div>
+                            <div class="balance-amount">@item.ToplamTutar.ToString("N2") @tl</div>
+                            <div class="badge bg-white bg-opacity-25 rounded-pill px-3 fw-normal">
+                                <i class="bi bi-lock-fill me-1"></i> Kilitli Kayıt
+                            </div>
+                        </div>
+                        <div class="balance-details">
+                            <div class="detail-item">
+                                <div class="detail-label text-primary">Aidat Kasası</div>
+                                <div class="detail-value text-primary">@item.AidatTutar.ToString("N2") @tl</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label text-warning">Demirbaş Kasası</div>
+                                <div class="detail-value text-warning">@item.EkTutar.ToString("N2") @tl</div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-light text-center border-top">
+                            <button class="btn btn-secondary btn-sm rounded-pill px-4" disabled>
+                                <i class="bi bi-slash-circle me-1"></i> Düzenleme Kapalı
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+
+        </div>
+    </div>
+
+</div>
 
 <div class="modal fade" id="verticalycentered" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Açılış Bakiyesi Ekle</h5>
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-success"><i class="bi bi-cash-stack me-2"></i>Bakiye Girişi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form action="/AnaSayfa/AcilisBakiyeEkle" method="post">
+            <form action="/AnaSayfa/AcilisBakiyeEkle" method="post" class="p-4">
+                <div class="modal-body p-0">
+                    <div class="mb-3">
+                        <label class="fw-bold small mb-1 text-muted">Aidat Kasası</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-wallet2"></i></span>
+                            <input type="text" name="AidatTutar" placeholder="0.00" onkeydown="preventDotAndComma(event)" class="form-control fw-bold" required />
+                            <span class="input-group-text fw-bold">₺</span>
+                        </div>
+                    </div>
 
-                <div class="modal-body"> 
-                    <input type="text" name="AidatTutar" placeholder="Aidat Tutarı" id="AidatTutar" onkeydown="preventDotAndComma(event)" class="form-control" required/>
+                    <div class="mb-3">
+                        <label class="fw-bold small mb-1 text-muted">Demirbaş Kasası</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-box-seam"></i></span>
+                            <input type="text" name="EkTutar" placeholder="0.00" onkeydown="preventDotAndComma(event)" class="form-control fw-bold" required />
+                            <span class="input-group-text fw-bold">₺</span>
+                        </div>
+                    </div>
 
-                    <input type="text" name="EkTutar" placeholder="Demirbaş Tutarı" id="EkTutar" onkeydown="preventDotAndComma(event)" class="form-control mt-2" required/>
-
-
+                    <div class="alert alert-light border small text-muted mb-0">
+                        <i class="bi bi-info-circle me-1"></i> Virgül veya nokta kullanmadan, düz rakam giriniz.
+                    </div>
                 </div>
-                <div class="modal-footer">
-
-                    <button type="submit" class="btn btn-success">Kaydet</button>
+                <div class="modal-footer border-0 px-0 pb-0 pt-3">
+                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success px-4 bg-gradient">Kaydet ve Kilitle</button>
                 </div>
             </form>
         </div>
-    </div>
-</div><!-- End Vertically centered Modal-->
-
-<br />
-<div class="card-body">
-    <h5 class="card-title">Daire Sakinleri Listesi</h5>
-    <div class="table-responsive">
-        <table class="table table-borderless datatable">
-            <thead>
-                <tr>
-
-                    <th scope="col">Aidat Tutar</th>
-                    <th scope="col">Demirbaş Tutar</th>
-                    <th scope="col">Toplam Açılış Bakiye</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.Bakiye)
-                {
-
-                    <tr>
-
-                        <td>@item.AidatTutar.ToString("N2") @tl</td>
-                        <td>@item.EkTutar.ToString("N2") @tl</td>
-                        <td>@item.ToplamTutar.ToString("N2") @tl</td>
-                    </tr>
-
-                }
-
-            </tbody>
-        </table>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
- $(document).ready(function() {
-     @if (TempData["Hata"] != null)
-     {
-         <text>
-             Swal.fire({
-                 icon: 'error',
-                 title: 'HATA!',
-                 text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
-             });
-         </text>
-     }
+    $(document).ready(function() {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33'
+                });
+            </text>
+        }
 
-     @if (TempData["Basarili"] != null)
-     {
-         <text>
-             Swal.fire({
-                 icon: 'success',
-                 title: 'Başarılı!',
-                 text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
-             });
-         </text>
-     }
- });
-
-
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#059669'
+                });
+            </text>
+        }
+    });
 </script>

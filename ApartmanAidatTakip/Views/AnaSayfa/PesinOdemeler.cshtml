@@ -1,93 +1,237 @@
 ﻿@{
-    ViewBag.Title = "PesinOdemeler";
+    ViewBag.Title = "Peşin Ödemeler";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<div class="pagetitle">
-    <h1>Peşin Ödemeler</h1>
-</div><!-- End Page Title -->
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --success-grad: linear-gradient(135deg, #059669 0%, #34d399 100%);
+        --primary-soft: #e0e7ff;
+        --primary-text: #4f46e5;
+    }
 
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
-<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
-    Peşin Ödeme Ekle
-</button>
+    /* Üst Alan */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        background: #fff;
+        padding: 20px 25px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+    }
 
+    .btn-add {
+        background: var(--success-grad);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+        transition: transform 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
+        .btn-add:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
 
+    /* Tablo Kartı */
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: none;
+    }
 
+    .modern-table thead th {
+        background-color: #f8f9fa;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 18px 20px;
+    }
 
+    .modern-table tbody td {
+        padding: 18px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.95rem;
+    }
 
+    .modern-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
 
+    /* Daire İkonu */
+    .flat-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-soft);
+        color: var(--primary-text);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-right: 15px;
+    }
+
+    /* Yıl Rozeti */
+    .badge-year {
+        background: #ecfdf5;
+        color: #059669;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: 1px solid #d1fae5;
+    }
+
+    /* Silme Butonu */
+    .btn-icon-delete {
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        color: #ef4444;
+        background: #fef2f2;
+        transition: all 0.2s;
+        border: 1px solid #fee2e2;
+    }
+
+        .btn-icon-delete:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+    /* Modal Tasarımı */
+    .info-year-card {
+        background: #f0fdf4;
+        border: 1px dashed #22c55e;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        color: #15803d;
+        font-weight: 600;
+        margin-top: 20px;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="page-header">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Peşin Ödemeler</h3>
+            <span class="text-muted small">Yıllık peşin ödeme yapan dairelerin listesi</span>
+        </div>
+        <button type="button" class="btn-add" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+            <i class="bi bi-credit-card-2-front-fill"></i> Ödeme Ekle
+        </button>
+    </div>
+
+    <div class="card table-card">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="card-title fw-bold text-dark mb-0"><i class="bi bi-list-check me-2 text-primary"></i>Ödeme Listesi</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table modern-table mb-0 datatable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Daire Bilgisi</th>
+                            <th scope="col">Peşin Ödenen Yıl</th>
+                            <th scope="col" class="text-end">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.List)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="flat-icon">@item.DaireNo</div>
+                                        <div>
+                                            <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                            <div class="small text-muted">Daire No: @item.DaireNo</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge-year">
+                                        <i class="bi bi-calendar-check me-1"></i> @item.Yil
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="#" class="btn-icon-delete ms-auto" onclick="confirmDeleteExpense(event, @item.ID)" title="Sil">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
 
 <div class="modal fade" id="verticalycentered" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Peşin Ödeme Ekle</h5>
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-success">
+                    <i class="bi bi-wallet-fill me-2"></i>Peşin Ödeme Ekle
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form action="/AnaSayfa/PesinOdemeEkle" method="post">
-
+            <form action="/AnaSayfa/PesinOdemeEkle" method="post" class="p-3">
                 <div class="modal-body">
-                    <label>Daire Seçiniz</label>
-                    <select name="DaireID" class="form-select">
+                    <label class="fw-bold small mb-2 text-muted text-uppercase">Daire Seçimi</label>
+                    <select name="DaireID" class="form-select form-select-lg shadow-none" style="border-color: #e2e8f0; font-size: 1rem;">
                         @foreach (var item in ViewBag.Daireler)
                         {
-                            <option value="@item.DaireID">@item.DaireNo No : @item.AdSoyad </option>
+                            <option value="@item.DaireID">Daire @item.DaireNo - @item.AdSoyad</option>
                         }
                     </select>
 
-                    <br />
-                    <h4>PEŞİN ÖDEDİĞİ YIL : @DateTime.Now.Year</h4>
-
-
+                    <div class="info-year-card">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        PEŞİN ÖDENEN YIL : @DateTime.Now.Year
+                    </div>
+                    <p class="text-muted small text-center mt-2">
+                        Seçilen daire için @DateTime.Now.Year yılına ait aidat borçları otomatik olarak "Ödendi" durumuna geçecektir.
+                    </p>
                 </div>
-                <div class="modal-footer">
-
-                    <button type="submit" class="btn btn-success">Kaydet</button>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success px-4" style="background: var(--success-grad); border:none;">Kaydet</button>
                 </div>
             </form>
         </div>
     </div>
-</div><!-- End Vertically centered Modal-->
-<br />
-<div class="card-body">
-    <h5 class="card-title">Gider Listesi</h5>
-    <div class="table-responsive">
-        <table class="table table-borderless datatable">
-            <thead>
-                <tr>
-                    <th scope="col">Daire No</th>
-                    <th scope="col">Ad Soyad</th>
-                    <th scope="col">Peşin Ödenen Yıl</th>
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.List)
-                {
-
-                    <tr>
-                        <td>@item.DaireNo</td>
-                        <td>@item.AdSoyad</td>
-                        <td>@item.Yil</td>
-
-                        <td>
-                            <a href="/AnaSayfa/PesinOdemeSil/@item.ID" class="badge bg-danger" onclick="confirmDeleteExpense(event, @item.ID)">Sil</a>
-
-                        </td>
-                    </tr>
-
-                }
-
-            </tbody>
-        </table>
-    </div>
 </div>
-
-<br />
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -99,7 +243,8 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33'
                 });
             </text>
         }
@@ -110,21 +255,30 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#059669'
                 });
             </text>
         }
     });
 
-
-</script>
-
-<script>
+    // Modern Silme Onayı
     function confirmDeleteExpense(event, id) {
-        event.preventDefault(); // Linke tıklamayı engeller
-        var userConfirmed = confirm("Peşin ödemeyi silmek istediğinize emin misiniz?");
-        if (userConfirmed) {
-            window.location.href = '/AnaSayfa/PesinOdemeSil/' + id; // Kullanıcı onaylarsa silme işlemi yapılır
-        }
+        event.preventDefault(); // Sayfa yenilenmesini engelle
+
+        Swal.fire({
+            title: 'Emin misiniz?',
+            text: "Bu peşin ödeme kaydını silmek istediğinize emin misiniz?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Evet, Sil!',
+            cancelButtonText: 'İptal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/AnaSayfa/PesinOdemeSil/' + id;
+            }
+        });
     }
 </script>

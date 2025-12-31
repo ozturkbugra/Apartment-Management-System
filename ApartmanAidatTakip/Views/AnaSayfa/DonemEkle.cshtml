@@ -1,62 +1,199 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Dönem Ekle";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentMonth = DateTime.Now.ToString("MMMM");
 }
 
-@{ 
-    var item = DateTime.Now.ToString("MMMM");
-}
-<h2>Dönem Ekle</h2>
-<br />
-<form id="donemForm" action="/AnaSayfa/DonemEkle" method="post">
-    <div class="row">
-        <div class="col-6">
-            <label>YIL</label>
-            <input type="text" maxlength="4" name="AidatYil" class="form-control" value="@DateTime.Now.ToString("yyyy")" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --success-grad: linear-gradient(135deg, #059669 0%, #34d399 100%);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
+
+    .period-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: none;
+        max-width: 800px;
+        margin: 0 auto; /* Ortala */
+    }
+
+    .card-header-custom {
+        background: var(--primary-grad);
+        padding: 30px;
+        color: white;
+        text-align: center;
+    }
+
+    .form-label-custom {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-group-text {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        border-right: none;
+        color: #4f46e5;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #e2e8f0;
+        padding: 12px 15px;
+        font-size: 1rem;
+        border-radius: 8px;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+    .btn-submit {
+        background: var(--success-grad);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+        transition: transform 0.2s;
+    }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            color: white;
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+        }
+
+    .info-box {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        color: #1e40af;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+</style>
+
+<div class="container-fluid py-5">
+
+    <div class="period-card">
+        <div class="card-header-custom">
+            <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex p-3 mb-3">
+                <i class="bi bi-calendar-plus display-6"></i>
+            </div>
+            <h3 class="fw-bold mb-1">Yeni Dönem Oluştur</h3>
+            <p class="mb-0 opacity-75">Aidat ve demirbaş ödemelerini tüm dairelere yansıtın.</p>
         </div>
-        <div class="col-6">
-            <label>AY</label>
-            <select class="form-select" name="AidatAy">
-                <option value="Ocak" @(item == "Ocak" ? "selected" : "")>Ocak</option>
-                <option value="Şubat" @(item == "Şubat" ? "selected" : "")>Şubat</option>
-                <option value="Mart" @(item == "Mart" ? "selected" : "")>Mart</option>
-                <option value="Nisan" @(item == "Nisan" ? "selected" : "")>Nisan</option>
-                <option value="Mayıs" @(item == "Mayıs" ? "selected" : "")>Mayıs</option>
-                <option value="Haziran" @(item == "Haziran" ? "selected" : "")>Haziran</option>
-                <option value="Temmuz" @(item == "Temmuz" ? "selected" : "")>Temmuz</option>
-                <option value="Ağustos" @(item == "Ağustos" ? "selected" : "")>Ağustos</option>
-                <option value="Eylül" @(item == "Eylül" ? "selected" : "")>Eylül</option>
-                <option value="Ekim" @(item == "Ekim" ? "selected" : "")>Ekim</option>
-                <option value="Kasım" @(item == "Kasım" ? "selected" : "")>Kasım</option>
-                <option value="Aralık" @(item == "Aralık" ? "selected" : "")>Aralık</option>
-            </select>
+
+        <div class="p-4 p-md-5">
+            <div class="info-box">
+                <i class="bi bi-info-circle-fill fs-5"></i>
+                <div>
+                    Bu işlem, seçilen dönem için <strong>tüm dairelere</strong> belirlediğiniz tutarlarda borç ekleyecektir.
+                </div>
+            </div>
+
+            <form id="donemForm" action="/AnaSayfa/DonemEkle" method="post">
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Yıl</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                            <input type="text" maxlength="4" name="AidatYil" class="form-control" value="@DateTime.Now.ToString("yyyy")" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Ay</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar-month"></i></span>
+                            <select class="form-select" name="AidatAy">
+                                <option value="Ocak" @(currentMonth == "Ocak" ? "selected" : "")>Ocak</option>
+                                <option value="Şubat" @(currentMonth == "Şubat" ? "selected" : "")>Şubat</option>
+                                <option value="Mart" @(currentMonth == "Mart" ? "selected" : "")>Mart</option>
+                                <option value="Nisan" @(currentMonth == "Nisan" ? "selected" : "")>Nisan</option>
+                                <option value="Mayıs" @(currentMonth == "Mayıs" ? "selected" : "")>Mayıs</option>
+                                <option value="Haziran" @(currentMonth == "Haziran" ? "selected" : "")>Haziran</option>
+                                <option value="Temmuz" @(currentMonth == "Temmuz" ? "selected" : "")>Temmuz</option>
+                                <option value="Ağustos" @(currentMonth == "Ağustos" ? "selected" : "")>Ağustos</option>
+                                <option value="Eylül" @(currentMonth == "Eylül" ? "selected" : "")>Eylül</option>
+                                <option value="Ekim" @(currentMonth == "Ekim" ? "selected" : "")>Ekim</option>
+                                <option value="Kasım" @(currentMonth == "Kasım" ? "selected" : "")>Kasım</option>
+                                <option value="Aralık" @(currentMonth == "Aralık" ? "selected" : "")>Aralık</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="text-muted opacity-25 my-4">
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <label class="form-label-custom text-primary">AİDAT TUTARI</label>
+                        <div class="input-group">
+                            <span class="input-group-text text-primary bg-primary bg-opacity-10 border-primary border-opacity-25 fw-bold">₺</span>
+                            <input type="text" name="AidatTutar" class="form-control fw-bold text-dark" placeholder="0.00" onkeydown="preventDotAndComma(event)" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-custom text-warning" style="color:#d97706 !important;">Demirbaş Tutarı</label>
+                        <div class="input-group">
+                            <span class="input-group-text text-warning bg-warning bg-opacity-10 border-warning border-opacity-25 fw-bold" style="color:#d97706 !important;">₺</span>
+                            <input type="text" name="EkTutar" class="form-control fw-bold text-dark" placeholder="0.00" onkeydown="preventDotAndComma(event)" />
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-submit" onclick="confirmSubmission()">
+                    <i class="bi bi-check-circle-fill me-2"></i> Dönemi Başlat
+                </button>
+            </form>
         </div>
     </div>
+</div>
 
-    <br />
-    <div class="row">
-        <div class="col-6">
-            <label>Aidat Tutar</label>
-            <input type="text" name="AidatTutar" class="form-control" onkeydown="preventDotAndComma(event)" />
-        </div>
-        <div class="col-6">
-            <label>Demirbaş Tutar</label>
-            <input type="text" name="EkTutar" class="form-control" onkeydown="preventDotAndComma(event)" />
-        </div>
-    </div>
-    <br />
-
-    <button type="button" class="btn btn-success" onclick="submitFormWithConfirmation()">Dönem Ekle</button>
-</form>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-
-    function submitFormWithConfirmation() {
-        if (confirm("Bu işlemi yapmak istediğinizden emin misiniz?")) {
-            document.getElementById("donemForm").submit();
-        }
+    function confirmSubmission() {
+        Swal.fire({
+            title: 'Dönem Eklensin mi?',
+            text: "Seçilen tarih için tüm dairelere borç yansıtılacaktır.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Evet, Ekle',
+            cancelButtonText: 'İptal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById("donemForm").submit();
+            }
+        });
     }
 
     $(document).ready(function() {
@@ -66,7 +203,8 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33'
                 });
             </text>
         }
@@ -77,11 +215,10 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#059669'
                 });
             </text>
         }
     });
-
-
 </script>

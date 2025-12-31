@@ -1,125 +1,333 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Daire Borçlandır";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Daire Borçlandır</h2>
-<br />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --warning-grad: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+        --success-grad: linear-gradient(135deg, #059669 0%, #34d399 100%);
+    }
 
-    <div>
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
-            Ekstra Aidat/Demirbaş Ekle
-        </button>
-    </div>
-  
-    
-    <br />
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
+    /* Aksiyon Barı */
+    .action-header {
+        background: #fff;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-<form action="/AnaSayfa/DaireBorclandir" method="post">
-    <label>Daire No</label>
-    <select name="DaireNo" class="form-select">
-        @foreach (var item in ViewBag.Daireler)
-        {
-            <option value="@item.DaireNo"> @item.DaireNo Numara - @item.AdSoyad</option>
+    .btn-action-lg {
+        background: var(--success-grad);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+        transition: transform 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .btn-action-lg:hover {
+            transform: translateY(-3px);
+            color: white;
         }
 
-    </select>
+    /* Kartlar */
+    .operation-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 30px;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        border-top: 5px solid transparent;
+        transition: transform 0.3s ease;
+    }
 
-    <div class="row">
-        <div class="col-6">
-            <label>YIL</label>
-            <input type="text" maxlength="4" name="AidatYil" class="form-control" value="@DateTime.Now.ToString("yyyy")" />
+        .operation-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .card-primary {
+        border-top-color: #4f46e5;
+    }
+
+    .card-warning {
+        border-top-color: #f59e0b;
+    }
+
+    .card-title-custom {
+        font-weight: 700;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.2rem;
+    }
+
+    /* Form Elemanları */
+    .form-label-custom {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .input-group-text {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-right: none;
+        color: #6c757d;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #dee2e6;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+    /* Toggle Switch */
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+        cursor: pointer;
+    }
+
+        .form-switch .form-check-input:checked {
+            background-color: #f59e0b;
+            border-color: #f59e0b;
+        }
+
+    /* Arka Plan İkonları */
+    .bg-icon {
+        position: absolute;
+        bottom: -20px;
+        right: -20px;
+        font-size: 8rem;
+        opacity: 0.05;
+        transform: rotate(-15deg);
+        pointer-events: none;
+    }
+
+    .btn-submit-primary {
+        width: 100%;
+        background: var(--primary-grad);
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 12px;
+        font-weight: 600;
+        margin-top: 20px;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-submit-warning {
+        width: 100%;
+        background: var(--warning-grad);
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 12px;
+        font-weight: 600;
+        margin-top: 20px;
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+        .btn-submit-primary:hover, .btn-submit-warning:hover {
+            opacity: 0.9;
+            color: white;
+            transform: scale(1.02);
+            transition: all 0.2s;
+        }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="action-header">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Borçlandırma İşlemleri</h3>
+            <span class="text-muted small">Dairelere aidat yansıtma ve gecikme zammı işlemleri</span>
         </div>
-        <div class="col-6">
-            <label>AY</label>
-            <select class="form-select" name="AidatAy">
-                <option value="Ocak">Ocak</option>
-                <option value="Şubat">Şubat</option>
-                <option value="Mart">Mart</option>
-                <option value="Nisan">Nisan</option>
-                <option value="Mayıs">Mayıs</option>
-                <option value="Haziran">Haziran</option>
-                <option value="Temmuz">Temmuz</option>
-                <option value="Ağustos">Ağustos</option>
-                <option value="Eylül">Eylül</option>
-                <option value="Ekim">Ekim</option>
-                <option value="Kasım">Kasım</option>
-                <option value="Aralık">Aralık</option>
-            </select>
-        </div>
+        <button type="button" class="btn-action-lg" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+            <i class="bi bi-plus-circle-fill fs-5"></i> Ekstra Ekle
+        </button>
     </div>
 
-    <br />
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="operation-card card-primary">
+                <i class="bi bi-wallet2 bg-icon"></i>
+                <div class="card-title-custom text-primary">
+                    <i class="bi bi-person-lines-fill"></i> Bireysel Borçlandırma
+                </div>
 
-    <label>Tutar</label>
-    <input type="text" name="AidatTutar" class="form-control" onkeydown="preventDotAndComma(event)" />
-    <br />
-    <button type="Submit" class="btn btn-success">Borçlandır</button>
-</form>
+                <form action="/AnaSayfa/DaireBorclandir" method="post">
+                    <div class="mb-3">
+                        <label class="form-label-custom">DAİRE SEÇİMİ</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-house-door"></i></span>
+                            <select name="DaireNo" class="form-select">
+                                @foreach (var item in ViewBag.Daireler)
+                                {
+                                    <option value="@item.DaireNo">Daire @item.DaireNo - @item.AdSoyad</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
 
-<hr />
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label-custom">Yıl</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                                <input type="text" maxlength="4" name="AidatYil" class="form-control" value="@DateTime.Now.ToString("yyyy")" />
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-custom">Ay</label>
+                            <select class="form-select" name="AidatAy">
+                                <option value="Ocak">Ocak</option>
+                                <option value="Şubat">Şubat</option>
+                                <option value="Mart">Mart</option>
+                                <option value="Nisan">Nisan</option>
+                                <option value="Mayıs">Mayıs</option>
+                                <option value="Haziran">Haziran</option>
+                                <option value="Temmuz">Temmuz</option>
+                                <option value="Ağustos">Ağustos</option>
+                                <option value="Eylül">Eylül</option>
+                                <option value="Ekim">Ekim</option>
+                                <option value="Kasım">Kasım</option>
+                                <option value="Aralık">Aralık</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label-custom">Tutar</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₺</span>
+                            <input type="text" name="AidatTutar" class="form-control fw-bold" placeholder="0.00" onkeydown="preventDotAndComma(event)" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit-primary">
+                        <i class="bi bi-check-circle-fill me-2"></i> Borçlandır
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="operation-card card-warning">
+                <i class="bi bi-hourglass-split bg-icon"></i>
+                <div class="card-title-custom text-warning">
+                    <i class="bi bi-graph-up-arrow"></i> Gecikme Zammı Uygula
+                </div>
+
+                <div class="alert alert-light border-warning text-dark small mb-4">
+                    <i class="bi bi-info-circle-fill text-warning me-1"></i> Bu işlem, seçilen tutarı ödenmemiş geçmiş dönem borçlarına ekler.
+                </div>
+
+                <form method="post" action="/AnaSayfa/GecikmeZammı">
+                    <div class="mb-4">
+                        <div class="form-check form-switch d-flex align-items-center ps-0">
+                            <label class="form-check-label ms-5 fw-bold text-dark" for="gecikmeCheck">
+                                Zammı tekrarla? <br>
+                                <span class="small text-muted fw-normal">Daha önce zam uygulanmış aidatlara tekrar ekle</span>
+                            </label>
+                            <input class="form-check-input ms-3" type="checkbox" name="durum" value="true" id="gecikmeCheck" style="margin-left: 0 !important;">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label-custom">Eklenecek Zam Tutarı</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-warning border-warning"><i class="bi bi-currency-dollar"></i></span>
+                            <input type="text" name="tutar" class="form-control border-warning" placeholder="0.00" onkeydown="preventDotAndComma(event)" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit-warning">
+                        <i class="bi bi-lightning-fill me-2"></i> Zammı Uygula
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="verticalycentered" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Ekstra Aidat/Demirbaş Ekle</h5>
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-success"><i class="bi bi-plus-circle-dotted me-2"></i>Ekstra Aidat/Demirbaş</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
-            <form action="/AnaSayfa/EkstraAidatEkEkle" method="post">
-
+            <form action="/AnaSayfa/EkstraAidatEkEkle" method="post" class="p-3">
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label-custom">Borç Türü</label>
+                        <select name="Tur" class="form-select">
+                            <option value="1">Aidat</option>
+                            <option value="2">Demirbaş</option>
+                        </select>
+                    </div>
 
-                    <label>Türü</label>
-                    <select name="Tur" class="form-select">
-                        <option value="1">Aidat</option>
-                        <option value="2">Demirbaş</option>
-                    </select>
-                    <br />
-                    <label>Daire No</label>
-                    <select name="DaireNo" class="form-select">
-                        @foreach (var item in ViewBag.Daireler)
-                        {
-                            <option value="@item.DaireNo"> @item.DaireNo Numara - @item.AdSoyad</option>
-                        }
+                    <div class="mb-3">
+                        <label class="form-label-custom">Daire</label>
+                        <select name="DaireNo" class="form-select">
+                            @foreach (var item in ViewBag.Daireler)
+                            {
+                                <option value="@item.DaireNo">Daire @item.DaireNo - @item.AdSoyad</option>
+                            }
+                        </select>
+                    </div>
 
-                    </select>
-                    <br />
-                    <label>Tutar</label>
-                    <input type="text" name="AidatTutar" class="form-control" onkeydown="preventDotAndComma(event)" />
-
+                    <div class="mb-3">
+                        <label class="form-label-custom">Tutar</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₺</span>
+                            <input type="text" name="AidatTutar" class="form-control" placeholder="0.00" onkeydown="preventDotAndComma(event)" />
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-
-                    <button type="submit" class="btn btn-success">Kaydet</button>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-action-lg border-0">Kaydet</button>
                 </div>
             </form>
         </div>
     </div>
-</div><!-- End Vertically centered Modal-->
-
-
-<form method="post" action="/AnaSayfa/GecikmeZammı">
-    <h2>Gecikme Zammı Ekle </h2>
-    <br />
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="durum" value="true" id="rememberMe">
-        <label class="form-check-label" for="rememberMe">Gecikme Zammı Eklenmiş Olan Aidatlara Tekrar Ekle</label>
-    </div>
-    <br />
-    <label>Gecikme Zammı (Bu dönemden önce ödenmeyen aidatlara gecikme zammı ekler)</label>
-    <input type="text" name="tutar" class="form-control" onkeydown="preventDotAndComma(event)" />
-    <br />
-    <button type="Submit" class="btn btn-success">Ekle</button>
-
-</form>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
     $(document).ready(function() {
         @if (TempData["Hata"] != null)
@@ -128,7 +336,8 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33'
                 });
             </text>
         }
@@ -139,11 +348,10 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#059669'
                 });
             </text>
         }
     });
-
-
 </script>

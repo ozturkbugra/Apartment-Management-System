@@ -1,134 +1,378 @@
-﻿
-@{
-    ViewBag.Title = "Makbuz Ekle";
+﻿@{
+    ViewBag.Title = "Makbuz İşlemleri";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
 }
-<a href="/Makbuz" class="btn btn-primary">Geri Dön</a>
-<br />
-<div class="pagetitle">
-    <h1>Makbuz Ekle</h1>
-</div>
 
-<p><b>Daire No:</b> @ViewBag.d.DaireNo</p>
-<p><b>Ad Soyad:</b> @ViewBag.d.AdSoyad</p>
-<p><b>Durum:</b> @ViewBag.d.DaireDurum</p>
-<p><b>Borç:</b> @ViewBag.d.Borc.ToString("N2") @tl</p>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<div class="row">
-    <div class="col-lg-6 col-md-6 col-sm-12">
-        <div class="card-body">
-            <h5 class="card-title">Ödenmemiş Aidatlar</h5>
-            <div class="table-responsive">
-                <table class="table table-borderless datatable">
-                    <thead>
-                        <tr>
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --info-grad: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+        --warning-grad: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    }
 
-                            <th scope="col">Ay</th>
-                            <th scope="col">Yıl</th>
-                            <th scope="col">Tutar</th>
-                            <th scope="col"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in ViewBag.Aidatlar)
-                        {
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
+    /* Üst Navigasyon */
+    .nav-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .btn-back {
+        background: #fff;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        padding: 8px 20px;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-back:hover {
+            background: #f1f5f9;
+            color: #334155;
+            transform: translateX(-3px);
+        }
+
+    /* Müşteri/Daire Bilgi Kartı */
+    .member-info-card {
+        background: var(--primary-grad);
+        color: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .member-avatar {
+        width: 60px;
+        height: 60px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        backdrop-filter: blur(5px);
+    }
+
+    .debt-badge {
+        background: rgba(255,255,255,0.9);
+        color: #4f46e5;
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Borç Seçim Kartları */
+    .selection-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        height: 100%;
+        overflow: hidden;
+        border-top: 4px solid transparent;
+    }
+
+    .card-aidat {
+        border-top-color: #0ea5e9;
+    }
+
+    .card-demirbas {
+        border-top-color: #f59e0b;
+    }
+
+    .card-header-custom {
+        padding: 20px;
+        border-bottom: 1px solid #f1f5f9;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Tablo Stilleri */
+    .table-modern th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #94a3b8;
+        font-weight: 600;
+        border: none;
+        padding: 15px;
+    }
+
+    .table-modern td {
+        padding: 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f8fafc;
+        font-size: 0.9rem;
+    }
+
+    .btn-add-item {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-add-aidat {
+        background: #e0f2fe;
+        color: #0284c7;
+    }
+
+        .btn-add-aidat:hover {
+            background: #0284c7;
+            color: white;
+        }
+
+    .btn-add-demirbas {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+        .btn-add-demirbas:hover {
+            background: #d97706;
+            color: white;
+        }
+
+    /* Makbuz Önizleme (Sepet) */
+    .receipt-preview {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 -5px 25px rgba(0,0,0,0.05);
+        margin-top: 30px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .receipt-header {
+        background: #f8fafc;
+        padding: 15px 25px;
+        border-bottom: 1px solid #e2e8f0;
+        border-radius: 16px 16px 0 0;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    .btn-remove {
+        color: #ef4444;
+        background: #fef2f2;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+        .btn-remove:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+    .btn-print-large {
+        background: #10b981;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        transition: transform 0.2s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+
+        .btn-print-large:hover {
+            transform: translateY(-3px);
+            color: white;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+        }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="nav-area">
+        <h3 class="fw-bold mb-0 text-dark">Makbuz Detayı</h3>
+        <a href="/Makbuz" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Geri Dön
+        </a>
+    </div>
+
+    <div class="member-info-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="member-avatar">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold">@ViewBag.d.AdSoyad</h5>
+                    <div class="opacity-75 small">Daire: @ViewBag.d.DaireNo | Durum: @ViewBag.d.DaireDurum</div>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <div class="small opacity-75 text-uppercase mb-1">Toplam Güncel Borç</div>
+                <div class="debt-badge">
+                    @ViewBag.d.Borc.ToString("N2") @tl
+                </div>
+            </div>
+        </div>
+        <i class="bi bi-wallet2 position-absolute" style="font-size: 10rem; opacity: 0.1; right: -20px; bottom: -40px;"></i>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="selection-card card-aidat">
+                <div class="card-header-custom text-info">
+                    <span><i class="bi bi-calendar-event me-2"></i>Ödenmemiş Aidatlar</span>
+                    @*<span class="badge bg-info bg-opacity-10 text-info">@ViewBag.Aidatlar.Count() Adet</span>*@
+                </div>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-modern mb-0">
+                        <thead>
                             <tr>
-
-                                <td>@item.AidatAy</td>
-                                <td>@item.AidatYil</td>
-                                <td>@item.AidatTutar.ToString("N2") @tl</td>
-                                <td><a href="/Makbuz/AidatSatirEkle/@item.AidatID" class="badge bg-success">Ekle</a></td>
+                                <th>Dönem</th>
+                                <th class="text-end">Tutar</th>
+                                <th class="text-center" width="50">Ekle</th>
                             </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ViewBag.Aidatlar)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-muted">@item.AidatAy - @item.AidatYil</td>
+                                    <td class="text-end fw-bold text-dark">@item.AidatTutar.ToString("N2") @tl</td>
+                                    <td class="text-center">
+                                        <a href="/Makbuz/AidatSatirEkle/@item.AidatID" class="btn-add-item btn-add-aidat" title="Makbuza Ekle">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-                        }
-
-                    </tbody>
-                </table>
+        <div class="col-lg-6">
+            <div class="selection-card card-demirbas">
+                <div class="card-header-custom text-warning" style="color: #d97706 !important;">
+                    <span><i class="bi bi-box-seam me-2"></i>Ödenmemiş Demirbaşlar</span>
+                    @*<span class="badge bg-warning bg-opacity-10 text-warning" style="color: #d97706 !important;">@ViewBag.Ekler.Count Adet</span>*@
+                </div>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-modern mb-0">
+                        <thead>
+                            <tr>
+                                <th>Dönem</th>
+                                <th class="text-end">Tutar</th>
+                                <th class="text-center" width="50">Ekle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ViewBag.Ekler)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-muted">@item.EkAy - @item.EkYil</td>
+                                    <td class="text-end fw-bold text-dark">@item.EkTutar.ToString("N2") @tl</td>
+                                    <td class="text-center">
+                                        <a href="/Makbuz/EkSatirEkle/@item.EkID" class="btn-add-item btn-add-demirbas" title="Makbuza Ekle">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-lg-6 col-md-6 col-sm-12">
-        <div class="card-body">
-            <h5 class="card-title">Ödenmemiş Demirbaşlar</h5>
-            <div class="table-responsive">
-                <table class="table table-borderless datatable">
-                    <thead>
+
+    <div class="receipt-preview">
+        <div class="receipt-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-receipt-cutoff me-2"></i>Makbuz İçeriği (Ödenecek Kalemler)</span>
+            <span class="badge bg-dark">@ViewBag.MakbuzSatir.Count Kalem</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Dönem</th>
+                        <th>Tutar</th>
+                        <th class="text-end pe-4">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.MakbuzSatir.Count == 0)
+                    {
                         <tr>
-
-                            <th scope="col">Ay</th>
-                            <th scope="col">Yıl</th>
-                            <th scope="col">Tutar</th>
-                            <th scope="col"></th>
+                            <td colspan="3" class="text-center py-5 text-muted">
+                                <i class="bi bi-basket3 display-6 d-block mb-3 opacity-50"></i>
+                                Henüz makbuza bir kalem eklenmedi. Yukarıdan seçim yapınız.
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in ViewBag.Ekler)
+                    }
+                    else
+                    {
+                        foreach (var item in ViewBag.MakbuzSatir)
                         {
-
                             <tr>
-
-                                <td>@item.EkAy</td>
-                                <td>@item.EkYil</td>
-                                <td>@item.EkTutar.ToString("N2") @tl</td>
-                                <td><a href="/Makbuz/EkSatirEkle/@item.EkID" class="badge bg-success">Ekle</a></td>
+                                <td class="ps-4 fw-bold text-secondary">@item.AyAdi - @item.YilAdi</td>
+                                <td class="fw-bold text-success fs-6">@item.Tutar.ToString("N2") @tl</td>
+                                <td class="text-end pe-4">
+                                    <a href="/Makbuz/SatirCikar/@item.MakbuzSatirID" class="btn-remove">
+                                        <i class="bi bi-x-circle me-1"></i> Çıkar
+                                    </a>
+                                </td>
                             </tr>
-
                         }
+                    }
+                </tbody>
+            </table>
+        </div>
 
-                    </tbody>
-                </table>
-            </div>
+        <div class="p-4 bg-light border-top d-flex justify-content-end">
+            @if (ViewBag.MakbuzSatir.Count > 0)
+            {
+                <a href="/Makbuz/GeneratePDF?MakbuzID=@Session["MakbuzID"]" target="_blank" class="btn-print-large">
+                    <i class="bi bi-printer-fill"></i> Makbuzu Onayla ve Yazdır
+                </a>
+            }
+            else
+            {
+                <button class="btn btn-secondary btn-lg rounded-pill px-5" disabled>Seçim Yapınız</button>
+            }
         </div>
     </div>
 
-</div>
-
-<div class="row">
-    
-    <div class="col-12">
-        <div class="card-body">
-            <h5 class="card-title">Mabuz İçeriği</h5>
-            <div class="table-responsive">
-                <table class="table table-borderless datatable">
-                    <thead>
-                        <tr>
-
-                            <th scope="col">Ay</th>
-                            <th scope="col">Yıl</th>
-                            <th scope="col">Tutar</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in ViewBag.MakbuzSatir)
-                        {
-
-                            <tr>
-
-
-                                <td>@item.AyAdi</td>
-                                <td>@item.YilAdi</td>
-                                <td>@item.Tutar.ToString("N2") @tl</td>
-                                <td><a href="/Makbuz/SatirCikar/@item.MakbuzSatirID" class="badge bg-danger">Çıkar</a></td>
-                            </tr>
-
-                        }
-
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<!-- Button to generate PDF -->
-<div class="row">
-   
-        <a class="btn btn-success"  href="/Makbuz/GeneratePDF?MakbuzID=@Session["MakbuzID"]" target="_blank" ><i class="bi bi-printer"></i> Makbuzu Onayla ve Yazdır</a>
-    
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -141,7 +385,8 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33'
                 });
             </text>
         }
@@ -149,20 +394,19 @@
         @if (TempData["Basarili"] != null)
         {
             <text>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                const Toast = Swal.mixin({
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false,
+                  timer: 3000,
+                  timerProgressBar: true
+                });
+
+                Toast.fire({
+                  icon: 'success',
+                  title: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
                 });
             </text>
         }
     });
-
-
-
-    // PDF Generation
-        $('#generatePdf').click(function () {
-            window.location.href = '@Url.Action("GeneratePdf", "Makbuz", new { MakbuzID = Session["MakbuzID"] })';
-        });
 </script>
-

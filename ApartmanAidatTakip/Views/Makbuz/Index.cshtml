@@ -1,115 +1,317 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Makbuz Oluştur";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Makbuz Oluştur</h1>
-</div>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<br />
-@if (ViewBag.DonemSorgu == true)
-{
-    <form action="/Makbuz/Olustur" method="post">
-        <label>Daire No:</label>
-        <select name="DaireID" class="form-select filter">
-            <option value="0">Daire Sakinini Seçiniz</option>
-            @foreach (var item in ViewBag.Daireler)
-            {
-                <option value="@item.DaireNo"> @item.DaireNo Numara - @item.AdSoyad (Borç: @item.Borc ₺)</option>
-            }
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --danger-soft: #fef2f2;
+        --danger-text: #991b1b;
+    }
 
-        </select>
-        <br /><br />
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
-        <button type="submit" class="btn btn-success">Makbuz Oluştur</button>
+    /* İşlem Kartı (Create Section) */
+    .action-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        padding: 30px;
+        margin-bottom: 30px;
+        border-left: 5px solid #4f46e5;
+    }
 
+    .form-label-custom {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
 
+    .form-select-lg {
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        font-size: 1rem;
+        padding: 12px;
+    }
 
-    </form>
-}
-@if (ViewBag.DonemSorgu == false)
-{
-    <button type="submit" class="btn btn-success" disabled>Makbuz Oluştur</button>
-    <p class="text-danger">@DateTime.Now.ToString("MMMM") ayı dönemini eklemeniz gerekmektedir.</p>
+        .form-select-lg:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
 
-}
+    .btn-create {
+        background: var(--primary-grad);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        transition: transform 0.2s;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
 
-<br />
-<div class="card-body">
-    <h5 class="card-title">Makbuzlar</h5>
-    <div class="table-responsive">
-        <table class="table table-borderless datatable">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th scope="col">Makbuz No</th>
-                    <th scope="col">Tarih</th>
-                    <th scope="col">Daire No</th>
-                    <th scope="col">Ad Soyad</th>
-                    <th scope="col">Tutar</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.Makbuzlar)
-                {
+        .btn-create:hover:not(:disabled) {
+            transform: translateY(-2px);
+            color: white;
+        }
 
-                    <tr>
-                        <td><a href="/Makbuz/Ekle?ID=@item.MakbuzID" class="badge bg-info">Detay</a></td>
-                        <td>@item.MakbuzNo</td>
-                        <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
-                        <td>@item.DaireNo</td>
-                        <td>@item.AdSoyad</td>
-                        <td>@item.MabuzTutar.ToString("N2") @tl</td>
-                        <td>
-                            <a href="/Makbuz/MakbuzSil/@item.MakbuzID" class="badge bg-danger" onclick="confirmDeleteReceipt(event, @item.MakbuzID)">Sil</a>
-                        </td>
-                    </tr>
+        .btn-create:disabled {
+            background: #cbd5e1;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
 
-                }
+    /* Uyarı Kutusu */
+    .alert-box {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+        padding: 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
 
-            </tbody>
-        </table>
+    /* Tablo Kartları */
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+
+    .card-header-clean {
+        background: #fff;
+        padding: 20px 25px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modern-table thead th {
+        background-color: #f8f9fa;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border: none;
+        padding: 15px 20px;
+    }
+
+    .modern-table tbody td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* Butonlar */
+    .btn-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .btn-icon-info {
+        background: #e0f2fe;
+        color: #0284c7;
+    }
+
+        .btn-icon-info:hover {
+            background: #0284c7;
+            color: white;
+        }
+
+    .btn-icon-danger {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+        .btn-icon-danger:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+    /* Silinenler Bölümü */
+    .deleted-section {
+        opacity: 0.85;
+        border: 2px dashed #fca5a5;
+    }
+
+        .deleted-section .modern-table thead th {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Makbuz İşlemleri</h3>
+            <span class="text-muted small">Aidat makbuzu oluşturma ve yönetimi</span>
+        </div>
     </div>
-</div>
 
-<br />
-<div class="card-body">
-    <h5 class="card-title">Silinen Makbuzlar</h5>
-    <div class="table-responsive">
-        <table class="table table-danger table-striped table-borderless datatable">
-            <thead>
-                <tr>
+    @if (ViewBag.DonemSorgu == true)
+    {
+        <div class="action-card">
+            <form action="/Makbuz/Olustur" method="post">
+                <div class="row align-items-end g-3">
+                    <div class="col-md-9">
+                        <label class="form-label-custom"><i class="bi bi-person-lines-fill me-1"></i> DAİRE SEÇİMİ</label>
+                        <select name="DaireID" class="form-select filter form-select-lg">
+                            <option value="0" selected disabled>Daire Sakinini Seçiniz...</option>
+                            @foreach (var item in ViewBag.Daireler)
+                            {
+                                <option value="@item.DaireNo">
+                                    Daire @item.DaireNo - @item.AdSoyad (Mevcut Borç: @item.Borc ₺)
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn-create">
+                            <i class="bi bi-receipt-cutoff"></i> Makbuz Kes
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    }
+    else
+    {
+        <div class="action-card" style="border-left-color: #dc2626;">
+            <div class="row align-items-center">
+                <div class="col-md-9">
+                    <div class="alert-box mb-0 bg-transparent border-0 p-0 text-dark">
+                        <i class="bi bi-exclamation-octagon-fill text-danger fs-2"></i>
+                        <div>
+                            <h5 class="fw-bold text-danger mb-1">Dönem Bulunamadı!</h5>
+                            <p class="mb-0 text-muted">Makbuz kesebilmek için lütfen <strong>@DateTime.Now.ToString("MMMM")</strong> ayı dönemini sisteme ekleyiniz.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn-create" disabled>
+                        <i class="bi bi-lock-fill"></i> İşlem Kilitli
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
 
-                    <th scope="col">Makbuz No</th>
-                    <th scope="col">Tarih</th>
-                    <th scope="col">Daire No</th>
-                    <th scope="col">Ad Soyad</th>
-                    <th scope="col">Tutar</th>
-
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.SilinenMakbuzlar)
-                {
-
+    <div class="table-card">
+        <div class="card-header-clean">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-check-circle-fill text-success me-2"></i>Oluşturulan Makbuzlar</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table modern-table mb-0 datatable" id="activeReceipts">
+                <thead>
                     <tr>
-                        <td>@item.MakbuzNo</td>
-                        <td>@item.MakbuzTarihi.ToString("dd/MM/yyyy")</td>
-                        <td>@item.DaireNo</td>
-                        <td>@item.AdSoyad</td>
-                        <td>@item.MabuzTutar.ToString("N2") @tl</td>
+                        <th width="50">Detay</th>
+                        <th>Makbuz No</th>
+                        <th>TARİH</th>
+                        <th>DAİRE & KİŞİ</th>
+                        <th>TUTAR</th>
+                        <th width="50" class="text-end">İŞLEM</th>
                     </tr>
-
-                }
-
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Makbuzlar)
+                    {
+                        <tr>
+                            <td>
+                                <a href="/Makbuz/Ekle?ID=@item.MakbuzID" class="btn-icon btn-icon-info" title="Detay / Yazdır">
+                                    <i class="bi bi-printer-fill"></i>
+                                </a>
+                            </td>
+                            <td class="fw-bold text-dark">#@item.MakbuzNo</td>
+                            <td data-order="@item.MakbuzTarihi.ToString("yyyyMMdd")">
+                                <span class="text-muted"><i class="bi bi-calendar3 me-1"></i> @item.MakbuzTarihi.ToString("dd.MM.yyyy")</span>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                <div class="small text-muted">Daire No: @item.DaireNo</div>
+                            </td>
+                            <td class="fw-bold text-success">@item.MabuzTutar.ToString("N2") @tl</td>
+                            <td class="text-end">
+                                <a href="#" class="btn-icon btn-icon-danger" onclick="confirmDeleteReceipt(event, @item.MakbuzID)" title="Makbuzu İptal Et">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    @if (ViewBag.SilinenMakbuzlar != null)
+    {
+        <div class="table-card deleted-section mt-5">
+            <div class="card-header-clean" style="background-color: #fef2f2;">
+                <h5 class="fw-bold mb-0 text-danger"><i class="bi bi-trash3-fill me-2"></i>İptal Edilen / Silinen Makbuzlar</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table modern-table mb-0 datatable" id="deletedReceipts">
+                    <thead>
+                        <tr>
+                            <th>Makbuz No</th>
+                            <th>Tarih</th>
+                            <th>Daire & Kişi</th>
+                            <th>Tutar</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.SilinenMakbuzlar)
+                        {
+                            <tr>
+                                <td class="text-muted">#@item.MakbuzNo</td>
+                                <td data-order="@item.MakbuzTarihi.ToString("yyyyMMdd")" class="text-muted">
+                                    @item.MakbuzTarihi.ToString("dd.MM.yyyy")
+                                </td>
+                                <td class="text-muted">
+                                    <div>@item.AdSoyad</div>
+                                    <div class="small">Daire: @item.DaireNo</div>
+                                </td>
+                                <td class="text-muted text-decoration-line-through">@item.MabuzTutar.ToString("N2") @tl</td>
+                                <td><span class="badge bg-danger bg-opacity-10 text-danger">İptal Edildi</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -120,7 +322,8 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33'
                 });
             </text>
         }
@@ -131,22 +334,30 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#059669'
                 });
             </text>
         }
     });
 
-
-</script>
-
-<script>
+    // Modern Silme Onayı
     function confirmDeleteReceipt(event, id) {
-        event.preventDefault(); // Linke tıklamayı engeller
-        var userConfirmed = confirm("Bu makbuzu silmek istediğinize emin misiniz?");
-        if (userConfirmed) {
-            window.location.href = '/Makbuz/MakbuzSil/' + id; // Kullanıcı onaylarsa silme işlemi yapılır
-        }
+        event.preventDefault(); // Sayfa yenilenmesini engelle
+
+        Swal.fire({
+            title: 'Makbuz İptal Edilsin mi?',
+            text: "Bu işlem geri alınamaz! Makbuz 'Silinenler' listesine taşınacaktır.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Evet, İptal Et',
+            cancelButtonText: 'Vazgeç'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/Makbuz/MakbuzSil/' + id;
+            }
+        });
     }
 </script>
-
