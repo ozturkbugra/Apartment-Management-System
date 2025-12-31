@@ -178,9 +178,9 @@ namespace ApartmanAidatTakip.Controllers
 
             ViewBag.aygelir = makbuzgelir + tahsilatgelir;
             ViewBag.aygider = aygider;
-            ViewBag.Giderler = buAyGiderListesi.Take(10).ToList(); // Ekrana sadece son 10 taneyi bas, hepsini değil
-            ViewBag.Makbuzlar = buAyMakbuzListesi.Take(10).ToList();
-            ViewBag.Tahsilatlar = buAyTahsilatListesi.Take(10).ToList();
+            ViewBag.Giderler = buAyGiderListesi.ToList(); // Ekrana sadece son 10 taneyi bas, hepsini değil
+            ViewBag.Makbuzlar = buAyMakbuzListesi.ToList();
+            ViewBag.Tahsilatlar = buAyTahsilatListesi.ToList();
 
             // TOPLAM ALACAK (HIZLI COUNT)
             // Tüm daireleri çekmeye gerek yok, sadece borcu topla
@@ -1777,6 +1777,71 @@ namespace ApartmanAidatTakip.Controllers
             return File(workStream, "application/pdf");
         }
 
+        [HttpPost]
+        public ActionResult GiderGuncelle(Gider gider)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+
+            try
+            {
+                // Güncellenecek kaydı bul
+                var mevcutGider = db.Giders.FirstOrDefault(x => x.GiderID == gider.GiderID && x.BinaID == BinaID);
+
+                if (mevcutGider == null)
+                {
+                    TempData["Hata"] = "Kayıt bulunamadı!";
+                    return RedirectToAction("Giderler", "AnaSayfa");
+                }
+
+                // Tarih Kontrolü (Geçmiş dönem düzenlenemesin)
+                int AyKontrol = DateTime.Now.Month;
+                int YilKontrol = DateTime.Now.Year;
+
+                if (mevcutGider.GiderTarih.Value.Month != AyKontrol || mevcutGider.GiderTarih.Value.Year != YilKontrol)
+                {
+                    TempData["Hata"] = "Bulunduğunuz Dönem dışındaki verileri düzenleyemezsiniz!";
+                    return RedirectToAction("Giderler", "AnaSayfa");
+                }
+
+                // Eski değerleri loglamak için tutabilirsin istersen
+                string eskiTutar = mevcutGider.GiderTutar.ToString();
+
+                // Güncelleme İşlemi
+                mevcutGider.GiderTuruID = gider.GiderTuruID;
+                mevcutGider.GiderAciklama = gider.GiderAciklama;
+                mevcutGider.GiderTutar = gider.GiderTutar;
+
+                db.SaveChanges();
+
+                // Hareket Logu Ekle
+                Hareketler hareketler = new Hareketler()
+                {
+                    BinaID = BinaID,
+                    KullaniciID = KullaniciID,
+                    OlayAciklama = $"{mevcutGider.GiderNo} numaralı gider güncellendi. (Yeni Tutar: {gider.GiderTutar})",
+                    Tarih = DateTime.Now,
+                    Tur = "Guncelleme",
+                };
+                db.Hareketlers.Add(hareketler);
+                db.SaveChanges();
+
+                TempData["Basarili"] = "Gider Başarıyla Güncellendi";
+            }
+            catch (Exception)
+            {
+                TempData["Hata"] = "Güncelleme sırasında bir hata oluştu!";
+            }
+
+            return RedirectToAction("Giderler", "AnaSayfa");
+        }
+
         public ActionResult BorcluDairelerPDF()
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
@@ -2010,6 +2075,66 @@ namespace ApartmanAidatTakip.Controllers
             DonemEklendiMi();
             return View();
 
+        }
+
+        [HttpPost]
+        public ActionResult TahsilatGuncelle(Tahsilat tahsilat)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+
+            try
+            {
+                var mevcutTahsilat = db.Tahsilats.FirstOrDefault(x => x.TahsilatID == tahsilat.TahsilatID && x.BinaID == BinaID);
+
+                if (mevcutTahsilat == null)
+                {
+                    TempData["Hata"] = "Kayıt bulunamadı!";
+                    return RedirectToAction("Tahsilat", "AnaSayfa");
+                }
+
+                int AyKontrol = DateTime.Now.Month;
+                int YilKontrol = DateTime.Now.Year;
+
+                if (mevcutTahsilat.TahsilatTarih.Value.Month != AyKontrol || mevcutTahsilat.TahsilatTarih.Value.Year != YilKontrol)
+                {
+                    TempData["Hata"] = "Bulunduğunuz Dönem dışındaki verileri düzenleyemezsiniz!";
+                    return RedirectToAction("Tahsilat", "AnaSayfa");
+                }
+
+                // Güncelleme
+                mevcutTahsilat.TahsilatAciklama = tahsilat.TahsilatAciklama;
+                mevcutTahsilat.TahsilatTutar = tahsilat.TahsilatTutar;
+                mevcutTahsilat.DemirbasMi = tahsilat.DemirbasMi;
+
+                db.SaveChanges();
+
+                // Loglama
+                Hareketler hareketler = new Hareketler()
+                {
+                    BinaID = BinaID,
+                    KullaniciID = KullaniciID,
+                    OlayAciklama = $"{mevcutTahsilat.TahsilatNo} numaralı tahsilat güncellendi. (Yeni Tutar: {tahsilat.TahsilatTutar})",
+                    Tarih = DateTime.Now,
+                    Tur = "Guncelleme",
+                };
+                db.Hareketlers.Add(hareketler);
+                db.SaveChanges();
+
+                TempData["Basarili"] = "Tahsilat Başarıyla Güncellendi";
+            }
+            catch (Exception)
+            {
+                TempData["Hata"] = "Güncelleme sırasında bir hata oluştu!";
+            }
+
+            return RedirectToAction("Tahsilat", "AnaSayfa");
         }
 
         [HttpPost]

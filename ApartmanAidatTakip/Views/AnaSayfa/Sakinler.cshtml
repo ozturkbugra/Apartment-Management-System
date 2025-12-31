@@ -1,162 +1,369 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Daire Sakinleri";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Daire Sakinleri</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-@if (ViewBag.Durum == true)
-{
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --success-grad: linear-gradient(135deg, #059669 0%, #34d399 100%);
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
 
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
 
-    <div class="row d-flex justify-content-center gap-2">
-        <div class="col-auto">
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
-                Daire Sakini Ekle
-            </button>
-        </div>
-        <div class="col-auto">
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered1">
-                Excel ile toplu ekle
-            </button>
-        </div>
-        <div class="col-auto">
-            <a href="~/Content/Admin/assets/document/excel format.xlsx" class="btn btn-outline-success">
-                Excel Formatını İndir
-            </a>
+    /* Üst Aksiyon Alanı */
+    .action-bar {
+        background: #fff;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .btn-action {
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-weight: 500;
+        transition: transform 0.2s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+    .btn-gradient-success {
+        background: var(--success-grad);
+        color: white;
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+    }
+
+    .btn-gradient-primary {
+        background: var(--primary-grad);
+        color: white;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-outline-custom {
+        border: 2px solid #e2e8f0;
+        color: #64748b;
+        background: transparent;
+    }
+
+        .btn-outline-custom:hover {
+            border-color: #059669;
+            color: #059669;
+            background: #f0fdf4;
+        }
+
+    /* Tablo Kartı */
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .modern-table thead th {
+        background-color: #f8f9fa;
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 18px 20px;
+    }
+
+    .modern-table tbody td {
+        padding: 18px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+
+    .modern-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .modern-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Avatar Stili */
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: #e0e7ff;
+        color: #4f46e5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-right: 15px;
+    }
+
+    /* Rozetler */
+    .badge-soft {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .badge-soft-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-soft-info {
+        background: #e0f2fe;
+        color: #075985;
+    }
+
+    .badge-soft-warning {
+        background: #ffedd5;
+        color: #9a3412;
+    }
+
+    .badge-soft-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Form Inputları */
+    .form-floating-custom .form-control {
+        border-radius: 10px;
+        border: 2px solid #e2e8f0;
+        padding: 10px 15px;
+    }
+
+        .form-floating-custom .form-control:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+    .text-helper {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 5px;
+        display: block;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+            <h3 class="fw-bold mb-1">Daire Sakinleri</h3>
+            <span class="text-muted small">Apartman sakinlerini yönetin ve düzenleyin.</span>
         </div>
     </div>
 
+    <div class="action-bar">
+        <div class="d-flex align-items-center gap-2">
+            <div class="bg-light rounded-circle p-2 text-primary">
+                <i class="bi bi-people-fill fs-4"></i>
+            </div>
+            <h5 class="mb-0 fw-bold text-dark">Sakin Listesi</h5>
+        </div>
 
+        <div class="d-flex gap-2 flex-wrap">
+            @if (ViewBag.Durum == true)
+            {
+                <a href="~/Content/Admin/assets/document/excel format.xlsx" class="btn btn-action btn-outline-custom">
+                    <i class="bi bi-file-earmark-excel"></i> Format İndir
+                </a>
+                <button type="button" class="btn btn-action btn-gradient-primary" data-bs-toggle="modal" data-bs-target="#verticalycentered1">
+                    <i class="bi bi-upload"></i> Excel Yükle
+                </button>
+                <button type="button" class="btn btn-action btn-gradient-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
+                    <i class="bi bi-person-plus-fill"></i> Yeni Sakin Ekle
+                </button>
+            }
+            else
+            {
+                <div class="alert alert-warning mb-0 py-2 px-3 d-flex align-items-center small">
+                    <i class="bi bi-lock-fill me-2"></i> İşlem yetkiniz kısıtlanmıştır.
+                </div>
+            }
+        </div>
+    </div>
 
-}
-@if (ViewBag.Durum == false)
-{
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered" disabled>
-        Daire Sakini Ekle
-    </button>
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table modern-table mb-0 datatable">
+                <thead>
+                    <tr>
+                        <th scope="col">Kişi Bilgisi</th>
+                        <th scope="col">İletişim & TC</th>
+                        <th scope="col">Durum</th>
+                        <th scope="col">Yönetim</th>
+                        <th scope="col">Güncel Borç</th>
+                        <th scope="col" class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Daireler)
+                    {
+                        // Baş harfi alma güvenliği
+                        string init = !string.IsNullOrEmpty(item.AdSoyad) ? item.AdSoyad.Substring(0, 1).ToUpper() : "?";
 
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered1" disabled>
-        Excel ile toplu ekle
-    </button>
-}
-
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="user-avatar shadow-sm">@init</div>
+                                    <div>
+                                        <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                        <div class="small text-muted"><i class="bi bi-house-door-fill text-primary"></i> Daire No: @item.DaireNo</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small fw-semibold text-dark"><i class="bi bi-telephone me-1"></i> @item.Telefon</div>
+                                <div class="small text-muted mt-1"><i class="bi bi-card-heading me-1"></i> @item.TC</div>
+                            </td>
+                            <td>
+                                @if (item.DaireDurum == "Ev Sahibi")
+                                {
+                                    <span class="badge badge-soft-success"><i class="bi bi-house-check me-1"></i> Ev Sahibi</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-soft-info"><i class="bi bi-person-workspace me-1"></i> Kiracı</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.YonetimdeMi == "E")
+                                {
+                                    <span class="badge badge-soft-warning"><i class="bi bi-star-fill me-1"></i> Yönetimde</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.Borc > 0)
+                                {
+                                    <span class="fw-bold text-danger">@item.Borc.ToString("N2") @tl</span>
+                                }
+                                else
+                                {
+                                    <span class="fw-bold text-success">0,00 @tl</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a href="/AnaSayfa/SakinDuzenle/@item.DaireID" class="btn btn-sm btn-light text-primary border shadow-sm">
+                                    <i class="bi bi-pencil-square"></i> Düzenle
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="verticalycentered" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Daire Sakini Ekle</h5>
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-primary"><i class="bi bi-person-plus-fill me-2"></i>Daire Sakini Ekle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <form action="/AnaSayfa/SakinEkle" method="post" class="p-3">
+                <div class="modal-body form-floating-custom">
 
-            <form action="/AnaSayfa/SakinEkle" method="post">
+                    <div class="mb-3">
+                        <label class="fw-bold small mb-1">Ad Soyad</label>
+                        <input type="text" name="AdSoyad" class="form-control" placeholder="Örn: Ahmet Yılmaz" required />
+                    </div>
 
-                <div class="modal-body">
-                    <input type="text" name="AdSoyad" placeholder="Ad Soyad" id="AdSoyad" class="form-control" required />
+                    <div class="mb-3">
+                        <label class="fw-bold small mb-1">Telefon</label>
+                        <input type="text" name="Telefon" class="form-control" placeholder="5XXXXXXXXX" maxlength="10" required />
+                        <span class="text-helper text-danger"><i class="bi bi-exclamation-circle"></i> Başında 0 olmadan 10 hane (Sisteme giriş için gereklidir).</span>
+                    </div>
 
-                    <input type="text" name="Telefon" placeholder="Telefon (başında 0 olmadan 10 haneli giriniz)" id="Telefon" class="form-control mt-2" maxlength="10" required />
-                    <label class="mt-1 text-danger">Bu bilgiyi doğru girmeniz gereklidir. Sakinler bu bilgi ile borcunu sorgulayabilecektir</label>
+                    <div class="mb-3">
+                        <label class="fw-bold small mb-1">TC Kimlik No</label>
+                        <input type="text" name="TC" class="form-control" placeholder="11 Haneli TC" maxlength="11" required />
+                        <span class="text-helper text-danger"><i class="bi bi-exclamation-circle"></i> Borç sorgulama ekranı için gereklidir.</span>
+                    </div>
 
-                    <input type="text" name="TC" placeholder="TC Kimlik No" id="TC" class="form-control mt-2" maxlength="11" required />
-                    <label class="mt-1 text-danger">Bu bilgiyi doğru girmeniz gereklidir. Sakinler bu bilgi ile borcunu sorgulayabilecektir</label>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="fw-bold small mb-1">Durumu</label>
+                            <select name="DaireDurum" class="form-select form-control">
+                                <option value="Ev Sahibi">Ev Sahibi</option>
+                                <option value="Kiracı">Kiracı</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-bold small mb-1">Yönetimde mi?</label>
+                            <select name="YonetimdeMi" class="form-select form-control">
+                                <option value="H">Hayır</option>
+                                <option value="E">Evet</option>
+                            </select>
+                        </div>
+                    </div>
+                    <span class="text-helper text-muted mt-2"><i class="bi bi-info-circle"></i> Yönetimde olan dairelere otomatik aidat yansımaz.</span>
 
-                    <select name="DaireDurum" class="mt-2 form-select">
-                        <option value="Ev Sahibi">Ev Sahibi</option>
-                        <option value="Kiracı">Kiracı</option>
-                    </select>
-
-                    <label class="mt-2">Yönetimde Mi?</label>
-                    <select name="YonetimdeMi" class="mt-2 form-select">
-                        <option value="H">Hayır</option>
-                        <option value="E">Evet</option>
-                    </select>
-                    <label class="mt-1 text-danger">Yönetimde olan dairelere aidat ve ek eklenmez</label>
                 </div>
-                <div class="modal-footer">
-
-                    <button type="submit" class="btn btn-success">Kaydet</button>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-gradient-success px-4">Kaydet</button>
                 </div>
             </form>
         </div>
     </div>
-</div><!-- End Vertically centered Modal-->
-
+</div>
 
 <div class="modal fade" id="verticalycentered1" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Daire Sakini Ekle (Excel ile)</h5>
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-success"><i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>Excel ile Toplu Ekle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
-            <form action="/AnaSayfa/SakinEkleExcel" method="post" enctype="multipart/form-data">
-
+            <form action="/AnaSayfa/SakinEkleExcel" method="post" enctype="multipart/form-data" class="p-3">
                 <div class="modal-body">
-
-                    <input type="file" class="form-control" name="file" required />
+                    <div class="text-center mb-4">
+                        <i class="bi bi-cloud-upload display-1 text-muted opacity-25"></i>
+                        <p class="small text-muted mt-2">İndirdiğiniz formatta hazırladığınız Excel dosyasını seçiniz.</p>
+                    </div>
+                    <input type="file" class="form-control" name="file" required accept=".xlsx, .xls" />
                 </div>
-                <div class="modal-footer">
-
-                    <button type="submit" class="btn btn-success">Kaydet</button>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-gradient-success px-4">Yüklemeyi Başlat</button>
                 </div>
             </form>
         </div>
     </div>
-</div><!-- End Vertically centered Modal-->
-<br />
-<div class="card-body">
-    <h5 class="card-title">Daire Sakinleri Listesi</h5>
-    <div class="table-responsive">
-        <table class="table table-borderless datatable">
-            <thead>
-                <tr>
-
-                    <th scope="col">Daire No</th>
-                    <th scope="col">Ad Soyad</th>
-                    <th scope="col">Telefon</th>
-                    <th scope="col">TC</th>
-                    <th scope="col">Durum</th>
-                    <th scope="col">Borç</th>
-                    <th scope="col">Yönetimde Mi?</th>
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.Daireler)
-                {
-
-                    <tr>
-
-                        <td>@item.DaireNo</td>
-                        <td>@item.AdSoyad</td>
-                        <td>@item.Telefon</td>
-                        <td>@item.TC</td>
-                        <td>@item.DaireDurum</td>
-                        <td>@item.Borc.ToString("N2") @tl</td>
-                        @if (@item.YonetimdeMi == "E")
-                        {
-                            <td>Evet</td>
-                        }@if (@item.YonetimdeMi == "H")
-                        {
-                            <td>Hayır</td>
-                        }
-
-
-                        <td><a href="/AnaSayfa/SakinDuzenle/@item.DaireID" class="badge bg-warning">Düzenle</a></td>
-                    </tr>
-
-                }
-
-            </tbody>
-        </table>
-    </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -167,7 +374,8 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33'
                 });
             </text>
         }
@@ -178,12 +386,10 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#059669'
                 });
             </text>
         }
     });
-
-
 </script>
-

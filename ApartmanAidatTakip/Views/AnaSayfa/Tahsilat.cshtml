@@ -1,166 +1,452 @@
-﻿
-@{
-    ViewBag.Title = "Tahsilat";
+﻿@{
+    ViewBag.Title = "Tahsilat Yönetimi";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Tahsilatlar</h1>
-</div><!-- End Page Title -->
+<style>
+    /* Genel Kart ve Gölgeler */
+    .card-legendary {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
 
-@if (ViewBag.DonemSorgu == true)
-{
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered">
-        Tahsilat Ekle
-    </button>
-}
-@if (ViewBag.DonemSorgu == false)
-{
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verticalycentered" disabled>
-        Tahsilat Ekle
-    </button>
-    <p class="text-danger">@DateTime.Now.ToString("MMMM") ayı dönemini eklemeniz gerekmektedir.</p>
+    .card-header-legendary {
+        /* Tahsilat için biraz daha yeşil/mavi ağırlıklı gradient */
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        padding: 20px 25px;
+        border-bottom: none;
+    }
 
-}
+    /* Tablo Tasarımı */
+    .table-modern thead th {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        border-bottom: 2px solid #e9ecef;
+        padding: 15px;
+    }
 
+    .table-modern tbody td {
+        vertical-align: middle;
+        padding: 15px;
+        border-bottom: 1px solid #f1f1f1;
+        transition: background-color 0.3s;
+    }
 
+    .table-modern tbody tr:hover {
+        background-color: #f8fbff;
+        transform: scale(1.005);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        z-index: 2;
+        position: relative;
+    }
 
+    /* Tarih Kutusu Tasarımı */
+    .date-box {
+        background: #eef2f7;
+        color: #5d6e82;
+        border-radius: 10px;
+        padding: 5px 10px;
+        text-align: center;
+        min-width: 80px;
+        display: inline-block;
+        font-weight: bold;
+        border: 1px solid #dee2e6;
+    }
 
-<div class="modal fade" id="verticalycentered" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tahsilat Ekle</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        .date-box span {
+            display: block;
+        }
+
+    .date-day {
+        font-size: 1.2rem;
+        color: #2c3e50;
+        line-height: 1;
+    }
+
+    .date-year {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Tutar Tasarımı */
+    .amount-text {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2ecc71; /* Gelir olduğu için yeşil */
+        letter-spacing: -0.5px;
+    }
+
+    /* Soft Butonlar */
+    .btn-icon-soft {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        margin: 0 3px;
+    }
+
+        .btn-icon-soft i {
+            font-size: 1.1rem;
+        }
+
+    .btn-soft-warning {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #d68910;
+    }
+
+        .btn-soft-warning:hover {
+            background-color: #ffc107;
+            color: black;
+            transform: translateY(-3px);
+        }
+
+    .btn-soft-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+
+        .btn-soft-danger:hover {
+            background-color: #dc3545;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+    .btn-soft-dark {
+        background-color: rgba(33, 37, 41, 0.1);
+        color: #212529;
+    }
+
+        .btn-soft-dark:hover {
+            background-color: #212529;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+    /* Badge İyileştirmesi */
+    .badge-soft {
+        padding: 8px 12px;
+        border-radius: 30px;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+
+    /* --- DATATABLE ÖZELLEŞTİRME --- */
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 5px 15px;
+        outline: none;
+        transition: all 0.3s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+
+        .dataTables_wrapper .dataTables_filter input:focus,
+        .dataTables_wrapper .dataTables_length select:focus {
+            border-color: #11998e;
+            box-shadow: 0 0 0 3px rgba(17, 153, 142, 0.1);
+        }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+        color: white !important;
+        border: none;
+        border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(17, 153, 142, 0.3);
+    }
+</style>
+
+<div class="pagetitle mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="fw-bold text-dark">Tahsilat Yönetimi</h1>
+        <nav>
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/AnaSayfa/Index">Ana Sayfa</a></li>
+                <li class="breadcrumb-item active">Tahsilatlar</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div>
+        @if (ViewBag.DonemSorgu == true)
+        {
+            <button type="button" class="btn btn-success rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#EkleModal">
+                <i class="bi bi-plus-lg me-2"></i>Yeni Tahsilat Ekle
+            </button>
+        }
+        else
+        {
+            <div class="d-flex flex-column align-items-end">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" disabled>
+                    <i class="bi bi-lock-fill me-2"></i>Dönem Kapalı
+                </button>
+                <small class="text-danger fw-bold mt-1" style="font-size: 0.75rem;">
+                    <i class="bi bi-exclamation-circle"></i> @DateTime.Now.ToString("MMMM") dönemi başlatılmalı
+                </small>
             </div>
+        }
+    </div>
+</div>
 
+<div class="card card-legendary mb-5">
+    <div class="card-header-legendary d-flex justify-content-between align-items-center">
+        <h5 class="m-0 fw-bold"><i class="bi bi-cash-stack me-2"></i>Tahsilat Hareketleri</h5>
+        <span class="badge bg-white text-dark bg-opacity-75 rounded-pill px-3">
+            Toplam: @(ViewBag.Tahsilatlar.Count) Kayıt
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table id="tahsilatTablosu" class="table table-modern align-middle mb-0 datatable">
+                <thead>
+                    <tr>
+                        <th class="ps-4">TARİH</th>
+                        <th>Makbuz No</th>
+                        <th>TÜR</th>
+                        <th>Açıklama</th>
+                        <th class="text-end">Tutar</th>
+                        <th class="text-center pe-4">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Tahsilatlar)
+                    {
+                        <tr>
+                            <td class="ps-4" style="width: 120px;">
+                                <div class="date-box">
+                                    <span class="date-day">@item.TahsilatTarih.Day</span>
+                                    <span class="date-year">@item.TahsilatTarih.ToString("MMM yyyy")</span>
+                                </div>
+                            </td>
+
+                            <td class="fw-bold text-muted">#@item.TahsilatNo</td>
+
+                            <td>
+                                @if (item.DemirbasMi == true)
+                                {
+                                    <span class="badge badge-soft" style="background-color: #fff3cd; color: #856404;">
+                                        <i class="bi bi-box-seam me-1"></i> Demirbaş
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-soft" style="background-color: #d1e7dd; color: #0f5132;">
+                                        <i class="bi bi-wallet2 me-1"></i> Aidat
+                                    </span>
+                                }
+                            </td>
+
+                            <td style="max-width: 300px;">
+                                <div class="text-dark fw-bold">
+                                    @(item.TahsilatAciklama.Length > 30 ? item.TahsilatAciklama.Substring(0, 30) + "..." : item.TahsilatAciklama)
+                                </div>
+                            </td>
+
+                            <td class="text-end">
+                                <span class="amount-text">@item.TahsilatTutar.ToString("N2")</span>
+                                <span class="text-muted small">@tl</span>
+                            </td>
+
+                            <td class="text-center pe-4">
+                                <a href="/AnaSayfa/TahsilatMakbuz?TahsilatID=@item.TahsilatID"
+                                   target="_blank"
+                                   class="btn-icon-soft btn-soft-dark"
+                                   title="Yazdır" data-bs-toggle="tooltip">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+
+                                <button type="button"
+                                        class="btn-icon-soft btn-soft-warning btn-duzenle"
+                                        title="Düzenle" data-bs-toggle="tooltip"
+                                        data-id="@item.TahsilatID"
+                                        data-aciklama="@item.TahsilatAciklama"
+                                        data-tutar="@item.TahsilatTutar.ToString("F2")"
+                                        data-demirbas="@(item.DemirbasMi == true ? "True" : "False")">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+
+                                <button type="button"
+                                        class="btn-icon-soft btn-soft-danger"
+                                        onclick="confirmDelete(event, @item.TahsilatID)"
+                                        title="Sil" data-bs-toggle="tooltip">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    @if (ViewBag.Tahsilatlar.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+                                    Bu dönem için henüz bir tahsilat kaydı bulunmuyor.
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="accordion mb-5 shadow-sm rounded-3 overflow-hidden" id="accordionDeleted">
+    <div class="accordion-item border-0">
+        <h2 class="accordion-header" id="headingDeleted">
+            <button class="accordion-button collapsed bg-light text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDeleted" aria-expanded="false" aria-controls="collapseDeleted">
+                <i class="bi bi-clock-history me-2"></i> Silinen Tahsilat Geçmişi
+            </button>
+        </h2>
+        <div id="collapseDeleted" class="accordion-collapse collapse" aria-labelledby="headingDeleted" data-bs-parent="#accordionDeleted">
+            <div class="accordion-body p-0">
+                <table class="table table-sm table-hover mb-0 text-muted" style="font-size: 0.9rem;">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">TARİH</th>
+                            <th>No</th>
+                            <th>Açıklama</th>
+                            <th class="text-end pe-4">Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.SilinenTahsilatlar)
+                        {
+                            <tr>
+                                <td class="ps-4">@item.TahsilatTarih.ToString("dd.MM.yyyy")</td>
+                                <td>@item.TahsilatNo</td>
+                                <td>@item.TahsilatAciklama</td>
+                                <td class="text-end pe-4 text-decoration-line-through text-danger">@item.TahsilatTutar.ToString("N2") @tl</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="EkleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Yeni Tahsilat Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
             <form action="/AnaSayfa/TahsilatEkle" method="post">
-
-                <div class="modal-body">
-
-                    <input type="text" name="TahsilatAciklama" placeholder="Açıklama" id="TahsilatAciklama" class="form-control" maxlength="500" required />
-                    <br />
-                    <input type="text" name="TahsilatTutar" placeholder="Tutar" id="TahsilatTutar" class="form-control mt-3" onkeydown="preventDotAndComma(event)" required />
-                    <br />
-                    <label>Demirbaş Geliri Mi?</label>
-                    <select class="form-select" name="DemirbasMi">
-                        <option value="True">Evet</option>
-                        <option value="False">Hayır</option>
-                    </select>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Tahsilat Türü</label>
+                        <select class="form-select form-select-lg" name="DemirbasMi" required>
+                            <option value="False">Aidat</option>
+                            <option value="True">Demirbaş</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Açıklama</label>
+                        <input type="text" name="TahsilatAciklama" class="form-control" maxlength="500" required placeholder="Örn: Nisan Ayı Aidatı" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Tutar</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0">₺</span>
+                            <input type="text" name="TahsilatTutar" class="form-control border-start-0 ps-0 fw-bold text-success"
+                                   placeholder="0,00"
+                                   inputmode="decimal"
+                                   onkeypress="return isNumberKey(event)"
+                                   required>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-
-                    <button type="submit" class="btn btn-success">Kaydet</button>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success px-4 rounded-pill">Kaydet</button>
                 </div>
             </form>
         </div>
     </div>
-</div><!-- End Vertically centered Modal-->
-<br />
-<div class="card-body">
-    <h5 class="card-title">Tahsilat Listesi</h5>
-    <div class="table-responsive">
-        <table class="table table-borderless datatable">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th scope="col">Tarih</th>
-                    <th scope="col">Tahsilat No</th>
-                    <th scope="col">Açıklama</th>
-                    <th scope="col">Tutar</th>
-                    <th scope="col">Tür</th>
+</div>
 
-                    <th scope="col"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.Tahsilatlar)
-                {
+<div class="modal fade" id="GuncelleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Tahsilat Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/AnaSayfa/TahsilatGuncelle" method="post">
+                <input type="hidden" name="TahsilatID" id="update_TahsilatID" />
 
-                    <tr>
-                        <th><a href="/AnaSayfa/TahsilatMakbuz?TahsilatID=@item.TahsilatID" target="_blank" class="badge bg-success"><i class="bi bi-printer"></i>Yazdır</a></th>
-
-                        <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
-                        <td>@item.TahsilatNo</td>
-
-                        <td>
-                            @(item.TahsilatAciklama.Length > 10 ? item.TahsilatAciklama.Substring(0, Math.Min(10, item.TahsilatAciklama.Length - 2)) + "..." : item.TahsilatAciklama.Substring(2))
-                        </td>
-
-                        <td>@item.TahsilatTutar.ToString("N2") @tl</td>
-                        @if (item.DemirbasMi == true)
-                        {
-
-
-                            <td>Demirbaş</td>
-                        }
-                        else
-                        {
-                            <td>Aidat</td>
-
-                        }
-
-
-                        <td><a href="/AnaSayfa/TahsilatSil/@item.TahsilatID" class="badge bg-danger" onclick="confirmDelete(event, @item.TahsilatID)">Sil</a> </td>
-
-
-                    </tr>
-
-                }
-
-            </tbody>
-        </table>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Tahsilat Türü</label>
+                        <select class="form-select form-select-lg" name="DemirbasMi" id="update_DemirbasMi" required>
+                            <option value="False">Aidat</option>
+                            <option value="True">Demirbaş</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Açıklama</label>
+                        <input type="text" name="TahsilatAciklama" id="update_TahsilatAciklama" class="form-control" maxlength="500" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Tutar</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0">₺</span>
+                            <input type="text" name="TahsilatTutar" id="update_TahsilatTutar" class="form-control border-start-0 ps-0 fw-bold text-warning"
+                                   inputmode="decimal"
+                                   onkeypress="return isNumberKey(event)"
+                                   required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-warning px-4 rounded-pill">Güncelle</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<br />
-
-<div class="card-body">
-    <h5 class="card-title">Silinen Tahsilat Listesi</h5>
-    <div class="table-responsive">
-        <table class="table table-borderless table-striped table-danger datatable">
-            <thead>
-                <tr>
-
-                    <th scope="col">Tarih</th>
-                    <th scope="col">Tahsilat No</th>
-                    <th scope="col">Açıklama</th>
-                    <th scope="col">Tutar</th>
-
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in ViewBag.SilinenTahsilatlar)
-                {
-
-                    <tr>
-                        <td>@item.TahsilatTarih.ToString("dd/MM/yyyy")</td>
-                        <td>@item.TahsilatNo</td>
-                        <td>
-                            @(item.TahsilatAciklama.Length > 10 ? item.TahsilatAciklama.Substring(0, Math.Min(10, item.TahsilatAciklama.Length - 2)) + "..." : item.TahsilatAciklama.Substring(2))
-                        </td>
-                        <td>@item.TahsilatTutar.ToString("N2") @tl</td>
-
-                    </tr>
-
-                }
-
-            </tbody>
-        </table>
-    </div>
-</div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
     $(document).ready(function() {
+        // Tooltipler
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+
+        // --- DATATABLE BAŞLATMA ---
+      
+
+        // --- BİLDİRİMLER ---
         @if (TempData["Hata"] != null)
         {
             <text>
                 Swal.fire({
                     icon: 'error',
-                    title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                    title: 'Hata!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33',
+                    background: '#fff',
+                    color: '#333'
                 });
             </text>
         }
@@ -170,22 +456,73 @@
             <text>
                 Swal.fire({
                     icon: 'success',
-                    title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                    title: 'İşlem Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#11998e',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
             </text>
         }
+
+        // --- DÜZENLEME BUTONU ---
+        // --- DÜZENLEME BUTONU (FIX: DataTable Uyumlu) ---
+        // '.click' yerine '$(document).on("click", ...)' kullanıyoruz.
+        // Bu sayede 2. sayfaya da geçsen, arama da yapsan buton çalışır.
+        $(document).on('click', '.btn-duzenle', function () {
+
+            var id = $(this).data('id');
+            var aciklama = $(this).data('aciklama');
+            var tutar = $(this).data('tutar');
+            var demirbas = $(this).data('demirbas'); // "True" veya "False" gelir
+
+            // Modal inputlarına verileri bas
+            $('#update_TahsilatID').val(id);
+            $('#update_TahsilatAciklama').val(aciklama);
+            $('#update_TahsilatTutar').val(tutar);
+            $('#update_DemirbasMi').val(demirbas); // SelectBox'ı otomatik seçer
+
+            // Modalı aç
+            var myModal = new bootstrap.Modal(document.getElementById('GuncelleModal'));
+            myModal.show();
+        });
     });
 
-
-</script>
-<script>
-
+    // --- SİLME ONAYI ---
     function confirmDelete(event, id) {
-        event.preventDefault(); // Linke tıklamayı engeller
-        var userConfirmed = confirm("Silmek istediğinize emin misiniz?");
-        if (userConfirmed) {
-            window.location.href = '/AnaSayfa/TahsilatSil/' + id; // Kullanıcı onaylarsa silme işlemi yapılır
+        event.preventDefault();
+        Swal.fire({
+            title: 'Silmek İstiyor musunuz?',
+            text: "Bu tahsilat kaydı silinecek!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Evet, Sil',
+            cancelButtonText: 'Vazgeç',
+            background: '#fff',
+            customClass: {
+                confirmButton: 'btn btn-danger px-4 rounded-pill',
+                cancelButton: 'btn btn-secondary px-4 rounded-pill ml-2'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/AnaSayfa/TahsilatSil/' + id;
+            }
+        })
+    }
+
+    // --- KÜSÜRAT KONTROL (Sadece virgül ve sayı) ---
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : evt.keyCode;
+        var input = evt.target;
+        if (charCode == 44) {
+            if (input.value.indexOf(',') !== -1) return false;
+            return true;
         }
+        if (charCode == 46) return false; // Nokta yasak
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) return false;
+        return true;
     }
 </script>

@@ -4,61 +4,338 @@
     string tl = "₺";
 }
 
-<div class="pagetitle">
-    <h1>Toplu Makbuz Kes</h1>
-</div><!-- End Page Title -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<form method="get">
-    <div class="row">
-        <div class="col-lg-3 col-md-3 col-sm-6">
-            <input type="number" class="form-control" name="DaireNo" placeholder="Daire No" value="@ViewBag.DaireNo" />
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --grad-primary: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --grad-success: linear-gradient(135deg, #059669 0%, #34d399 100%);
+        --grad-card: linear-gradient(135deg, #1e293b 0%, #334155 100%); /* Koyu Üye Kartı */
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
+
+    /* Arama Kartı */
+    .search-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-control-modern {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 15px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+        .form-control-modern:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+    /* Üye Bilgi Kartı (Credit Card Style) */
+    .member-card {
+        background: var(--grad-card);
+        color: #fff;
+        border-radius: 20px;
+        padding: 25px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(30, 41, 59, 0.3);
+    }
+
+        .member-card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+    /* Borç Tabloları */
+    .debt-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .debt-header {
+        padding: 15px 20px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+
+    .header-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .header-warning {
+        background: #ffedd5;
+        color: #9a3412;
+    }
+
+    /* Custom Checkbox */
+    .custom-checkbox {
+        width: 22px;
+        height: 22px;
+        cursor: pointer;
+        accent-color: #4f46e5;
+    }
+
+    /* Özet / Checkout Alanı */
+    .checkout-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        border-top: 4px solid #4f46e5;
+        text-align: center;
+    }
+
+    .total-display {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #4f46e5;
+        margin: 10px 0;
+    }
+
+    .btn-checkout {
+        background: var(--grad-primary);
+        color: #fff;
+        border: none;
+        padding: 12px 40px;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        transition: transform 0.2s;
+        width: 100%;
+        max-width: 300px;
+    }
+
+        .btn-checkout:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5);
+        }
+
+        .btn-checkout:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+    /* Modern Tablo (Geçmiş) */
+    .modern-table thead th {
+        background-color: #f8f9fa;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        border: none;
+        padding: 15px;
+    }
+
+    .modern-table td {
+        padding: 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Toplu Makbuz İşlemleri</h3>
+            <span class="text-muted small">Hızlı tahsilat ve borç kapama ekranı</span>
         </div>
-        <div class="col-lg-1 col-md-1 col-sm-6">
-            <div class="col-12"><button type="submit" class="btn btn-success">Ara</button></div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-5 col-md-12">
+            <div class="search-card h-100 d-flex flex-column justify-content-center">
+                <label class="fw-bold text-muted mb-2 small text-uppercase">DAİRE SORGULA</label>
+                <form method="get" class="d-flex gap-2">
+                    <input type="number" class="form-control form-control-modern" name="DaireNo" placeholder="Daire No Giriniz (Örn: 5)" value="@ViewBag.DaireNo" required />
+                    <button type="submit" class="btn btn-dark rounded-3 px-4">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
         </div>
+
         @if (ViewBag.b != null)
         {
-            <div class="col-lg-3 col-md-3 col-sm-12">
-                <h5>Ad Soyad: @ViewBag.b.AdSoyad</h5>
-                <h5>Durum: @ViewBag.b.DaireDurum</h5>
-                <h5>Borç: @ViewBag.b.Borc.ToString("N2") @tl</h5>
+            <div class="col-lg-7 col-md-12">
+                <div class="member-card d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-50 small text-uppercase mb-1">DAİRE @ViewBag.DaireNo</div>
+                        <h2 class="fw-bold mb-1">@ViewBag.b.AdSoyad</h2>
+                        <div class="badge bg-white text-dark mt-2 px-3 py-2 rounded-pill">
+                            @ViewBag.b.DaireDurum
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-white-50 small text-uppercase">TOPLAM BORÇ</div>
+                        <h1 class="fw-bold mb-0">@ViewBag.b.Borc.ToString("N2") @tl</h1>
+                    </div>
+                </div>
             </div>
         }
     </div>
-</form>
 
-@if (ViewBag.b != null)
-{
-    <br />
-    <form method="post" action="/TopluMakbuz/Olustur">
-        <input type="hidden" name="daireID" value="@ViewBag.b.DaireID" />
-        <div class="row">
-            <!-- AİDAT BORÇLARI -->
-            <div class="col-md-6 col-sm-12">
-                <div class="card-body">
-                    <h5 class="card-title">Aidat Borçları</h5>
+    @if (ViewBag.b != null)
+    {
+        <form method="post" action="/TopluMakbuz/Olustur">
+            <input type="hidden" name="daireID" value="@ViewBag.b.DaireID" />
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="debt-card">
+                        <div class="debt-header header-danger d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-calendar-event me-2"></i> AİDAT BORÇLARI</span>
+                            <span class="badge bg-white text-danger">@ViewBag.AidatBorclar.Count Adet</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 modern-table">
+                                <thead>
+                                    <tr>
+                                        <th width="50" class="text-center">Seç</th>
+                                        <th>Dönem</th>
+                                        <th class="text-end">Tutar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in ViewBag.AidatBorclar)
+                                    {
+                                        <tr>
+                                            <td class="text-center">
+                                                <input type="checkbox" name="SecilenAidatlar" value="@item.AidatID" class="custom-checkbox borcCheckbox" data-tutar="@item.AidatTutar" />
+                                            </td>
+                                            <td class="fw-bold text-muted">@item.AidatAy - @item.AidatYil</td>
+                                            <td class="text-end fw-bold text-danger">@item.AidatTutar.ToString("N2") ₺</td>
+                                        </tr>
+                                    }
+                                    @if (ViewBag.AidatBorclar.Count == 0)
+                                    {
+                                        <tr><td colspan="3" class="text-center text-muted py-4">Aidat borcu bulunmamaktadır.</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="debt-card">
+                        <div class="debt-header header-warning d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-box-seam me-2"></i> DEMİRBAŞ BORÇLARI</span>
+                            <span class="badge bg-white text-warning">@ViewBag.EkBorclar.Count Adet</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 modern-table">
+                                <thead>
+                                    <tr>
+                                        <th width="50" class="text-center">Seç</th>
+                                        <th>Dönem</th>
+                                        <th class="text-end">Tutar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in ViewBag.EkBorclar)
+                                    {
+                                        <tr>
+                                            <td class="text-center">
+                                                <input type="checkbox" name="SecilenEkler" value="@item.EkID" class="custom-checkbox borcCheckbox" data-tutar="@item.EkTutar" />
+                                            </td>
+                                            <td class="fw-bold text-muted">@item.EkAy - @item.EkYil</td>
+                                            <td class="text-end fw-bold text-warning">@item.EkTutar.ToString("N2") ₺</td>
+                                        </tr>
+                                    }
+                                    @if (ViewBag.EkBorclar.Count == 0)
+                                    {
+                                        <tr><td colspan="3" class="text-center text-muted py-4">Demirbaş borcu bulunmamaktadır.</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkout-card mb-5">
+                <h5 class="text-muted text-uppercase small ls-1">Ödenecek Tutar</h5>
+                <div class="total-display">
+                    <span id="toplamTutar">0,00</span> <small style="font-size: 1.5rem">₺</small>
+                </div>
+
+                @if (ViewBag.DonemSorgu == true)
+                {
+                    <button type="submit" class="btn btn-checkout mt-2">
+                        <i class="bi bi-receipt-cutoff me-2"></i> Makbuzu Oluştur
+                    </button>
+                }
+                else
+                {
+                    <div class="alert alert-danger d-inline-block mt-2 px-4 py-2 rounded-pill">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        @DateTime.Now.ToString("MMMM") dönemi henüz oluşturulmamış!
+                    </div>
+                    <br>
+                    <button type="button" class="btn btn-checkout mt-2" disabled>İşlem Yapılamaz</button>
+                }
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history text-primary me-2"></i> Geçmiş Makbuzlar</h5>
+                </div>
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-borderless table-striped table-danger table-hover datatable">
+                        <table class="table modern-table table-striped mb-0 datatable">
                             <thead>
                                 <tr>
-                                    <th></th>
-                                    <th scope="col">Dönem</th>
-                                    <th scope="col">Tutar</th>
+                                    <th>İşlem</th>
+                                    <th>Makbuz No</th>
+                                    <th>Daire</th>
+                                    <th>Ad Soyad</th>
+                                    <th>Tutar</th>
+                                    <th>Tarih</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var item in ViewBag.AidatBorclar)
+                                @foreach (var item in ViewBag.Makbuzlar)
                                 {
                                     <tr>
                                         <td>
-                                            <input type="checkbox"
-                                                   name="SecilenAidatlar"
-                                                   value="@item.AidatID"
-                                                   class="borcCheckbox"
-                                                   data-tutar="@item.AidatTutar" />
+                                            <a href="/Makbuz/GeneratePDF?MakbuzID=@item.MakbuzID" class="btn btn-sm btn-light text-primary border fw-bold" target="_blank">
+                                                <i class="bi bi-printer-fill me-1"></i> Yazdır
+                                            </a>
                                         </td>
-                                        <td>@item.AidatAy - @item.AidatYil</td>
-                                        <td>@item.AidatTutar.ToString("N2") ₺</td>
+                                        <td class="fw-bold">@item.MakbuzNo</td>
+                                        <td><span class="badge bg-light text-dark border">No: @ViewBag.DaireNo</span></td>
+                                        <td>@ViewBag.b.AdSoyad</td>
+                                        <td class="fw-bold text-success">@item.MabuzTutar.ToString("N2") ₺</td>
+                                        <td data-order="@item.MakbuzTarihi.ToString("yyyyMMdd")">
+                                            @item.MakbuzTarihi.ToString("dd.MM.yyyy")
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -66,127 +343,45 @@
                     </div>
                 </div>
             </div>
+        </form>
+    }
 
-            <!-- EK BORÇLARI -->
-            <div class="col-md-6 col-sm-12">
-                <div class="card-body">
-                    <h5 class="card-title">Demirbaş Borçları</h5>
-                    <div class="table-responsive">
-                        <table class="table table-borderless table-striped table-warning table-hover datatable">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th scope="col">Dönem</th>
-                                    <th scope="col">Tutar</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in ViewBag.EkBorclar)
-                                {
-                                    <tr>
-                                        <td>
-                                            <input type="checkbox"
-                                                   name="SecilenEkler"
-                                                   value="@item.EkID"
-                                                   class="borcCheckbox"
-                                                   data-tutar="@item.EkTutar" />
-                                        </td>
-                                        <td>@item.EkAy - @item.EkYil</td>
-                                        <td>@item.EkTutar.ToString("N2") ₺</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+</div>
 
-
-        @if (ViewBag.DonemSorgu == true)
-        {
-            <div class="text-center mt-3">
-                <h4>Seçilen Toplam: <span id="toplamTutar">0,00</span> ₺</h4>
-                <button type="submit" class="btn btn-primary mt-2">Toplu Makbuz Oluştur</button>
-            </div>
-
-        }
-        @if (ViewBag.DonemSorgu == false)
-        {
-            <div class="text-center mt-3">
-                <h4>Seçilen Toplam: <span id="toplamTutar">0,00</span> ₺</h4>
-                <button type="submit" class="btn btn-primary mt-2" disabled>Toplu Makbuz Oluştur</button>
-            </div>
-            <p class="text-danger text-center">@DateTime.Now.ToString("MMMM") ayı dönemini eklemeniz gerekmektedir.</p>
-
-        }
-
-
-
-        <!-- TOPLAM TUTAR -->
-
-        <div class="row mt-5">
-            <div class="col-12">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover dt" id="makbuzTable">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Makbuz No</th>
-                                <th>Daire No</th>
-                                <th>Ad Soyad</th>
-                                <th>Tutar</th>
-                                <th>Tarih</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in ViewBag.Makbuzlar)
-                            {
-                                <tr>
-                                    <td><a href="/Makbuz/GeneratePDF?MakbuzID=@item.MakbuzID" class="btn btn-success" target="_blank"> <i class="bi bi-printer"></i> YAZDIR</a></td>
-                                    <td>@item.MakbuzNo</td>
-                                    <td>@ViewBag.DaireNo</td>
-                                    <td>@ViewBag.b.AdSoyad</td>
-                                    <td>@item.MabuzTutar.ToString("N2") ₺</td>
-                                    <td>@item.MakbuzTarihi.ToString("dd.MM.yyyy")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- DataTables JS & CSS -->
-        <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.min.css" />
-        <script src="https://cdn.datatables.net/2.0.0/js/dataTables.min.js"></script>
-
-        <script>
-            $(document).ready(function () {
-                $('#makbuzTable').DataTable({
-                    pageLength: 10,
-                    order: [[1, 'desc']], // MakbuzNo'ya göre azalan sırala
-                    language: {
-                        url: "https://cdn.datatables.net/plug-ins/2.0.0/i18n/tr.json"
-                    }
-                });
-            });
-        </script>
-
-    </form>
-}
-
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.min.css" />
+<script src="https://cdn.datatables.net/2.0.0/js/dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
+        // DataTable Başlatma (Varsa)
+        if ($('#makbuzTable').length > 0) {
+            $('#makbuzTable').DataTable({
+                pageLength: 5,
+                order: [[1, 'desc']], // Makbuz No'ya göre
+                language: { url: "https://cdn.datatables.net/plug-ins/2.0.0/i18n/tr.json" },
+                dom: 'rtip', // Sadece tablo ve sayfalama görünsün (arama kutusu kalksın, zaten yukarıda var)
+                columnDefs: [
+                   { "orderable": false, "targets": 0 } // İlk sütun sıralanmasın (Yazdır butonu)
+                ]
+            });
+        }
 
         // 🔹 Checkbox değiştikçe toplamı hesapla
         $(document).on("change", ".borcCheckbox", function() {
             let toplam = 0;
             $(".borcCheckbox:checked").each(function() {
-                toplam += parseFloat($(this).data("tutar"));
+                // parseFloat virgül sorunu yaşamaması için kontrol edilebilir ama data-tutar attribute'ü nokta ile geliyorsa sorun yok
+                // C# tarafında ToString ile basarken dikkat etmek gerekebilir.
+                // Güvenli yöntem: Replace virgül ile nokta değişimi (TR formatı ise)
+                let val = $(this).data("tutar");
+                // Eğer data-tutar="1250,50" gibi geliyorsa JS için "1250.50" olmalı.
+                if (typeof val === 'string') {
+                    val = val.replace(',', '.');
+                }
+                toplam += parseFloat(val);
             });
+
             $("#toplamTutar").text(toplam.toLocaleString('tr-TR', { minimumFractionDigits: 2 }));
         });
 
@@ -197,7 +392,8 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'HATA!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#d33'
                 });
             </text>
         }
@@ -208,7 +404,8 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Başarılı!',
-                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))'
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#059669'
                 });
             </text>
         }
