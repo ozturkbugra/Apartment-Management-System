@@ -1650,7 +1650,6 @@ namespace ApartmanAidatTakip.Controllers
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
-
                 return RedirectToAction("Login", "AnaSayfa");
             }
             if (GiderID == null)
@@ -1658,47 +1657,37 @@ namespace ApartmanAidatTakip.Controllers
                 return RedirectToAction("Index", "AnaSayfa");
             }
 
-
-
             // Gider ve bina bilgilerini al
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
-            var gider = db.Giders.FirstOrDefault(x => x.GiderID == GiderID);
-            var binaAdi = userCookie.Values["BinaAdi"].ToString();
+            var gider = db.Giders.FirstOrDefault(x => x.GiderID == GiderID && x.BinaID == BinaID);
 
-            var kontrol = db.Giders.Where(x => x.BinaID == BinaID && x.GiderID == GiderID).FirstOrDefault();
-
-            if (kontrol == null)
+            if (gider == null)
             {
                 return RedirectToAction("Index", "AnaSayfa");
             }
 
-
-            string kullaniciAdi = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["KullaniciAdi"]);
-            string adSoyad = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["AdSoyad"]);
-            string binaAdi2 = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdi"]);
-            string binaAdres = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdres"]);
-
-
+            string binaAdi2 = HttpUtility.UrlDecode(userCookie["BinaAdi"]);
+            string binaAdres = HttpUtility.UrlDecode(userCookie["BinaAdres"]);
 
             MemoryStream workStream = new MemoryStream();
-            // Yalnızca A4 kağıdının üst yarısını kullan
-            Document document = new Document(PageSize.A4, 50f, 50f, 20f, 10f); // Sağdan ve soldan boşluklar 50f, üstten 20f, alttan 10f
+            Document document = new Document(PageSize.A4, 50f, 50f, 20f, 10f);
             PdfWriter.GetInstance(document, workStream).CloseStream = false;
             document.Open();
 
-            // Türkçe font
+            // Fontlar
             string arialFontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
             BaseFont bfArialTurkish = BaseFont.CreateFont(arialFontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
             Font titleFont = new Font(bfArialTurkish, 18, Font.BOLD);
             Font subTitleFont = new Font(bfArialTurkish, 12, Font.NORMAL);
             Font tableFont = new Font(bfArialTurkish, 10, Font.NORMAL);
             Font baslik = new Font(bfArialTurkish, 12, Font.BOLD);
-            // Logo ve bina adı
+            Font vukFont = new Font(bfArialTurkish, 8, Font.NORMAL); // Sadece bu eklendi
+
+            // Üst Bilgi (Logo vs)
             string logoPath = Server.MapPath("~/Content/Admin/assets/img/binamakbuzlogo.png");
             iTextSharp.text.Image logo = iTextSharp.text.Image.GetInstance(logoPath);
             logo.ScaleAbsolute(100f, 100f);
-            logo.Alignment = iTextSharp.text.Image.ALIGN_LEFT;
 
             PdfPTable headerTable = new PdfPTable(3);
             headerTable.WidthPercentage = 100;
@@ -1711,28 +1700,28 @@ namespace ApartmanAidatTakip.Controllers
             PdfPCell buildingInfoCell = new PdfPCell();
             buildingInfoCell.Border = PdfPCell.NO_BORDER;
             buildingInfoCell.AddElement(new Paragraph(binaAdi2.ToUpper(), titleFont));
-            buildingInfoCell.AddElement(new Paragraph("" + binaAdres, subTitleFont));
+            buildingInfoCell.AddElement(new Paragraph(binaAdres, subTitleFont));
             headerTable.AddCell(buildingInfoCell);
 
             PdfPCell receiptInfoCell = new PdfPCell();
             receiptInfoCell.Border = PdfPCell.NO_BORDER;
-            receiptInfoCell.AddElement(new Paragraph("Tarih: " + kontrol.GiderTarih.Value.ToString("dd/MM/yyyy"), subTitleFont));
+            receiptInfoCell.AddElement(new Paragraph("Tarih: " + (gider.GiderTarih.HasValue ? gider.GiderTarih.Value.ToString("dd/MM/yyyy") : ""), subTitleFont));
             receiptInfoCell.AddElement(new Paragraph("Makbuz No: " + gider.GiderNo, subTitleFont));
             receiptInfoCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             headerTable.AddCell(receiptInfoCell);
 
             document.Add(headerTable);
 
-            // Gider Makbuzu Başlığı
+            // Başlık
             Paragraph title = new Paragraph("GİDER MAKBUZU", titleFont);
-            title.SpacingBefore = -20f; // Negatif boşluk ile yukarı çekiyoruz
+            title.SpacingBefore = 1f; // Boşluğu düzelttik
             title.Alignment = Element.ALIGN_CENTER;
             document.Add(title);
 
-            // Gider bilgilerini içeren tablo
+            // Tablo
             PdfPTable table = new PdfPTable(2);
             table.WidthPercentage = 100;
-            table.SpacingBefore = 20f;
+            table.SpacingBefore = 7f;
             table.SetWidths(new float[] { 70, 30 });
 
             table.AddCell(new PdfPCell(new Phrase("GİDER AÇIKLAMA", baslik)));
@@ -1741,48 +1730,65 @@ namespace ApartmanAidatTakip.Controllers
             table.AddCell(new PdfPCell(new Phrase(gider.GiderAciklama, tableFont)));
             table.AddCell(new PdfPCell(new Phrase(gider.GiderTutar.HasValue ? gider.GiderTutar.Value.ToString("C2") : "0,00 TL", tableFont)));
 
-            // Toplam Tutar
             PdfPCell totalCell = new PdfPCell(new Phrase("TOPLAM", baslik));
-            totalCell.Colspan = 1;
             totalCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             table.AddCell(totalCell);
             table.AddCell(new PdfPCell(new Phrase(gider.GiderTutar.HasValue ? gider.GiderTutar.Value.ToString("C2") : "0,00 TL", tableFont)));
 
             document.Add(table);
 
-            // Not ve İmza kısmı için tablo
+            // Alt Kısım (Senin orijinal 2 sütunlu yapın)
             PdfPTable footerTable = new PdfPTable(2);
             footerTable.WidthPercentage = 100;
-            footerTable.SetWidths(new float[] { 3, 1 }); // %75 - %25 oranı
+            footerTable.SetWidths(new float[] { 3, 1 });
+            footerTable.SpacingBefore = 5f;
 
-            // Not Kısmı (%75)
+            // Sol taraf: Aldım yazısı
             PdfPCell reminderCell = new PdfPCell(new Paragraph(
                 binaAdi2 + "'dan #" + (gider.GiderTutar.HasValue ? gider.GiderTutar.Value.ToString("N2") : "0,00") + "# TL aldım.",
                 new Font(bfArialTurkish, 12, Font.ITALIC, BaseColor.BLACK)
             ));
-            reminderCell.HorizontalAlignment = Element.ALIGN_LEFT;
             reminderCell.Border = PdfPCell.NO_BORDER;
-
-
-            // İmza Kısmı (%25)
-
-            PdfPCell imzaCell = new PdfPCell(new Paragraph("İMZA", new Font(bfArialTurkish, 12, Font.BOLD, BaseColor.BLACK)));
-            imzaCell.HorizontalAlignment = Element.ALIGN_RIGHT;
-            imzaCell.Border = PdfPCell.NO_BORDER;
-            imzaCell.PaddingRight = 50f; // Sağdan boşluk
-
-            // Hücreleri tabloya ekle
             footerTable.AddCell(reminderCell);
+
+
+
+            // Sağ taraf: AD SOYAD ve İMZA (Blok halinde sağa yaslı ve kendi içinde aynı hizada)
+            PdfPCell imzaCell = new PdfPCell();
+            imzaCell.Border = PdfPCell.NO_BORDER;
+            imzaCell.PaddingRight = 50f;
+
+            // İç tablo oluşturuyoruz ki metinler blok olarak aynı hizadan başlasın
+            PdfPTable icTablo = new PdfPTable(1);
+            icTablo.HorizontalAlignment = Element.ALIGN_RIGHT; // Tabloyu sağa yasla
+            icTablo.WidthPercentage = 100;
+
+            // 1. Satır: AD SOYAD
+            PdfPCell cAdSoyad = new PdfPCell(new Paragraph("AD SOYAD", new Font(bfArialTurkish, 12, Font.BOLD, BaseColor.BLACK)));
+            cAdSoyad.Border = PdfPCell.NO_BORDER;
+            cAdSoyad.HorizontalAlignment = Element.ALIGN_RIGHT; // Metni sağa yasla
+            cAdSoyad.PaddingBottom = 5f;
+            icTablo.AddCell(cAdSoyad);
+
+            // 2. Satır: İMZA
+            PdfPCell cImza = new PdfPCell(new Paragraph("İMZA", new Font(bfArialTurkish, 12, Font.BOLD, BaseColor.BLACK)));
+            cImza.Border = PdfPCell.NO_BORDER;
+            cImza.HorizontalAlignment = Element.ALIGN_RIGHT; // Metni sağa yasla
+            icTablo.AddCell(cImza);
+
+            imzaCell.AddElement(icTablo);
             footerTable.AddCell(imzaCell);
 
-            // Tabloyu belgeye ekle
             document.Add(footerTable);
 
+            // VUK Notu (İmza alanından sonra boşluklu)
+            Paragraph vukNotu = new Paragraph("Bu belge 213 sayılı Vergi Usul Kanunu hükümlerine tabi değildir. Sadece apartman içi kayıtların tutulması amacıyla düzenlenmiştir.", vukFont);
+            vukNotu.SpacingBefore = 60f;
+            vukNotu.Alignment = Element.ALIGN_CENTER;
+            document.Add(vukNotu);
 
             document.Close();
-
             byte[] byteInfo = workStream.ToArray();
-            workStream.Write(byteInfo, 0, byteInfo.Length);
             workStream.Position = 0;
 
             Response.AppendHeader("Content-Disposition", "inline; filename=GiderMakbuz.pdf");
@@ -2355,6 +2361,17 @@ namespace ApartmanAidatTakip.Controllers
 
             // Tabloyu belgeye ekle
             document.Add(footerTable);
+
+
+            Font vukFont = new Font(bfArialTurkish, 8, Font.NORMAL);
+
+            Paragraph vukNotu = new Paragraph("Bu belge 213 sayılı Vergi Usul Kanunu hükümlerine tabi değildir. Sadece apartman içi kayıtların tutulması amacıyla düzenlenmiştir.", vukFont);
+
+            vukNotu.SpacingBefore = 60f; // İmza ve bilgilerden sonra aşağıya itiyoruz
+            vukNotu.Alignment = Element.ALIGN_CENTER;
+
+
+            document.Add(vukNotu);
 
 
             document.Close();

@@ -806,6 +806,19 @@ namespace ApartmanAidatTakip.Controllers
             document.Add(debtorTable);
 
 
+            Font vukFont = new Font(bfArialTurkish, 8, Font.NORMAL);
+
+            Paragraph vukNotu = new Paragraph("Bu belge 213 sayılı Vergi Usul Kanunu hükümlerine tabi değildir. Sadece apartman içi kayıtların tutulması amacıyla düzenlenmiştir.", vukFont);
+
+            vukNotu.SpacingBefore = 10f; // İmza ve bilgilerden sonra aşağıya itiyoruz
+            vukNotu.Alignment = Element.ALIGN_CENTER;
+
+
+            document.Add(vukNotu);
+            // --- VUK Notu Bitti ---
+
+            document.Close();
+
             // Add reminder if debt is greater than 0
 
 
