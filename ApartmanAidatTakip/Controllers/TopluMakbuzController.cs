@@ -90,8 +90,8 @@ namespace ApartmanAidatTakip.Controllers
         [HttpPost]
         public ActionResult Olustur(int[] SecilenAidatlar, int[] SecilenEkler, int daireID)
         {
+            // ... (Giriş kontrolleri aynı kalsın) ...
             if (Request.Cookies["KullaniciBilgileri"] == null) return RedirectToAction("Login", "AnaSayfa");
-
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
 
@@ -108,26 +108,50 @@ namespace ApartmanAidatTakip.Controllers
             {
                 try
                 {
-                    // --- 1. TUTARLARI HESAPLA VE LİSTELERİ ÇEK ---
-                    decimal toplamAidatTutar = 0;
-                    decimal toplamEkTutar = 0;
+                    // --- GÜVENLİK KONTROLÜ (ÇİFT TIKLAMA ENGELİ) ---
+                    // Seçilen aidatlar veritabanında HALA "A" (Aktif/Ödenmemiş) durumunda mı?
+                    // Eğer ilk tıklama işlemi yaptıysa bunlar "P" olmuştur, o yüzden listeyi filtreli çekiyoruz.
 
-                    // Listeleri baştan çekiyoruz (RAM'e alıyoruz)
                     List<Aidat> aidatListesi = new List<Aidat>();
                     List<Ek> ekListesi = new List<Ek>();
 
                     if (SecilenAidatlar != null && SecilenAidatlar.Any())
                     {
-                        aidatListesi = db.Aidats.Where(x => SecilenAidatlar.Contains(x.AidatID)).ToList();
-                        toplamAidatTutar = aidatListesi.Sum(x => (decimal?)x.AidatTutar) ?? 0;
+                        // BURASI ÖNEMLİ: && x.Durum == "A" ekledik.
+                        aidatListesi = db.Aidats.Where(x => SecilenAidatlar.Contains(x.AidatID) && x.Durum == "A").ToList();
+
+                        // Eğer seçilen sayı ile veritabanından gelen "ödenmemiş" sayı tutmuyorsa, biri ödenmiş demektir.
+                        if (aidatListesi.Count != SecilenAidatlar.Length)
+                        {
+                            tran.Rollback();
+                            TempData["Hata"] = "Seçilen aidatların bazıları zaten ödenmiş veya işlemde. Lütfen sayfayı yenileyiniz.";
+                            return RedirectToAction("Index", "TopluMakbuz", new { DaireNo = dairesorgu.DaireNo });
+                        }
                     }
 
                     if (SecilenEkler != null && SecilenEkler.Any())
                     {
-                        ekListesi = db.Eks.Where(x => SecilenEkler.Contains(x.EkID)).ToList();
-                        toplamEkTutar = ekListesi.Sum(x => (decimal?)x.EkTutar) ?? 0;
+                        // BURASI ÖNEMLİ: && x.Durum == "A" ekledik.
+                        ekListesi = db.Eks.Where(x => SecilenEkler.Contains(x.EkID) && x.Durum == "A").ToList();
+
+                        if (ekListesi.Count != SecilenEkler.Length)
+                        {
+                            tran.Rollback();
+                            TempData["Hata"] = "Seçilen ek ödemelerin bazıları zaten ödenmiş. Lütfen sayfayı yenileyiniz.";
+                            return RedirectToAction("Index", "TopluMakbuz", new { DaireNo = dairesorgu.DaireNo });
+                        }
                     }
 
+                    // Eğer iki liste de boşsa (yani bir şekilde hepsi ödenmişse) işlemi durdur.
+                    if (!aidatListesi.Any() && !ekListesi.Any())
+                    {
+                        tran.Rollback();
+                        return RedirectToAction("Index", "TopluMakbuz", new { DaireNo = dairesorgu.DaireNo });
+                    }
+
+                    // --- 1. TUTARLARI HESAPLA ---
+                    decimal toplamAidatTutar = aidatListesi.Sum(x => (decimal?)x.AidatTutar) ?? 0;
+                    decimal toplamEkTutar = ekListesi.Sum(x => (decimal?)x.EkTutar) ?? 0;
                     decimal genelToplam = toplamAidatTutar + toplamEkTutar;
 
                     // --- 2. BORÇ DÜŞME ---
@@ -137,32 +161,30 @@ namespace ApartmanAidatTakip.Controllers
                     var sonmakbuz = db.Makbuzs.OrderByDescending(x => x.MakbuzID).FirstOrDefault(x => x.BinaID == BinaID && x.Durum == "A");
                     int yenino = (sonmakbuz != null) ? (sonmakbuz.MakbuzNo ?? 0) + 1 : 1;
 
-                    // --- 4. ANA MAKBUZU OLUŞTUR VE KAYDET (KRİTİK ADIM 1) ---
-                    // Önce sadece Makbuz'u ekleyip kaydediyoruz ki ID oluşsun.
+                    // --- 4. MAKBUZ OLUŞTUR ---
                     Makbuz yeni = new Makbuz
                     {
                         MakbuzNo = yenino,
                         BinaID = BinaID,
                         DaireID = daireID,
-                        MabuzTutar = genelToplam, // Veritabanındaki kolon adın MabuzTutar imiş
+                        MabuzTutar = genelToplam,
                         MakbuzTarihi = DateTime.Now,
                         Durum = "A",
                         OnayliMi = false
                     };
 
                     db.Makbuzs.Add(yeni);
-                    db.SaveChanges(); // <--- BURADA KAYDEDİYORUZ Kİ "yeni.MakbuzID" OLUŞSUN!
+                    db.SaveChanges();
 
-                    // --- 5. SATIRLARI HAZIRLA (Oluşan ID'yi Kullanarak) ---
+                    // --- 5. SATIRLARI HAZIRLA ---
                     List<MakbuzSatir> eklenecekSatirlar = new List<MakbuzSatir>();
 
-                    // Aidat Satırları
                     foreach (var a in aidatListesi)
                     {
-                        a.Durum = "P";
+                        a.Durum = "P"; // Aidatı Pasife çekiyoruz (ÖDENDİ)
                         eklenecekSatirlar.Add(new MakbuzSatir
                         {
-                            MakbuzID = yeni.MakbuzID, // <--- ARTIK ID VAR, ELLE ATIYORUZ
+                            MakbuzID = yeni.MakbuzID,
                             AyAdi = a.AidatAy,
                             YilAdi = a.AidatYil,
                             Tutar = a.AidatTutar,
@@ -173,13 +195,12 @@ namespace ApartmanAidatTakip.Controllers
                         });
                     }
 
-                    // Ek Satırları
                     foreach (var e in ekListesi)
                     {
-                        e.Durum = "P";
+                        e.Durum = "P"; // Eki Pasife çekiyoruz (ÖDENDİ)
                         eklenecekSatirlar.Add(new MakbuzSatir
                         {
-                            MakbuzID = yeni.MakbuzID, // <--- ARTIK ID VAR, ELLE ATIYORUZ
+                            MakbuzID = yeni.MakbuzID,
                             AyAdi = e.EkAy,
                             YilAdi = e.EkYil,
                             Tutar = e.EkTutar,
@@ -190,14 +211,13 @@ namespace ApartmanAidatTakip.Controllers
                         });
                     }
 
-                    // --- 6. SATIRLARI KAYDET (KRİTİK ADIM 2) ---
                     if (eklenecekSatirlar.Any())
                     {
                         db.MakbuzSatirs.AddRange(eklenecekSatirlar);
-                        db.SaveChanges(); // Şimdi de detayları kaydediyoruz.
+                        db.SaveChanges();
                     }
 
-                    tran.Commit();
+                    tran.Commit(); // İşlemi onayla
                     TempData["Basarili"] = "Makbuz başarıyla oluşturuldu.";
                 }
                 catch (Exception ex)

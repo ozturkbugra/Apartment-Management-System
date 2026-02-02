@@ -171,7 +171,7 @@ namespace ApartmanAidatTakip.Controllers
                 {
                     makbuzGelirTable.AddCell(new PdfPCell(new Phrase(item.MakbuzNo.ToString(), tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
                     makbuzGelirTable.AddCell(new PdfPCell(new Phrase(item.MakbuzTarihi.Value.ToString("dd/MM/yyyy"), tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
-                    makbuzGelirTable.AddCell(new PdfPCell(new Phrase(item.DaireNo.ToString(), tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                    makbuzGelirTable.AddCell(new PdfPCell(new Phrase(item.DaireNo.ToString() + " ( " + item.AdSoyad.ToString() + " )", tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
                     makbuzGelirTable.AddCell(new PdfPCell(new Phrase(item.MabuzTutar.Value.ToString("N2"), tableFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
                     makbuzToplam += (decimal)item.MabuzTutar;
                 }
