@@ -20,6 +20,7 @@ namespace ApartmanAidatTakip.Controllers
         [HttpPost]
         public ActionResult Login(Kullanicilar kullanicilar, string Parola)
         {
+
             var s = Crypto.Hash(Parola, "MD5");
             var l = db.Kullanicilars.FirstOrDefault(x => x.KullaniciAdi == kullanicilar.KullaniciAdi && x.Yetki == "1" && x.Durum=="A");
 
