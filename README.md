@@ -1,50 +1,44 @@
-🏢 Apartman Aidat ve Finans Yönetim Sistemi
-Bu proje, apartman ve site yönetimlerinin aidat takibi, gelir-gider dengesi ve raporlama ihtiyaçlarını karşılamak amacıyla ASP.NET MVC 5 mimarisi kullanılarak geliştirilmiş kapsamlı bir web uygulamasıdır.
+# 🏢 Apartment & Complex Management System
 
-🚀 Öne Çıkan Özellikler
-Daire & Sakin Yönetimi: Tüm dairelerin ve sakinlerin detaylı kaydı ve borç durumu takibi.
+![Status](https://img.shields.io/badge/Status-Completed-success)
+![Framework](https://img.shields.io/badge/ASP.NET-MVC%205-purple)
+![Architecture](https://img.shields.io/badge/Architecture-Monolithic-blue)
+![ORM](https://img.shields.io/badge/Entity%20Framework-DB%20First-green)
 
-Aidat Takibi: Borçlandırma, ödeme alma ve gecikmiş aidatların anlık takibi.
+## 📖 Overview
+**Apartment Management System** is a monolithic web application developed using **ASP.NET MVC 5**. It is designed to handle the daily administrative and financial operations of residential complexes, such as tracking dues (aidat), managing expenses, and generating financial reports.
 
-Gelir/Gider Yönetimi: Apartman adına yapılan harcamaların kalem bazlı (elektrik, temizlik, asansör bakımı vb.) kaydedilmesi.
+The project utilizes the **Database First** approach with Entity Framework, ensuring a robust mapping directly from an existing SQL Server schema.
 
-Gelişmiş Raporlama Modülü:
+## 🚀 Key Features
 
-Borçlu Listesi: Ödemesi geciken dairelerin detaylı dökümü.
+### 👤 Resident & Unit Management
+* **Unit Tracking:** Manage apartment details, floor plans, and occupancy status.
+* **Resident Database:** Keep records of landlords and tenants with contact info.
 
-Harcama Analizi: Aylık veya yıllık bazda hangi kalemlere ne kadar harcama yapıldığının raporu.
+### 💰 Financial Operations
+* **Dues Management (Aidat):** Monthly dues assignment and payment tracking.
+* **Income/Expense Ledger:** Record building expenditures (Maintenance, Electricity, Staff, etc.).
+* **Debt Monitoring:** Identify residents with overdue payments automatically.
 
-Denetçi Raporu: Denetim süreçleri için hazır, şeffaf finansal özet raporları.
+### 📊 Reporting & Analysis
+* **Defaulter List:** Instant report of unpaid dues and debts.
+* **Expense Reports:** Monthly and yearly breakdown of building expenses.
+* **Financial Summary:** Transparent balance sheets for management meetings.
 
-Kullanıcı Yetkilendirme: Yönetici ve sakin rolleri ile güvenli erişim.
+### 🔐 Security
+* **Role-Based Access:** Secure login for Administrators.
 
-🛠 Kullanılan Teknolojiler
-Framework: ASP.NET MVC 5 (.NET Framework 4.x)
+## 🛠️ Tech Stack
 
-Veritabanı: Microsoft SQL Server
+| Component | Technology |
+| :--- | :--- |
+| **Framework** | ASP.NET MVC 5 (.NET Framework) |
+| **Architecture** | Monolithic |
+| **Data Access** | **Entity Framework (Database First)** |
+| **Database** | Microsoft SQL Server (MSSQL) |
+| **Frontend** | Bootstrap, HTML5, CSS3, jQuery |
+| **Reporting** | iTextSharp , Closed XML |
 
-ORM: Entity Framework
-
-Arayüz: Bootstrap, CSS, jQuery
-
-Raporlama: İtextSharp ve ClosedXML
-
-📋 Kurulum (Setup)
-Projeyi yerel makinenizde çalıştırmak için aşağıdaki adımları izleyebilirsiniz:
-
-Projeyi Klonlayın: 
-
-Bash
-git clone https://github.com/ozturkbugra/ApartmanAidatTakip.git
-
-Veritabanı Yapılandırması:
-
-App_Data klasöründeki .sql dosyasını SQL Server'da çalıştırın veya Web.config dosyasındaki connectionString alanını kendi SQL Server bilgilerinize göre güncelleyin.
-
-NuGet Paketlerini Yükleyin:
-
-Visual Studio üzerinden Package Manager Console açın ve paketleri restore edin.
-
-Çalıştırın:
-
-F5 tuşu ile projeyi ayağa kaldırabilirsiniz.
+---
+*Developed by [Bugra Ozturk](https://github.com/ozturkbugra)*
