@@ -972,6 +972,8 @@ namespace ApartmanAidatTakip.Controllers
             return View();
 
         }
+
+
         [HttpPost]
         public ActionResult DonemEkle(Aidat aidat, Ek ek)
         {
@@ -985,7 +987,8 @@ namespace ApartmanAidatTakip.Controllers
                     int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
 
                     // 1. VALIDASYONLAR (KONTROLLER)
-                    // Bu kısım veritabanına yazma yapmadığı için hızlıca kontrol edip dönebiliriz.
+                    // Bina ayarlarını (YoneticiAidatEkleme bit alanı için) en başta çekiyoruz
+                    var binaAyar = db.Binalars.FirstOrDefault(x => x.BinaID == BinaID);
 
                     // Bu dönem daha önce eklenmiş mi kontrolü (Aidat için)
                     var donemeklendimi = db.Aidats.FirstOrDefault(x => x.BinaID == BinaID && x.AidatAy == aidat.AidatAy && x.AidatYil == aidat.AidatYil && x.Durum == "A");
@@ -1119,14 +1122,17 @@ namespace ApartmanAidatTakip.Controllers
 
                             // Peşin ödeyenleri döngü öncesi tek seferde çekiyoruz (Performans için)
                             var pesinOdeyenlerListesi = db.PesinOdemelers
-                                                          .Where(x => x.Yil == aidat.AidatYil && x.BinaID == BinaID)
-                                                          .Select(x => x.DaireID)
-                                                          .ToList();
+                                                                         .Where(x => x.Yil == aidat.AidatYil && x.BinaID == BinaID)
+                                                                         .Select(x => x.DaireID)
+                                                                         .ToList();
 
                             foreach (var item in daireler)
                             {
-                                // Yönetici Kontrolü
-                                if (item.YonetimdeMi == "E") continue;
+                                // GÜNCELLEME: Yönetici Kontrolü
+                                // Eğer YoneticiAidatEkleme true DEĞİLSE (yani null veya false ise) yöneticileri es geç (continue).
+                                // Eğer true ise bu if bloğuna girmeyecek ve yöneticiye de aidat ekleyecek.
+                                if (item.YonetimdeMi == "E" && (binaAyar?.YoneticiAidatEkleme != true))
+                                    continue;
 
                                 // Peşin Ödeyen Kontrolü
                                 if (pesinOdeyenlerListesi.Contains(item.DaireID)) continue;
@@ -1202,7 +1208,10 @@ namespace ApartmanAidatTakip.Controllers
 
                             foreach (var item in daireler2)
                             {
-                                if (item.YonetimdeMi == "E") continue;
+                                // GÜNCELLEME: Aynı yönetim kontrolünü Ek/Demirbaş döngüsüne de uyguluyoruz.
+                                // Eğer YoneticiAidatEkleme pasifse (true değilse) yöneticileri demirbaşlardan da muaf tutar.
+                                if (item.YonetimdeMi == "E" && (binaAyar?.YoneticiAidatEkleme != true))
+                                    continue;
 
                                 // Ek'te peşin ödeyen muafiyeti yok, devam ediyoruz.
 
@@ -1241,7 +1250,6 @@ namespace ApartmanAidatTakip.Controllers
                     }
 
                     // 5. SONUÇ VE TRANSACTION COMMIT
-                    // Buraya kadar hata almadan geldiysek her şeyi kalıcı olarak veritabanına işle.
                     transaction.Commit();
 
                     if (ek.EkTutar != null && donemeklendimi != null && donemeklendimi2 == null)
@@ -1264,7 +1272,7 @@ namespace ApartmanAidatTakip.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // Herhangi bir hata olursa (elektrik kesintisi, veri hatası vb.) yapılan TÜM işlemleri geri al.
+                    // Herhangi bir hata olursa yapılan TÜM işlemleri geri al.
                     transaction.Rollback();
                     TempData["Hata"] = "Bir Hata Oluştu! İşlemler geri alındı. Hata Detayı: " + ex.Message;
                 }
@@ -1273,7 +1281,6 @@ namespace ApartmanAidatTakip.Controllers
             Sabit();
             return View();
         }
-
 
         public ActionResult EklenenAidatlar()
         {
