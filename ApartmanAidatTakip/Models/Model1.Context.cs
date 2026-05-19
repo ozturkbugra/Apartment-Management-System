@@ -51,5 +51,6 @@ namespace ApartmanAidatTakip.Models
         public virtual DbSet<TahsilatView> TahsilatViews { get; set; }
         public virtual DbSet<PesinOdemeler> PesinOdemelers { get; set; }
         public virtual DbSet<PesinOdemelerView> PesinOdemelerViews { get; set; }
+        public virtual DbSet<DigerDaireSakinleri> DigerDaireSakinleris { get; set; }
     }
 }

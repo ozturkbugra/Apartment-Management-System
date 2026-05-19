@@ -215,6 +215,9 @@
     <Compile Include="Models\Daireler.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\DigerDaireSakinleri.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Duyurular.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>

@@ -605,8 +605,49 @@ namespace ApartmanAidatTakip.Controllers
             else
             {
                 ViewBag.s = a;
+                ViewBag.EkSakinler = db.DigerDaireSakinleris.Where(x => x.DaireID == id).ToList();
                 return View();
             }
+        }
+
+
+        [HttpPost]
+        public ActionResult EkSakinEkle(int DaireID, string AdSoyad, string Telefon, string DaireDurum, string TC)
+        {
+            try
+            {
+                // Senin belirttiğin kolon yapısına birebir uygun nesne oluşturuluyor
+                var yeniSakin = new DigerDaireSakinleri()
+                {
+                    DaireID = DaireID,
+                    AdSoyad = AdSoyad,
+                    Telefon = Telefon,
+                    DaireDurum = DaireDurum, // "Ev Sahibi", "Eş", "Çocuk" vb. formdan ne seçilirse
+                    TC = TC
+                };
+
+                db.DigerDaireSakinleris.Add(yeniSakin);
+                db.SaveChanges();
+                TempData["Basarili"] = "Ek sakin/bilgi başarıyla eklendi.";
+            }
+            catch (Exception)
+            {
+                TempData["Hata"] = "Kişi eklenirken bir hata oluştu !";
+            }
+
+            return RedirectToAction("SakinDuzenle", "AnaSayfa", new { id = DaireID });
+        }
+
+        public ActionResult EkSakinSil(int id, int daireId)
+        {
+            var kisi = db.DigerDaireSakinleris.FirstOrDefault(x => x.ID == id && x.DaireID == daireId);
+            if (kisi != null)
+            {
+                db.DigerDaireSakinleris.Remove(kisi);
+                db.SaveChanges();
+                TempData["Basarili"] = "Kişi kaydı silindi.";
+            }
+            return RedirectToAction("SakinDuzenle", "AnaSayfa", new { id = daireId });
         }
 
         [HttpPost]
@@ -664,7 +705,7 @@ namespace ApartmanAidatTakip.Controllers
                     }
                 }
 
-
+                a.Aciklama = daireler.Aciklama;
                 a.AdSoyad = daireler.AdSoyad;
                 a.DaireDurum = daireler.DaireDurum;
                 a.TC = daireler.TC;

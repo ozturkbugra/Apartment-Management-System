@@ -12,17 +12,13 @@ namespace ApartmanAidatTakip.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Daireler
+    public partial class DigerDaireSakinleri
     {
+        public int ID { get; set; }
         public int DaireID { get; set; }
-        public Nullable<int> DaireNo { get; set; }
-        public Nullable<int> BinaID { get; set; }
         public string AdSoyad { get; set; }
         public string Telefon { get; set; }
-        public string TC { get; set; }
         public string DaireDurum { get; set; }
-        public Nullable<decimal> Borc { get; set; }
-        public string YonetimdeMi { get; set; }
-        public string Aciklama { get; set; }
+        public string TC { get; set; }
     }
 }

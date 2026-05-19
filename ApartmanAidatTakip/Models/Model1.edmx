@@ -57,6 +57,18 @@
           <Property Name="DaireDurum" Type="nvarchar" MaxLength="10" />
           <Property Name="Borc" Type="decimal" Precision="18" Scale="2" />
           <Property Name="YonetimdeMi" Type="nvarchar" MaxLength="1" />
+          <Property Name="Aciklama" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="DigerDaireSakinleri">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DaireID" Type="int" Nullable="false" />
+          <Property Name="AdSoyad" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Telefon" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="DaireDurum" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="TC" Type="nvarchar" MaxLength="11" />
         </EntityType>
         <EntityType Name="Duyurular">
           <Key>
@@ -390,6 +402,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <EntitySet Name="Aidat" EntityType="Self.Aidat" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Binalar" EntityType="Self.Binalar" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Daireler" EntityType="Self.Daireler" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DigerDaireSakinleri" EntityType="Self.DigerDaireSakinleri" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Duyurular" EntityType="Self.Duyurular" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Ek" EntityType="Self.Ek" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Gider" EntityType="Self.Gider" Schema="dbo" store:Type="Tables" />
@@ -585,6 +598,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <Property Name="DaireDurum" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
           <Property Name="Borc" Type="Decimal" Precision="18" Scale="2" />
           <Property Name="YonetimdeMi" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="Aciklama" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="Ek">
           <Key>
@@ -789,6 +803,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <EntitySet Name="TahsilatViews" EntityType="AptVTModel.TahsilatView" />
           <EntitySet Name="PesinOdemelers" EntityType="AptVTModel.PesinOdemeler" />
           <EntitySet Name="PesinOdemelerViews" EntityType="AptVTModel.PesinOdemelerView" />
+          <EntitySet Name="DigerDaireSakinleris" EntityType="AptVTModel.DigerDaireSakinleri" />
         </EntityContainer>
         <EntityType Name="Binalar">
           <Key>
@@ -947,6 +962,17 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <Property Name="TC" Type="String" MaxLength="11" FixedLength="false" Unicode="true" />
           <Property Name="ID" Type="Int32" Nullable="false" />
         </EntityType>
+        <EntityType Name="DigerDaireSakinleri">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DaireID" Type="Int32" Nullable="false" />
+          <Property Name="AdSoyad" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Telefon" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="DaireDurum" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="TC" Type="String" MaxLength="11" FixedLength="false" Unicode="true" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -970,6 +996,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <EntitySetMapping Name="Dairelers">
             <EntityTypeMapping TypeName="AptVTModel.Daireler">
               <MappingFragment StoreEntitySet="Daireler">
+                <ScalarProperty Name="Aciklama" ColumnName="Aciklama" />
                 <ScalarProperty Name="YonetimdeMi" ColumnName="YonetimdeMi" />
                 <ScalarProperty Name="DaireID" ColumnName="DaireID" />
                 <ScalarProperty Name="DaireNo" ColumnName="DaireNo" />
@@ -1330,6 +1357,18 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
                 <ScalarProperty Name="AdSoyad" ColumnName="AdSoyad" />
                 <ScalarProperty Name="DaireNo" ColumnName="DaireNo" />
                 <ScalarProperty Name="DaireID" ColumnName="DaireID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DigerDaireSakinleris">
+            <EntityTypeMapping TypeName="AptVTModel.DigerDaireSakinleri">
+              <MappingFragment StoreEntitySet="DigerDaireSakinleri">
+                <ScalarProperty Name="TC" ColumnName="TC" />
+                <ScalarProperty Name="DaireDurum" ColumnName="DaireDurum" />
+                <ScalarProperty Name="Telefon" ColumnName="Telefon" />
+                <ScalarProperty Name="AdSoyad" ColumnName="AdSoyad" />
+                <ScalarProperty Name="DaireID" ColumnName="DaireID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

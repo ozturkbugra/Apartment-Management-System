@@ -140,6 +140,16 @@
             background: #e2e8f0;
             color: #475569;
         }
+
+    .edit-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        max-width: 1050px; /* 800px'den 1050px'e çıkarıldı */
+        margin: 40px auto;
+        border: none;
+    }
 </style>
 
 <div class="container-fluid">
@@ -157,74 +167,172 @@
         </div>
 
         <div class="form-body">
-            <form action="/AnaSayfa/SakinDuzenle" method="post">
-                <input type="hidden" name="DaireID" value="@ViewBag.s.DaireID" />
+            <div class="row">
 
-                <div class="mb-4">
-                    <label class="form-label-custom">Ad Soyad</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
-                        <input type="text" name="AdSoyad" value="@ViewBag.s.AdSoyad" class="form-control" placeholder="Örn: Ahmet Yılmaz" required />
-                    </div>
+                <!-- SOL KOLON: MEVCUT ANA DAİRE GÜNCELLEME FORMU -->
+                <!-- SOL KOLON: MEVCUT ANA DAİRE GÜNCELLEME FORMU -->
+                <div class="col-lg-6 border-end pe-lg-4">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-house-gear-fill me-2"></i>Ana Daire Bilgileri</h5>
+
+                    <form action="/AnaSayfa/SakinDuzenle" method="post">
+                        <input type="hidden" name="DaireID" value="@ViewBag.s.DaireID" />
+
+                        <div class="mb-4">
+                            <label class="form-label-custom">Ad Soyad (Abone)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                                <input type="text" name="AdSoyad" value="@ViewBag.s.AdSoyad" class="form-control" placeholder="Örn: Ahmet Yılmaz" required />
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Telefon</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
+                                    <input type="text" name="Telefon" value="@ViewBag.s.Telefon" class="form-control" maxlength="10" placeholder="5XXXXXXXXX" required />
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label-custom">TC KİMLİK No</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
+                                    <input type="text" name="TC" value="@ViewBag.s.TC" class="form-control" maxlength="11" placeholder="11 Haneli TC" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">DAİRE Durumu</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-house-check"></i></span>
+                                    <select name="DaireDurum" class="form-select rounded-end">
+                                        <option value="Ev Sahibi" @(ViewBag.s.DaireDurum == "Ev Sahibi" ? "selected" : "")>Ev Sahibi</option>
+                                        <option value="Kiracı" @(ViewBag.s.DaireDurum == "Kiracı" ? "selected" : "")>Kiracı</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label-custom">YÖNETİMDE Mİ?</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                    <select name="YonetimdeMi" class="form-select rounded-end">
+                                        <option value="H" @(ViewBag.s.YonetimdeMi == "H" ? "selected" : "")>HAYIR</option>
+                                        <option value="E" @(ViewBag.s.YonetimdeMi == "E" ? "selected" : "")>EVET</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- YENİ EKLENEN AÇIKLAMA TEXTAREA ALANI -->
+                        <div class="mb-4">
+                            <label class="form-label-custom">Daire Hakkında Özel Notlar / Açıklama</label>
+                            <div class="input-group">
+                                <span class="input-group-text align-items-start pt-2"><i class="bi bi-sticky-fill"></i></span>
+                                <textarea name="Aciklama" class="form-control" rows="4" placeholder="Daireye veya sakine dair özel notlarınızı buraya satır atlayarak yazabilirsiniz..." style="border-radius: 0 10px 10px 0; resize: vertical;">@ViewBag.s.Aciklama</textarea>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <a href="/AnaSayfa/Sakinler" class="btn-cancel">İptal Et</a>
+                            </div>
+                            <div class="col-6">
+                                <button type="submit" class="btn-update">
+                                    <i class="bi bi-check-lg me-2"></i> Güncelle
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
 
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label-custom">Telefon</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
-                            <input type="text" name="Telefon" value="@ViewBag.s.Telefon" class="form-control" maxlength="10" placeholder="5XXXXXXXXX" required />
+                <!-- SAĞ KOLON: YENİ TABLOYA TOPLU KİŞİ/EV SAHİBİ EKLEME ALANI -->
+                <div class="col-lg-6 ps-lg-4 mt-4 mt-lg-0">
+                    <h5 class="fw-bold mb-3 text-success"><i class="bi bi-people-fill me-2"></i>Daireye Ait Diğer Kişiler / Ev Sahibi</h5>
+
+                    <!-- Yeni Tablo İçin Hızlı Ekleme Formu -->
+                    <form action="/AnaSayfa/EkSakinEkle" method="post" class="p-3 bg-light rounded-3 mb-4 border">
+                        <input type="hidden" name="DaireID" value="@ViewBag.s.DaireID" />
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label-custom" style="font-size:0.75rem;">Ad Soyad</label>
+                                <input type="text" name="AdSoyad" class="form-control form-control-sm" placeholder="Örn: Mehmet Yılmaz (Ev Sahibi)" required style="border-radius:6px;" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom" style="font-size:0.75rem;">TC</label>
+                                <input type="text" name="TC" class="form-control form-control-sm" placeholder="TC" maxlength="11" required style="border-radius:6px;" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom" style="font-size:0.75rem;">Telefon</label>
+                                <input type="text" name="Telefon" class="form-control form-control-sm" maxlength="10" placeholder="5XXXXXXXXX" style="border-radius:6px;" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom" style="font-size:0.75rem;">Konumu / Durumu</label>
+                                <select name="DaireDurum" class="form-select form-select-sm" style="border-radius:6px;">
+                                    <option value="Ev Sahibi">Ev Sahibi</option>
+                                    <option value="Eş">Eş</option>
+                                    <option value="Çocuk">Çocuk</option>
+                                    <option value="Aile Bireyi">Aile Bireyi</option>
+                                    <option value="Diğer">Diğer</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-success btn-sm w-100" style="border-radius:8px; padding:8px;">
+                                    <i class="bi bi-plus-lg me-1"></i> Bu Kişiyi Daireye Ekle
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-text small text-muted mt-1"><i class="bi bi-info-circle"></i> Başında 0 olmadan 10 hane giriniz.</div>
+                    </form>
+
+                    <!-- Yeni Tablodan Gelen Verilerin Listesi -->
+                    <div class="table-responsive" style="max-height: 260px; overflow-y: auto;">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr style="font-size:0.8rem;">
+                                    <th>Ad Soyad</th>
+                                    <th>Telefon</th>
+                                    <th>TC</th>
+                                    <th>Durum</th>
+                                    <th class="text-end">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody style="font-size:0.85rem;">
+                                @if (ViewBag.EkSakinler != null && ViewBag.EkSakinler.Count > 0)
+                                {
+                                    foreach (var kisi in ViewBag.EkSakinler)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@kisi.AdSoyad</td>
+                                            <td class="text-muted">@(string.IsNullOrEmpty(kisi.Telefon) ? "-" : kisi.Telefon)</td>
+                                            <td>
+                                                <span class="badge @(kisi.DaireDurum == "Ev Sahibi" ? "bg-info text-dark" : "bg-secondary")">
+                                                    @kisi.DaireDurum
+                                                </span>
+                                            </td>
+                                            <td>@kisi.TC</td>
+                                            <td class="text-end">
+                                                <a href="/AnaSayfa/EkSakinSil?id=@kisi.ID&daireId=@kisi.DaireID" class="text-danger px-2" onclick="return confirm('Bu kişiyi silmek istediğinize emin misiniz?')">
+                                                    <i class="bi bi-trash3-fill"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-3">Bu daireye ait henüz ek bir kişi tanımlanmamış.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label-custom">TC KİMLİK No</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
-                            <input type="text" name="TC" value="@ViewBag.s.TC" class="form-control" maxlength="11" placeholder="11 Haneli TC" required />
-                        </div>
-                    </div>
                 </div>
-
-                <div class="row g-4 mb-5">
-                    <div class="col-md-6">
-                        <label class="form-label-custom">DAİRE Durumu</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-house-check"></i></span>
-                            <select name="DaireDurum" class="form-select rounded-end">
-                                <option value="Ev Sahibi" @(ViewBag.s.DaireDurum == "Ev Sahibi" ? "selected" : "")>Ev Sahibi</option>
-                                <option value="Kiracı" @(ViewBag.s.DaireDurum == "Kiracı" ? "selected" : "")>Kiracı</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label-custom">YÖNETİMDE Mİ?</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                            <select name="YonetimdeMi" class="form-select rounded-end">
-                                <option value="H" @(ViewBag.s.YonetimdeMi == "H" ? "selected" : "")>HAYIR</option>
-                                <option value="E" @(ViewBag.s.YonetimdeMi == "E" ? "selected" : "")>EVET</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-6">
-                        <a href="/AnaSayfa/Sakinler" class="btn-cancel">
-                            İptal Et
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <button type="submit" class="btn-update">
-                            <i class="bi bi-check-lg me-2"></i> Güncelle
-                        </button>
-                    </div>
-                </div>
-
-            </form>
+            </div>
         </div>
     </div>
 </div>

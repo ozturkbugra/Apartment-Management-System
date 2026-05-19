@@ -31,6 +31,7 @@
         <EntityTypeShape EntityType="AptVTModel.TahsilatView" Width="1.5" PointX="13.375" PointY="5.75" />
         <EntityTypeShape EntityType="AptVTModel.PesinOdemeler" Width="1.5" PointX="15.375" PointY="0.75" />
         <EntityTypeShape EntityType="AptVTModel.PesinOdemelerView" Width="1.5" PointX="15.375" PointY="3.75" />
+        <EntityTypeShape EntityType="AptVTModel.DigerDaireSakinleri" Width="2.625" PointX="6.375" PointY="16.5" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
