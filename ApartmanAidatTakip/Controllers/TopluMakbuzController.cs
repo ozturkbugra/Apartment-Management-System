@@ -108,6 +108,15 @@ namespace ApartmanAidatTakip.Controllers
             if (daireno != null)
             {
                 ViewBag.DaireNo = daireno;
+
+                var dairevarmi = db.Dairelers.Where(x => x.DaireNo == daireno && x.BinaID == BinaID).FirstOrDefault();
+
+                if(dairevarmi == null)
+                {
+                    TempData["Hata"] = "Geçersiz Daire Numarası";
+                    return RedirectToAction("Index", "TopluMakbuz");
+                }
+
                 ViewBag.EkBorclar = db.Eks.Where(x => x.DaireNo == daireno && x.BinaID == BinaID && x.Durum == "A").ToList();
                 ViewBag.AidatBorclar = db.Aidats.Where(x => x.DaireNo == daireno && x.BinaID == BinaID && x.Durum == "A").ToList();
                 ViewBag.Borc = db.Dairelers.Where(x => x.DaireNo == daireno && x.BinaID == BinaID).Select(x => x.Borc).FirstOrDefault();

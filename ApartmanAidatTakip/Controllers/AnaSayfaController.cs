@@ -176,10 +176,6 @@ namespace ApartmanAidatTakip.Controllers
                 .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Year == currentYear && x.GiderTarih.Value.Month == currentMonth)
                 .OrderByDescending(x => x.GiderID).ToList();
 
-            var buAyMakbuzListesi = db.MakbuzViews.AsNoTracking()
-                .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Year == currentYear && x.MakbuzTarihi.Value.Month == currentMonth)
-                .OrderByDescending(x => x.MakbuzID).ToList();
-
             // Mevcut bu satırın ALTINA ekle:
             var buAyMakbuzSatirListesi = db.MakbuzSatirViews.AsNoTracking()
                 .Where(x => x.BinaID == BinaID && x.MakbuzSatirDurum == "A"
@@ -213,13 +209,12 @@ namespace ApartmanAidatTakip.Controllers
 
             // --- 4. HESAPLAMALAR ---
             decimal aygider = buAyGiderListesi.Sum(x => x.GiderTutar) ?? 0;
-            decimal makbuzgelir = buAyMakbuzListesi.Sum(x => x.MabuzTutar) ?? 0;
+            decimal makbuzgelir = buAyMakbuzSatirListesi.Sum(x => x.Tutar ?? 0);
             decimal tahsilatgelir = buAyTahsilatListesi.Sum(x => x.TahsilatTutar) ?? 0;
 
             ViewBag.aygelir = makbuzgelir + tahsilatgelir;
             ViewBag.aygider = aygider;
             ViewBag.Giderler = buAyGiderListesi.ToList(); // Ekrana sadece son 10 taneyi bas, hepsini değil
-            ViewBag.Makbuzlar = buAyMakbuzListesi.ToList();
             ViewBag.Tahsilatlar = buAyTahsilatListesi.ToList();
 
             // TOPLAM ALACAK (HIZLI COUNT)
