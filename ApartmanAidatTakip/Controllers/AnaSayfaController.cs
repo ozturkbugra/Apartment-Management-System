@@ -628,7 +628,7 @@ namespace ApartmanAidatTakip.Controllers
 
                 db.DigerDaireSakinleris.Add(yeniSakin);
                 db.SaveChanges();
-                TempData["Basarili"] = "Ek sakin/bilgi başarıyla eklendi.";
+                //TempData["Basarili"] = "Ek sakin/bilgi başarıyla eklendi.";
             }
             catch (Exception)
             {

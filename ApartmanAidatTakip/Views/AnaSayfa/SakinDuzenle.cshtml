@@ -157,6 +157,7 @@
     <div class="edit-card">
         <div class="card-header-custom">
             <div>
+                <a href="/AnaSayfa/Sakinler" class="btn btn-outline-light btn-sm">Geri Dön</a><br />
                 <h4 class="fw-bold mb-1">Kişi Bilgilerini Düzenle</h4>
                 <p class="mb-0 opacity-75 small">Daire sakini bilgilerini güncelleyin.</p>
             </div>
@@ -168,8 +169,6 @@
 
         <div class="form-body">
             <div class="row">
-
-                <!-- SOL KOLON: MEVCUT ANA DAİRE GÜNCELLEME FORMU -->
                 <!-- SOL KOLON: MEVCUT ANA DAİRE GÜNCELLEME FORMU -->
                 <div class="col-lg-6 border-end pe-lg-4">
                     <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-house-gear-fill me-2"></i>Ana Daire Bilgileri</h5>
@@ -307,12 +306,13 @@
                                         <tr>
                                             <td class="fw-semibold">@kisi.AdSoyad</td>
                                             <td class="text-muted">@(string.IsNullOrEmpty(kisi.Telefon) ? "-" : kisi.Telefon)</td>
+                                            <td>@kisi.TC</td>
                                             <td>
                                                 <span class="badge @(kisi.DaireDurum == "Ev Sahibi" ? "bg-info text-dark" : "bg-secondary")">
                                                     @kisi.DaireDurum
                                                 </span>
                                             </td>
-                                            <td>@kisi.TC</td>
+
                                             <td class="text-end">
                                                 <a href="/AnaSayfa/EkSakinSil?id=@kisi.ID&daireId=@kisi.DaireID" class="text-danger px-2" onclick="return confirm('Bu kişiyi silmek istediğinize emin misiniz?')">
                                                     <i class="bi bi-trash3-fill"></i>
