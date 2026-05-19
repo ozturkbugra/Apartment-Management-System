@@ -25,7 +25,7 @@
         border-radius: 20px;
         box-shadow: var(--card-shadow);
         overflow: hidden;
-        max-width: 800px;
+        max-width: 1050px; /* 800px'den 1050px'e çıkarıldı */
         margin: 40px auto;
         border: none;
     }
@@ -140,16 +140,6 @@
             background: #e2e8f0;
             color: #475569;
         }
-
-    .edit-card {
-        background: #fff;
-        border-radius: 20px;
-        box-shadow: var(--card-shadow);
-        overflow: hidden;
-        max-width: 1050px; /* 800px'den 1050px'e çıkarıldı */
-        margin: 40px auto;
-        border: none;
-    }
 </style>
 
 <div class="container-fluid">
@@ -157,7 +147,7 @@
     <div class="edit-card">
         <div class="card-header-custom">
             <div>
-                <a href="/AnaSayfa/Sakinler" class="btn btn-outline-light btn-sm">Geri Dön</a><br />
+                <a href="/AnaSayfa/Sakinler" class="btn btn-outline-light btn-sm mb-2">Geri Dön</a>
                 <h4 class="fw-bold mb-1">Kişi Bilgilerini Düzenle</h4>
                 <p class="mb-0 opacity-75 small">Daire sakini bilgilerini güncelleyin.</p>
             </div>
@@ -258,7 +248,7 @@
                         <div class="row g-2">
                             <div class="col-md-6">
                                 <label class="form-label-custom" style="font-size:0.75rem;">Ad Soyad</label>
-                                <input type="text" name="AdSoyad" class="form-control form-control-sm" placeholder="Örn: Mehmet Yılmaz (Ev Sahibi)" required style="border-radius:6px;" />
+                                <input type="text" name="AdSoyad" class="form-control form-control-sm" placeholder="Örn: Mehmet Yılmaz" required style="border-radius:6px;" />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label-custom" style="font-size:0.75rem;">TC</label>
@@ -303,9 +293,19 @@
                                 {
                                     foreach (var kisi in ViewBag.EkSakinler)
                                     {
+                                        // Telefon numarasını 05XX XXX XX XX formatına dönüştürme kontrolü
+                                        string hamTelefon = kisi.Telefon;
+                                        string formatliTelefon = "-";
+
+                                        if (!string.IsNullOrEmpty(hamTelefon) && hamTelefon.Length == 10)
+                                        {
+                                            // Başına 0 ekleyip maskeliyoruz: 0506 157 6556
+                                            formatliTelefon = string.Format("0{0} {1} {2}", hamTelefon.Substring(0, 3), hamTelefon.Substring(3, 3), hamTelefon.Substring(6, 4));
+                                        }
+
                                         <tr>
                                             <td class="fw-semibold">@kisi.AdSoyad</td>
-                                            <td class="text-muted">@(string.IsNullOrEmpty(kisi.Telefon) ? "-" : kisi.Telefon)</td>
+                                            <td class="text-muted">@formatliTelefon</td>
                                             <td>@kisi.TC</td>
                                             <td>
                                                 <span class="badge @(kisi.DaireDurum == "Ev Sahibi" ? "bg-info text-dark" : "bg-secondary")">
@@ -324,7 +324,7 @@
                                 else
                                 {
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted py-3">Bu daireye ait henüz ek bir kişi tanımlanmamış.</td>
+                                        <td colspan="5" class="text-center text-muted py-3">Bu daireye ait henüz ek bir kişi tanımlanmamış.</td>
                                     </tr>
                                 }
                             </tbody>

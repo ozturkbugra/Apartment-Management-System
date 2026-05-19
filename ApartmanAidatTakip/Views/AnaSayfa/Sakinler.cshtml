@@ -228,6 +228,15 @@
                         // Baş harfi alma güvenliği
                         string init = !string.IsNullOrEmpty(item.AdSoyad) ? item.AdSoyad.Substring(0, 1).ToUpper() : "?";
 
+                        // Telefon numarasını formatlama kontrolü
+                        string hamTelefon = item.Telefon;
+                        string formatliTelefon = "-";
+
+                        if (!string.IsNullOrEmpty(hamTelefon) && hamTelefon.Length == 10)
+                        {
+                            formatliTelefon = string.Format("0{0} {1} {2}", hamTelefon.Substring(0, 3), hamTelefon.Substring(3, 3), hamTelefon.Substring(6, 4));
+                        }
+
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
@@ -239,7 +248,7 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="small fw-semibold text-dark"><i class="bi bi-telephone me-1"></i> @item.Telefon</div>
+                                <div class="small fw-semibold text-dark"><i class="bi bi-telephone me-1"></i> @formatliTelefon</div>
                                 <div class="small text-muted mt-1"><i class="bi bi-card-heading me-1"></i> @item.TC</div>
                             </td>
                             <td>
