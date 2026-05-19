@@ -335,36 +335,40 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in ViewBag.Makbuzlar)
+
+                            @if (ViewBag.MakbuzSatirlar != null)
                             {
-                                <tr>
-                                    <td>
-                                        <a href="/Makbuz/GeneratePDF?MakbuzID=@item.MakbuzID" target="_blank" class="btn-icon-print me-2" title="Yazdır"><i class="bi bi-printer"></i></a>
-                                        <span class="fw-bold text-primary small">#@item.MakbuzNo</span>
-                                    </td>
-                                    <td data-order="@item.MakbuzTarihi.ToString("yyyyMMdd")">
-                                        @item.MakbuzTarihi.ToString("dd/MM/yyyy")
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary px-3">Daire No: @item.DaireNo</span>
-                                        <span class="text-muted small ms-1">(Aidat)</span>
-                                    </td>
-                                    <td class="text-end fw-bold text-success">+@item.MabuzTutar.ToString("N2") @tl</td>
-                                </tr>
+                                foreach (var item in ViewBag.MakbuzSatirlar)
+                                {
+                                    string tur = (item.VarAidat && item.VarEk) ? "Aidat + Demirbaş"
+                                               : item.VarEk ? "Demirbaş"
+                                               : "Aidat";
+
+                                    string badgeClass = (item.VarAidat && item.VarEk) ? "bg-success bg-opacity-10 text-success"
+                                                      : item.VarEk ? "bg-warning bg-opacity-10 text-warning-emphasis"
+                                                      : "bg-primary bg-opacity-10 text-primary";
+
+                                    <tr>
+                                        <td>
+                                            <a href="/Makbuz/GeneratePDF?MakbuzID=@item.MakbuzID" target="_blank" class="btn-icon-print me-2" title="Yazdır"><i class="bi bi-printer"></i></a>
+                                            <span class="fw-bold text-primary small">#@item.MakbuzNo</span>
+                                        </td>
+                                        <td data-order="@item.Tarih.ToString("yyyyMMdd")">
+                                            @item.Tarih.ToString("dd/MM/yyyy")
+                                        </td>
+                                        <td>
+                                            <span class="badge @badgeClass px-3">Daire No: @item.DaireNo</span>
+                                            <span class="text-muted small ms-1">(@tur)</span>
+                                        </td>
+                                        <td class="text-end fw-bold text-success">+@item.Toplam.ToString("N2") @tl</td>
+                                    </tr>
+                                }
                             }
                             @if (ViewBag.Tahsilatlar != null)
                             {
                                 foreach (var item in ViewBag.Tahsilatlar)
                                 {
-                                    string isim = "";
-                                    if (item.DemirbasMi)
-                                    {
-                                        isim = "(Demirbaş Ek Gelir)";
-                                    }
-                                    else
-                                    {
-                                        isim = "(Ek Gelir)";
-                                    }
+                                    string isim = item.DemirbasMi ? "(Demirbaş Ek Gelir)" : "(Ek Gelir)";
 
                                     <tr>
                                         <td>
@@ -376,9 +380,7 @@
                                         </td>
                                         <td>
                                             <span class="text-dark fw-bold text-truncate" style="max-width: 150px; display:inline-block; vertical-align:middle;">@item.TahsilatAciklama</span>
-                                            <span class="text-muted small ms-1">
-                                                @isim
-                                            </span>
+                                            <span class="text-muted small ms-1">@isim</span>
                                         </td>
                                         <td class="text-end fw-bold text-success">+@item.TahsilatTutar.ToString("N2") @tl</td>
                                     </tr>

@@ -216,7 +216,7 @@ namespace ApartmanAidatTakip.Controllers
                 }
                 if (item.EkMiAidatMi == "E")
                 {
-                    tur = "Ek";
+                    tur = "Demirbaş";
                 }
 
                 table.AddCell(new PdfPCell(new Phrase(rowNumber.ToString(), tableFont))); // Add row number

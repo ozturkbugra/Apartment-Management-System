@@ -126,6 +126,18 @@ namespace ApartmanAidatTakip.Controllers
             }
 
         }
+
+        public class MakbuzGrupModel
+        {
+            public int MakbuzID { get; set; }
+            public int MakbuzNo { get; set; }
+            public int DaireNo { get; set; }
+            public DateTime? Tarih { get; set; }
+            public decimal Toplam { get; set; }
+            public bool VarAidat { get; set; }
+            public bool VarEk { get; set; }
+        }
+
         public ActionResult Index()
         {
             // --- 1. GİRİŞ KONTROLLERİ ---
@@ -167,6 +179,33 @@ namespace ApartmanAidatTakip.Controllers
             var buAyMakbuzListesi = db.MakbuzViews.AsNoTracking()
                 .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Year == currentYear && x.MakbuzTarihi.Value.Month == currentMonth)
                 .OrderByDescending(x => x.MakbuzID).ToList();
+
+            // Mevcut bu satırın ALTINA ekle:
+            var buAyMakbuzSatirListesi = db.MakbuzSatirViews.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.MakbuzSatirDurum == "A"
+                         && x.MakbuzTarihi.Value.Year == currentYear
+                         && x.MakbuzTarihi.Value.Month == currentMonth)
+                .OrderByDescending(x => x.MakbuzID)
+                .ToList();
+
+            // MakbuzID bazında grupla
+            var grupluMakbuzlar = buAyMakbuzSatirListesi
+            .GroupBy(x => x.MakbuzID)
+            .Select(g => new MakbuzGrupModel
+            {
+                MakbuzID = g.Key ?? 0,
+                MakbuzNo = g.First().MakbuzNo ?? 0,
+                DaireNo = g.First().DaireNo ?? 0,
+                Tarih = g.First().MakbuzTarihi,
+                Toplam = g.Sum(x => x.Tutar ?? 0),
+                VarAidat = g.Any(x => x.EkMiAidatMi == "A"),
+                VarEk = g.Any(x => x.EkMiAidatMi == "E")
+            })
+            .OrderByDescending(x => x.MakbuzID)
+            .ToList();
+
+            ViewBag.MakbuzSatirlar = grupluMakbuzlar;
+
 
             var buAyTahsilatListesi = db.Tahsilats.AsNoTracking()
                 .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == currentYear && x.TahsilatTarih.Value.Month == currentMonth)
