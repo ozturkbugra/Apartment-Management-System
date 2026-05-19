@@ -23,5 +23,7 @@ namespace ApartmanAidatTakip.Models
         public Nullable<System.DateTime> SozlesmeBitisTarihi { get; set; }
         public Nullable<System.DateTime> SozlesmeBaslamaTarihi { get; set; }
         public string BinaKullaniciAdi { get; set; }
+        public Nullable<bool> MakbuzOnayKaldir { get; set; }
+        public Nullable<bool> YoneticiAidatEkleme { get; set; }
     }
 }

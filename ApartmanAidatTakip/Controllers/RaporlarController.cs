@@ -1189,10 +1189,9 @@ namespace ApartmanAidatTakip.Controllers
             ViewBag.Bakiyeler = db.Kasas.Where(x=> x.BinaID == BinaID).OrderByDescending(x => x.KasaID).ToList();
             return View();
         }
-
-
         public ActionResult TureGoreGelirGiderTarihBazli(DateTime? ilk, DateTime? son, string raporturu)
         {
+            // 1. GÜVENLİK VE OTURUM KONTROLÜ
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
                 return RedirectToAction("Login", "AnaSayfa");
@@ -1204,6 +1203,7 @@ namespace ApartmanAidatTakip.Controllers
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
 
+            // View tarafında tarih inputlarının boş kalmaması için değerleri gönderiyoruz
             ViewBag.tarihdeger1 = ilk?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd");
             ViewBag.tarihdeger2 = son?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd");
             ViewBag.raporturu = raporturu;
@@ -1213,7 +1213,7 @@ namespace ApartmanAidatTakip.Controllers
                 DateTime baslangic = ilk.Value.Date;
                 DateTime bitis = son.Value.Date.AddDays(1).AddTicks(-1);
 
-                // --- 1. LİSTELEME SORGULARI (Sadece Seçilen Aralık) ---
+                // --- 2. FİLTRELEME VE LİSTELEME SORGULARI ---
                 var giderQuery = db.GiderViews.Where(x => x.BinaID == BinaID && x.GiderTarih >= baslangic && x.GiderTarih <= bitis && x.Durum == "A");
                 var tahsilatQuery = db.Tahsilats.Where(x => x.BinaID == BinaID && x.TahsilatTarih >= baslangic && x.TahsilatTarih <= bitis && x.Durum == "A");
 
@@ -1233,29 +1233,26 @@ namespace ApartmanAidatTakip.Controllers
                 ViewBag.Gider = giderQuery.OrderBy(x => x.GiderID).ToList();
                 ViewBag.TahsilatGelir = tahsilatQuery.OrderBy(x => x.TahsilatID).ToList();
 
-                var uygunMakbuzIDleri = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == satirTuru).Select(x => x.MakbuzID).Distinct().ToList();
-                ViewBag.MakbuzGelir = db.MakbuzViews.Where(x => x.BinaID == BinaID && x.MakbuzTarihi >= baslangic && x.MakbuzTarihi <= bitis && x.Durum == "A" && uygunMakbuzIDleri.Contains(x.MakbuzID)).OrderBy(x => x.MakbuzID).ToList();
+                // Makbuzlar: Sadece ilgili türe ait satırları (Aidat/Demirbaş) çekiyoruz ki tutarlar karışmasın
+                var makbuzSatirQuery = db.MakbuzSatirViews.Where(x => x.BinaID == BinaID &&
+                                                                 x.MabuzDurum == "A" &&
+                                                                 x.EkMiAidatMi == satirTuru &&
+                                                                 x.MakbuzTarihi >= baslangic &&
+                                                                 x.MakbuzTarihi <= bitis);
 
+                ViewBag.MakbuzGelir = makbuzSatirQuery.OrderBy(x => x.MakbuzID).ToList();
 
-                // --- 2. KASA MEVCUDU HESAPLAMA (DOĞRU MANTIK: İLK TARİHİN KASASI) ---
-
+                // --- 3. KASA BAŞLANGIÇ BAKİYESİ (DEVİR) ---
                 decimal baslangicBakiyesi = 0;
-
-                // "ilk" tarih hangi yıl ve aysa, o ayın KASA kaydını bul.
-                // Çünkü o kayıttaki "KasaEk/KasaAidat" sütunu, o ayın BAŞLANGIÇ (Devir) bakiyesidir.
                 var baslangicAyKasa = db.Kasas.FirstOrDefault(x => x.BinaID == BinaID && x.KasaYil == ilk.Value.Year && x.AyKodu == ilk.Value.Month);
 
                 if (baslangicAyKasa != null)
                 {
-                    // SENARYO 1: Seçilen ayın Kasa kaydı var.
-                    // O ayın başlangıç devrini alıyoruz.
                     if (raporturu == "Demirbas") baslangicBakiyesi = baslangicAyKasa.KasaEk ?? 0;
                     else baslangicBakiyesi = baslangicAyKasa.KasaAidat ?? 0;
                 }
                 else
                 {
-                    // SENARYO 2: Seçilen ayın Kasa kaydı YOK (Henüz oluşmamış veya ilk ay).
-                    // O zaman en başa, ACILISBAKIYE tablosuna dönüyoruz.
                     var acilis = db.AcilisBakiyes.FirstOrDefault(x => x.BinaID == BinaID);
                     if (acilis != null)
                     {
@@ -1264,25 +1261,21 @@ namespace ApartmanAidatTakip.Controllers
                     }
                 }
 
-                // --- HAREKETLERİ HESAPLA (Sadece Seçilen Aralık) ---
-                // Başlangıç bakiyesini bulduk, şimdi üstüne bu aralıktaki hareketleri ekleyip çıkaracağız.
+                // --- 4. ARALIK TOPLAMLARI (GÜVENLİ HESAPLAMA) ---
+                // Liste üzerinden Sum alırken kayıt yoksa hata vermez ama IQueryable (SQL) tarafında (decimal?) cast şarttır.
 
-                // Tahsilat Toplamı (Seçilen Aralık)
                 decimal aralikTahsilat = ((List<Tahsilat>)ViewBag.TahsilatGelir).Sum(x => x.TahsilatTutar ?? 0);
-
-                // Makbuz Toplamı (Seçilen Aralık)
-                decimal aralikMakbuz = ((List<MakbuzView>)ViewBag.MakbuzGelir).Sum(x => x.MabuzTutar ?? 0);
-
-                // Gider Toplamı (Seçilen Aralık)
                 decimal aralikGider = ((List<GiderView>)ViewBag.Gider).Sum(x => x.GiderTutar ?? 0);
 
-                // --- SONUÇ: BAŞLANGIÇ + (GELİR - GİDER) ---
+                // Hata aldığın kritik yer burasıydı, bu şekilde düzelttim:
+                decimal aralikMakbuz = makbuzSatirQuery.Sum(x => (decimal?)x.Tutar) ?? 0;
+
+                // --- 5. SONUÇ HESAPLAMA ---
                 decimal kasaMevcudu = (baslangicBakiyesi + aralikTahsilat + aralikMakbuz) - aralikGider;
 
                 ViewBag.KasaBaslik = (raporturu == "Demirbas" ? "DEMİRBAŞ" : "AİDAT") + " KASA MEVCUDU";
                 ViewBag.KasaTutar = kasaMevcudu;
 
-                // View'da kullanmak için toplamları da gönderelim
                 ViewBag.AralikGiderToplam = aralikGider;
                 ViewBag.AralikMakbuzToplam = aralikMakbuz;
                 ViewBag.AralikTahsilatToplam = aralikTahsilat;
@@ -1290,7 +1283,6 @@ namespace ApartmanAidatTakip.Controllers
 
             return View();
         }
-
         public ActionResult TureGoreGelirPDF(DateTime? ilk, DateTime? son, string raporturu)
         {
             if (Request.Cookies["KullaniciBilgileri"] == null) return RedirectToAction("Login", "AnaSayfa");

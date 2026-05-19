@@ -1,0 +1,263 @@
+﻿@{
+    ViewBag.Title = "Ayarlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    // Finansal Özet sayfasındaki renk değişkenlerini ve fontları aynı dilde koruyoruz
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --grad-success: linear-gradient(135deg, #059669 0%, #34d399 100%);
+        --grad-danger: linear-gradient(135deg, #dc2626 0%, #f87171 100%);
+        --grad-primary: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --grad-info: linear-gradient(135deg, #0891b2 0%, #22d3ee 100%);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        background-image: radial-gradient(#444cf7 0.5px, transparent 0.5px), radial-gradient(#444cf7 0.5px, var(--bg-body) 0.5px);
+        background-size: 20px 20px;
+        background-position: 0 0, 10px 10px;
+        color: #344767;
+    }
+
+    .pagetitle h1 {
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    /* FINANSAL ÖZET İLE UYUMLU CAM EFEKTLİ KARTLAR (GLASS-CARD) */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+        .glass-card.info-glow:hover {
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+            border-color: #22d3ee;
+        }
+
+        .glass-card.primary-glow:hover {
+            box-shadow: 0 0 15px rgba(129, 140, 248, 0.4);
+            border-color: #818cf8;
+        }
+
+    .glass-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #fff;
+    }
+
+    /* MODERN BİLGİ KUTULARI */
+    .inner-info-box {
+        background-color: rgba(248, 249, 250, 0.7);
+        border-left: 4px solid #4f46e5;
+        border-radius: 8px;
+        padding: 15px;
+    }
+
+        .inner-info-box.danger-side {
+            border-left-color: #dc2626;
+        }
+
+    /* MODERN ON/OFF TOGGLE SWITCH (iOS STYLE) */
+    .ios-switch-wrapper {
+        display: inline-block;
+    }
+
+    .ios-switch {
+        display: inline-block;
+        height: 28px;
+        position: relative;
+        width: 52px;
+    }
+
+        .ios-switch input {
+            display: none; /* Standart Checkbox gizleniyor */
+        }
+
+    .ios-slider {
+        background-color: #e4e4e7;
+        bottom: 0;
+        cursor: pointer;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 34px;
+    }
+
+        .ios-slider:before {
+            background-color: #fff;
+            bottom: 3px;
+            content: "";
+            height: 22px;
+            left: 3px;
+            position: absolute;
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 22px;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+    /* Aktif (On) Durumda Renk Değişimi */
+    input:checked + .ios-slider {
+        background: var(--grad-success);
+    }
+
+        /* Aktif (On) Durumda Yuvarlağın Kayma Hareketi */
+        input:checked + .ios-slider:before {
+            transform: translateX(24px);
+        }
+
+    /* İşlem Sırasında Switch Kilitleme Efekti */
+    .disabled-switch {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+</style>
+
+@{
+    var ayar = ViewBag.Ayar;
+    bool makbuzOnay = ayar?.MakbuzOnayKaldir ?? false;
+    bool yoneticiAidat = ayar?.YoneticiAidatEkleme ?? false;
+}
+
+<div class="container-fluid py-4">
+
+    <div class="pagetitle mb-4">
+        <h1>Modül ve Yetki Ayarları</h1>
+        <span class="text-muted">Apartman yönetim sistemi çalışma kurallarını özelleştirin.</span>
+    </div>
+
+    <div class="row g-4">
+        <!-- 1. ÖZELLİK: MAKBUZ ONAY KALDIRMA (CAM KART) -->
+        <div class="col-xl-6 col-md-12">
+            <div class="card glass-card info-glow">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div class="d-flex align-items-center">
+                                <div class="glass-icon shadow-sm me-3" style="background: var(--grad-info)">
+                                    <i class="bi bi-file-earmark-lock2-fill"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0 text-dark">Makbuz Onay Kaldırma Yetkisi</h5>
+                                    <small class="text-muted">Onaylı evrak güvenliği kısıtlaması</small>
+                                </div>
+                            </div>
+
+                            <!-- iOS Tarzı Kayar Buton -->
+                            <div class="ios-switch-wrapper">
+                                <label class="ios-switch" for="switchMakbuz">
+                                    <input type="checkbox" class="ayar-switch" id="switchMakbuz" data-alan="MakbuzOnayKaldir" @(makbuzOnay ? "checked" : "")>
+                                    <span class="ios-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bilgilendirici Kurumsal Not Alanı -->
+                    <div class="inner-info-box danger-side mt-2">
+                        <h6 class="text-danger fw-bold mb-2"><i class="bi bi-shield-fill-exclamation me-1"></i> Sistem İşleyiş Notu:</h6>
+                        <ul class="pl-3 mb-0 text-secondary small" style="line-height: 1.6; list-style-type: square;">
+                            <li><b>KAPALI (Önerilen):</b> Onaylanmış olan makbuzlar kesinlikle silinemez veya iptal edilemez. Finansal veri manipülasyonunu engeller.</li>
+                            <li><b>AÇIK:</b> Sistemdeki tüm kısıtlamalar devre dışı kalır. Yönetici onaylı makbuzları dilediği gibi silebilir.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. ÖZELLİK: YÖNETİCİ AİDAT EKLEME (CAM KART) -->
+        <div class="col-xl-6 col-md-12">
+            <div class="card glass-card primary-glow">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div class="d-flex align-items-center">
+                                <div class="glass-icon shadow-sm me-3" style="background: var(--grad-primary)">
+                                    <i class="bi bi-person-badge-fill"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0 text-dark">Yöneticiye Aidat Yansıtma</h5>
+                                    <small class="text-muted">Yönetici muafiyet kontrol sistemi</small>
+                                </div>
+                            </div>
+
+                            <!-- iOS Tarzı Kayar Buton -->
+                            <div class="ios-switch-wrapper">
+                                <label class="ios-switch" for="switchAidat">
+                                    <input type="checkbox" class="ayar-switch" id="switchAidat" data-alan="YoneticiAidatEkleme" @(yoneticiAidat ? "checked" : "")>
+                                    <span class="ios-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bilgilendirici Kurumsal Not Alanı -->
+                    <div class="inner-info-box mt-2">
+                        <h6 class="text-primary fw-bold mb-2"><i class="bi bi-info-circle-fill me-1"></i> Sistem İşleyiş Notu:</h6>
+                        <ul class="pl-3 mb-0 text-secondary small" style="line-height: 1.6; list-style-type: square;">
+                            <li><b>KAPALI (Önerilen):</b> Toplu aidat borçlandırması yapıldığında, "Yönetici" rolündeki daire sahipleri sistem tarafından otomatik olarak muaf tutulur ve aidat yazılmaz.</li>
+                            <li><b>AÇIK:</b> Dönemsel aidat işletildiğinde binadaki diğer tüm daireler gibi yönetici dairesine de aidat borcu yansıtılır.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.ayar-switch').change(function () {
+            var checkbox = $(this);
+            var wrapper = checkbox.closest('.ios-switch');
+            var alanAdi = checkbox.data('alan');
+            var durum = checkbox.is(':checked');
+
+            // Arka planda istek işlenirken çift tıklamayı önlemek için kilitliyoruz
+            wrapper.addClass('disabled-switch');
+
+            $.ajax({
+                url: '/Ayarlar/AyarlariGuncelle',
+                type: 'POST',
+                data: {
+                    alanAdi: alanAdi,
+                    durum: durum
+                },
+                success: function (response) {
+                    wrapper.removeClass('disabled-switch');
+                    if (response.success) {
+                        console.log(response.message);
+                    } else {
+                        alert(response.message);
+                        checkbox.prop('checked', !durum); // Hata durumunda butonu eski konumuna geri çek
+                    }
+                },
+                error: function () {
+                    wrapper.removeClass('disabled-switch');
+                    alert('Sistem hatası oluştu, lütfen tekrar deneyin.');
+                    checkbox.prop('checked', !durum); // Hata durumunda butonu eski konumuna geri çek
+                }
+            });
+        });
+    });
+</script>

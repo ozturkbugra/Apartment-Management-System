@@ -41,6 +41,8 @@
           <Property Name="SozlesmeBitisTarihi" Type="date" />
           <Property Name="SozlesmeBaslamaTarihi" Type="date" />
           <Property Name="BinaKullaniciAdi" Type="nvarchar(max)" />
+          <Property Name="MakbuzOnayKaldir" Type="bit" />
+          <Property Name="YoneticiAidatEkleme" Type="bit" />
         </EntityType>
         <EntityType Name="Daireler">
           <Key>
@@ -196,7 +198,7 @@
           <Property Name="DemirbasMi" Type="bit" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'AptVT.dbo.AidatView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'aptmhs25122025.dbo.AidatView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="AidatView">
           <Key>
             <PropertyRef Name="AidatID" />
@@ -212,7 +214,7 @@ warning 6002: The table/view 'AptVT.dbo.AidatView' does not have a primary key d
           <Property Name="AdSoyad" Type="nvarchar(max)" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'AptVT.dbo.EkView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'aptmhs25122025.dbo.EkView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="EkView">
           <Key>
             <PropertyRef Name="EkID" />
@@ -228,7 +230,7 @@ warning 6002: The table/view 'AptVT.dbo.EkView' does not have a primary key defi
           <Property Name="AdSoyad" Type="nvarchar(max)" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'AptVT.dbo.GiderView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'aptmhs25122025.dbo.GiderView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="GiderView">
           <Key>
             <PropertyRef Name="GiderID" />
@@ -245,7 +247,7 @@ warning 6002: The table/view 'AptVT.dbo.GiderView' does not have a primary key d
           <Property Name="GiderNo" Type="int" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'AptVT.dbo.HareketView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'aptmhs25122025.dbo.HareketView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="HareketView">
           <Key>
             <PropertyRef Name="HareketID" />
@@ -263,7 +265,7 @@ warning 6002: The table/view 'AptVT.dbo.HareketView' does not have a primary key
           <Property Name="Tur" Type="nvarchar(max)" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'AptVT.dbo.KasaView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'aptmhs25122025.dbo.KasaView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="KasaView">
           <Key>
             <PropertyRef Name="KasaID" />
@@ -278,7 +280,7 @@ warning 6002: The table/view 'AptVT.dbo.KasaView' does not have a primary key de
           <Property Name="BinaAdi" Type="nvarchar(max)" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'AptVT.dbo.KullanicilarView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'aptmhs25122025.dbo.KullanicilarView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="KullanicilarView">
           <Key>
             <PropertyRef Name="BinaID" />
@@ -302,7 +304,7 @@ warning 6002: The table/view 'AptVT.dbo.KullanicilarView' does not have a primar
           <Property Name="SozlesmeBaslamaTarihi" Type="date" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'AptVT.dbo.MakbuzSatirView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'aptmhs25122025.dbo.MakbuzSatirView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="MakbuzSatirView">
           <Key>
             <PropertyRef Name="MakbuzSatirID" />
@@ -325,7 +327,7 @@ warning 6002: The table/view 'AptVT.dbo.MakbuzSatirView' does not have a primary
           <Property Name="EkMiAidatMi" Type="nvarchar" MaxLength="1" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'AptVT.dbo.MakbuzView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'aptmhs25122025.dbo.MakbuzView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="MakbuzView">
           <Key>
             <PropertyRef Name="MakbuzID" />
@@ -347,7 +349,7 @@ warning 6002: The table/view 'AptVT.dbo.MakbuzView' does not have a primary key 
           <Property Name="Borc" Type="decimal" Precision="18" Scale="2" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'AptVT.dbo.PesinOdemelerView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'aptmhs25122025.dbo.PesinOdemelerView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="PesinOdemelerView">
           <Key>
             <PropertyRef Name="DaireID" />
@@ -368,7 +370,7 @@ warning 6002: The table/view 'AptVT.dbo.PesinOdemelerView' does not have a prima
           <Property Name="ID" Type="int" Nullable="false" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="TahsilatView">
           <Key>
             <PropertyRef Name="TahsilatID" />
@@ -801,6 +803,8 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
           <Property Name="SozlesmeBitisTarihi" Type="DateTime" Precision="0" />
           <Property Name="SozlesmeBaslamaTarihi" Type="DateTime" Precision="0" />
           <Property Name="BinaKullaniciAdi" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="MakbuzOnayKaldir" Type="Boolean" />
+          <Property Name="YoneticiAidatEkleme" Type="Boolean" />
         </EntityType>
         <EntityType Name="Kullanicilar">
           <Key>
@@ -1168,6 +1172,8 @@ warning 6002: The table/view 'AptVT.dbo.TahsilatView' does not have a primary ke
           <EntitySetMapping Name="Binalars">
             <EntityTypeMapping TypeName="AptVTModel.Binalar">
               <MappingFragment StoreEntitySet="Binalar">
+                <ScalarProperty Name="YoneticiAidatEkleme" ColumnName="YoneticiAidatEkleme" />
+                <ScalarProperty Name="MakbuzOnayKaldir" ColumnName="MakbuzOnayKaldir" />
                 <ScalarProperty Name="BinaKullaniciAdi" ColumnName="BinaKullaniciAdi" />
                 <ScalarProperty Name="SozlesmeBaslamaTarihi" ColumnName="SozlesmeBaslamaTarihi" />
                 <ScalarProperty Name="SozlesmeBitisTarihi" ColumnName="SozlesmeBitisTarihi" />

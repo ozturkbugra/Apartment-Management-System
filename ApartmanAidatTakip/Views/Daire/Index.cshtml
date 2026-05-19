@@ -1,4 +1,8 @@
-﻿
+﻿@if (Session["DaireID"] == null)
+{
+    Response.Redirect("/Daire/Login");
+}
+
 @{
     ViewBag.Title = "Ana Sayfa";
     Layout = "~/Views/Shared/_DaireLayout.cshtml";

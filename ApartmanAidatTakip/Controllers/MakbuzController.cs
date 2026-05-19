@@ -523,18 +523,32 @@ namespace ApartmanAidatTakip.Controllers
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
-
                 return RedirectToAction("Login", "AnaSayfa");
             }
+
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+
+            // Güvenlik ve Ayar kontrolü için Binalar tablosundaki kaydı da çekiyoruz
+            var binaAyar = db.Binalars.FirstOrDefault(x => x.BinaID == BinaID);
             var makbuz = db.Makbuzs.Where(x => x.MakbuzID == id && x.BinaID == BinaID).FirstOrDefault();
 
-            if (makbuz.OnayliMi == true)
+            if (makbuz == null)
+            {
+                TempData["Hata"] = "Makbuz bulunamadı.";
+                return RedirectToAction("Index", "Makbuz");
+            }
+
+            // YENİ EKLENEN KONTROL ALANI:
+            // Makbuz onaylıysa VE (Bina ayarı null veya false ise) silmeye izin verme!
+            // Eğer MakbuzOnayKaldir == true ise bu if bloğuna hiç girmeyecek ve silmeye izin verecek.
+            if (makbuz.OnayliMi == true && (binaAyar?.MakbuzOnayKaldir != true))
             {
                 TempData["Hata"] = "Bu Makbuz Onaylandığı için işlem yapılamaz";
                 return RedirectToAction("Index", "Makbuz");
             }
+
+            // --- BUNDAN SONRASI MEVCUT YAPINIZIN BİREBİR AYNISIDIR (HİÇBİR ŞEY BOZULMADI) ---
 
             int AyKontrol = DateTime.Now.Month;
             int YilKontrol = DateTime.Now.Year;
@@ -544,6 +558,7 @@ namespace ApartmanAidatTakip.Controllers
                 TempData["Hata"] = "Bulunduğunuz Dönem dışındaki verileri silemezsiniz";
                 return RedirectToAction("Index", "Makbuz");
             }
+
             try
             {
                 if (Session["DonemSorgu"].ToString() == "0")
@@ -551,39 +566,47 @@ namespace ApartmanAidatTakip.Controllers
                     TempData["Hata"] = DateTime.Now.ToString("MMMM") + " Dönemini eklemediğiniz için bu işlemi yapamazsınız";
                     return RedirectToAction("Index", "Makbuz");
                 }
+
                 if (makbuz.MabuzTutar != 0)
                 {
                     var makbuzsatir = db.MakbuzSatirs.Where(x => x.MakbuzID == id && x.BinaID == BinaID && x.Durum == "A").ToList();
                     int DaireID = Convert.ToInt32(makbuz.DaireID);
                     var daire = db.Dairelers.Where(x => x.DaireID == DaireID && x.BinaID == BinaID).FirstOrDefault();
+
                     //daire.Borc += makbuz.MabuzTutar;
                     db.SaveChanges();
+
                     foreach (var item in makbuzsatir)
                     {
                         item.Durum = "P";
                         db.SaveChanges();
+
                         string ayadi = item.AyAdi;
                         int? yiladi = item.YilAdi;
                         int? daireid = item.DaireID;
+
                         var dairesec = db.Dairelers.Where(x => x.DaireID == daireid).FirstOrDefault();
                         int? daireno = dairesec.DaireNo;
                         string ekmiaidatmi = item.EkMiAidatMi;
+
                         if (ekmiaidatmi == "A")
                         {
                             var aidatsec = db.Aidats.Where(x => x.DaireNo == daireno && x.AidatAy == ayadi && x.AidatYil == yiladi && x.BinaID == BinaID && x.Durum == "P").FirstOrDefault();
-                            aidatsec.Durum = "A";
+                            if (aidatsec != null) aidatsec.Durum = "A";
                         }
                         if (ekmiaidatmi == "E")
                         {
                             var eksec = db.Eks.Where(x => x.DaireNo == daireno && x.EkAy == ayadi && x.EkYil == yiladi && x.BinaID == BinaID && x.Durum == "P").FirstOrDefault();
-                            eksec.Durum = "A";
+                            if (eksec != null) eksec.Durum = "A";
                         }
 
                         db.SaveChanges();
                     }
+
                     makbuz.Durum = "P";
                     db.SaveChanges();
                     MakbuzNoDuzenle();
+
                     int DaireID2 = Convert.ToInt32(makbuz.DaireID);
                     borcduzenle(DaireID2);
                 }
@@ -597,9 +620,7 @@ namespace ApartmanAidatTakip.Controllers
             }
             catch (Exception)
             {
-
                 TempData["Hata"] = "Bir Hata Oluştu";
-
             }
 
             return RedirectToAction("Index", "Makbuz");

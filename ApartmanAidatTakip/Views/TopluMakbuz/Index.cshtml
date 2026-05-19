@@ -318,6 +318,7 @@
                                     <th>Ad Soyad</th>
                                     <th>Tutar</th>
                                     <th>Tarih</th>
+                                    <th>Sil</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -335,6 +336,11 @@
                                         <td class="fw-bold text-success">@item.MabuzTutar.ToString("N2") ₺</td>
                                         <td data-order="@item.MakbuzTarihi.ToString("yyyyMMdd")">
                                             @item.MakbuzTarihi.ToString("dd.MM.yyyy")
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="#" class="btn-icon btn-icon-danger text-danger" onclick="confirmDeleteReceipt(event, @item.MakbuzID)" title="Makbuzu İptal Et">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </a>
                                         </td>
                                     </tr>
                                 }
@@ -426,4 +432,23 @@
             </text>
         }
     });
+
+    function confirmDeleteReceipt(event, id) {
+        event.preventDefault(); // Sayfa yenilenmesini engelle
+
+        Swal.fire({
+            title: 'Makbuz İptal Edilsin mi?',
+            text: "Bu işlem geri alınamaz! Makbuz 'Silinenler' listesine taşınacaktır.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Evet, İptal Et',
+            cancelButtonText: 'Vazgeç'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/TopluMakbuz/MakbuzSil/' + id;
+            }
+        });
+    }
 </script>

@@ -17,26 +17,48 @@ namespace ApartmanAidatTakip.Controllers
         AptVTEntities db = new AptVTEntities();
         public ActionResult Index()
         {
-            if (Session["DaireID"] == null)
+            if (Session["DaireID"] == null || Session["DaireID"].ToString() == "0")
             {
                 return RedirectToAction("Login", "Daire");
             }
             int DaireID = Convert.ToInt32(Session["DaireID"]);
 
             var b = db.Dairelers.Where(x => x.DaireID == DaireID).FirstOrDefault();
+            if (b == null)
+            {
+                return RedirectToAction("Login", "Daire");
+            }
 
             var binaid = b.BinaID;
-
             var binaadi = db.Binalars.Where(x => x.BinaID == binaid).FirstOrDefault();
 
             ViewBag.BinaAdi = binaadi.BinaAdi;
-
             Session["BinaAdi"] = binaadi.BinaAdi;
             Session["BinaAdres"] = binaadi.Adres;
 
-            ViewBag.OdenenMakbuzlar = db.Makbuzs.Where(x => x.DaireID == DaireID && x.Durum == "A" && x.OnayliMi == true).OrderByDescending(x=> x.MakbuzNo).ToList();
+            // --- YENİ MANTIK BAŞLANGICI ---
+            // MakbuzOnayKaldir özelliğinin veritabanındaki durumunu kontrol ediyoruz
+            bool kısıtlamaKaldırıldıMı = binaadi?.MakbuzOnayKaldir ?? false;
 
-            ViewBag.OdenmeyenAidatlar = db.Aidats.Where(x => x.BinaID == binaid && x.DaireNo == b.DaireNo && x.Durum == "A").ToList(); 
+            if (kısıtlamaKaldırıldıMı)
+            {
+                // Özellik 1 (True) ise: Onaylı olup olmadığına bakmaksızın aktif tüm makbuzları getirir
+                ViewBag.OdenenMakbuzlar = db.Makbuzs
+                    .Where(x => x.DaireID == DaireID && x.Durum == "A")
+                    .OrderByDescending(x => x.MakbuzNo)
+                    .ToList();
+            }
+            else
+            {
+                // Özellik 0 (False/Null) ise: Eski kural geçerlidir, sadece Onaylı olanları getirir
+                ViewBag.OdenenMakbuzlar = db.Makbuzs
+                    .Where(x => x.DaireID == DaireID && x.Durum == "A" && x.OnayliMi == true)
+                    .OrderByDescending(x => x.MakbuzNo)
+                    .ToList();
+            }
+            // --- YENİ MANTIK BİTİŞİ ---
+
+            ViewBag.OdenmeyenAidatlar = db.Aidats.Where(x => x.BinaID == binaid && x.DaireNo == b.DaireNo && x.Durum == "A").ToList();
             ViewBag.OdenmeyenEkler = db.Eks.Where(x => x.BinaID == binaid && x.DaireNo == b.DaireNo && x.Durum == "A").ToList();
             ViewBag.Borc = b.Borc;
 
