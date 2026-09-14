@@ -303,6 +303,8 @@
     <Content Include="Content\Admin\assets\css\style.css" />
     <Content Include="Content\Admin\assets\css\darkmode.css" />
     <Content Include="Content\Admin\assets\js\darkmode.js" />
+    <Content Include="Content\Admin\assets\css\favorites.css" />
+    <Content Include="Content\Admin\assets\js\favorites.js" />
     <Content Include="Content\Admin\assets\img\apple-touch-icon.png" />
     <Content Include="Content\Admin\assets\img\aptlogo.png" />
     <Content Include="Content\Admin\assets\img\binamakbuzlogo.png" />

@@ -1,0 +1,162 @@
+/* ============================================================
+   Favori Sayfalar - dropdown panel stilleri
+   Aydınlık tema varsayılan; koyu tema html.dark-mode ile geçilir.
+   (darkmode.css ile aynı yaklaşım.)
+   ============================================================ */
+
+/* Tetikleyici buton (tema butonu ile aynı görünüm) */
+#favToggle {
+    background: transparent;
+    border: 0;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 6px 10px;
+}
+#favToggle:hover { color: #f6b93b; }
+
+/* Panel */
+.fav-panel {
+    position: fixed;
+    z-index: 1200;
+    width: 320px;
+    max-width: calc(100vw - 20px);
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    font-family: inherit;
+}
+
+.fav-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f3f5;
+    font-weight: 600;
+    color: #343a40;
+}
+.fav-panel-header i.bi-star-fill { color: #f6b93b; margin-right: 6px; }
+
+.fav-add-btn {
+    border: 0;
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 600;
+    font-size: 0.82rem;
+    padding: 5px 12px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.fav-add-btn:hover { background: #2563eb; color: #fff; }
+.fav-add-btn.fav-add-warn { background: #fde8e8; color: #dc2626; }
+
+.fav-list {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.fav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    transition: background 0.15s;
+}
+.fav-item:hover { background: #f8f9fa; }
+.fav-item.fav-dragging { opacity: 0.5; background: #eff6ff; }
+
+.fav-drag {
+    color: #adb5bd;
+    cursor: grab;
+    font-size: 1.1rem;
+    flex: 0 0 auto;
+}
+.fav-drag:active { cursor: grabbing; }
+
+.fav-link {
+    flex: 1 1 auto;
+    color: #343a40;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fav-link:hover { color: #2563eb; }
+
+.fav-rename-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    outline: none;
+    background: #fff;
+    color: #343a40;
+}
+
+.fav-actions { display: flex; gap: 2px; flex: 0 0 auto; }
+
+.fav-icon-btn {
+    border: 0;
+    background: transparent;
+    color: #868e96;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+.fav-icon-btn:hover { background: #e9ecef; }
+.fav-edit:hover { color: #2563eb; }
+.fav-del:hover { color: #dc2626; }
+
+.fav-empty {
+    padding: 22px 16px;
+    text-align: center;
+    color: #adb5bd;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* ================= KOYU TEMA ================= */
+html.dark-mode #favToggle { color: #adb5bd; }
+html.dark-mode #favToggle:hover { color: #f6c453; }
+
+html.dark-mode .fav-panel {
+    background: #1e2530;
+    border-color: #2c3644;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+}
+html.dark-mode .fav-panel-header {
+    border-bottom-color: #2c3644;
+    color: #e9ecef;
+}
+html.dark-mode .fav-add-btn { background: #2c3644; color: #6ea8fe; }
+html.dark-mode .fav-add-btn:hover { background: #2563eb; color: #fff; }
+html.dark-mode .fav-add-btn.fav-add-warn { background: #4a2020; color: #f08a8a; }
+
+html.dark-mode .fav-item:hover { background: #2a3340; }
+html.dark-mode .fav-item.fav-dragging { background: #26303d; }
+html.dark-mode .fav-drag { color: #6c757d; }
+html.dark-mode .fav-link { color: #dee2e6; }
+html.dark-mode .fav-link:hover { color: #6ea8fe; }
+html.dark-mode .fav-rename-input {
+    background: #141a22;
+    color: #e9ecef;
+    border-color: #2563eb;
+}
+html.dark-mode .fav-icon-btn { color: #adb5bd; }
+html.dark-mode .fav-icon-btn:hover { background: #384454; }
+html.dark-mode .fav-empty { color: #6c757d; }
