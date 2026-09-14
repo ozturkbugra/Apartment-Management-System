@@ -194,6 +194,7 @@
     <Compile Include="Controllers\AyarlarController.cs" />
     <Compile Include="Controllers\DaireController.cs" />
     <Compile Include="Controllers\MakbuzController.cs" />
+    <Compile Include="Controllers\MobilApiController.cs" />
     <Compile Include="Controllers\RaporlarController.cs" />
     <Compile Include="Controllers\TopluMakbuzController.cs" />
     <Compile Include="fonts\HomeController.cs" />
@@ -300,6 +301,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\Admin\assets\css\style.css" />
+    <Content Include="Content\Admin\assets\css\darkmode.css" />
+    <Content Include="Content\Admin\assets\js\darkmode.js" />
     <Content Include="Content\Admin\assets\img\apple-touch-icon.png" />
     <Content Include="Content\Admin\assets\img\aptlogo.png" />
     <Content Include="Content\Admin\assets\img\binamakbuzlogo.png" />
@@ -798,6 +801,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Views\Home\" />
+    <Folder Include="Views\MobilApi\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />

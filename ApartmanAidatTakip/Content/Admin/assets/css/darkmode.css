@@ -1,0 +1,713 @@
+/* ============================================================
+   Dark Mode - Ortak tema (tüm layoutlarda kullanılır)
+   Yalnızca renk/arka plan/kenarlık değiştirir; hiçbir
+   düzen (layout) özelliğine dokunmaz. Aktifleşmesi için
+   <html> etiketine "dark-mode" sınıfı eklenir (darkmode.js).
+   ============================================================ */
+
+html.dark-mode {
+    --dm-bg: #12151c;          /* sayfa zemini */
+    --dm-surface: #1b1f2a;     /* kart / panel yüzeyi */
+    --dm-surface-2: #232838;   /* input / hover yüzeyi */
+    --dm-border: #2c3242;      /* kenarlıklar */
+    --dm-text: #e4e6eb;        /* ana metin */
+    --dm-muted: #9aa3b2;       /* soluk metin */
+    --dm-primary: #6d8bff;     /* vurgu (mavi) */
+}
+
+/* --- Genel zemin & metin --- */
+html.dark-mode body {
+    background-color: var(--dm-bg) !important;
+    color: var(--dm-text) !important;
+}
+
+html.dark-mode a {
+    color: var(--dm-primary);
+}
+
+/* Bootstrap koyu/siyah metin yardımcıları -> açık renk */
+html.dark-mode .text-dark,
+html.dark-mode .text-black,
+html.dark-mode .text-body,
+html.dark-mode h1, html.dark-mode h2, html.dark-mode h3,
+html.dark-mode h4, html.dark-mode h5, html.dark-mode h6 {
+    color: var(--dm-text) !important;
+}
+
+html.dark-mode .text-muted,
+html.dark-mode .text-secondary,
+html.dark-mode .text-gray-300 {
+    color: var(--dm-muted) !important;
+}
+
+/* --- Header (üst bar) --- */
+html.dark-mode .header {
+    background: var(--dm-surface) !important;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.4) !important;
+    border-bottom: 1px solid var(--dm-border);
+}
+
+html.dark-mode .logo span {
+    color: var(--dm-primary) !important;
+}
+
+html.dark-mode .toggle-sidebar-btn {
+    color: var(--dm-text) !important;
+}
+
+/* Header'daki nav-link/profil şeffaf kalsın (bazı sayfalar bare
+   .nav-link{background:#fff} tanımlayıp header profiline sızdırıyor) */
+html.dark-mode .header .nav-link,
+html.dark-mode .header-nav .nav-link,
+html.dark-mode .header-nav .nav-profile {
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .header-nav .nav-profile span {
+    color: var(--dm-text) !important;
+}
+
+/* Arama kutusu */
+html.dark-mode .search-bar .search-form input {
+    background: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .search-bar .search-form input:focus {
+    background: var(--dm-surface-2) !important;
+}
+html.dark-mode .search-bar .search-form input::placeholder {
+    color: var(--dm-muted) !important;
+}
+
+/* --- Sidebar --- */
+html.dark-mode .sidebar {
+    background-color: var(--dm-surface) !important;
+    border-right: 1px solid var(--dm-border) !important;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4) !important;
+}
+
+html.dark-mode .sidebar-nav .nav-link {
+    color: var(--dm-text) !important;
+    background: transparent !important;
+}
+html.dark-mode .sidebar-nav .nav-link:hover {
+    background: var(--dm-surface-2) !important;
+    color: var(--dm-primary) !important;
+}
+html.dark-mode .sidebar-nav .nav-link:not(.collapsed) {
+    background: rgba(109,139,255,0.12) !important;
+    color: var(--dm-primary) !important;
+}
+html.dark-mode .sidebar-nav .nav-heading {
+    color: var(--dm-muted) !important;
+}
+html.dark-mode .sidebar-nav .nav-content {
+    border-left-color: var(--dm-border) !important;
+}
+html.dark-mode .sidebar-nav .nav-content a {
+    color: var(--dm-muted) !important;
+}
+html.dark-mode .sidebar-nav .nav-content a:hover,
+html.dark-mode .sidebar-nav .nav-content a.active {
+    color: var(--dm-primary) !important;
+    background: var(--dm-surface-2) !important;
+}
+
+/* --- Kartlar / paneller --- */
+html.dark-mode .card {
+    background-color: var(--dm-surface) !important;
+    border: 1px solid var(--dm-border) !important;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3) !important;
+    color: var(--dm-text) !important;
+}
+/* Bootstrap kartı içindeki düz metin/paragraflar açık renk olsun */
+html.dark-mode .card-body,
+html.dark-mode .card-body p,
+html.dark-mode .card-body .small,
+html.dark-mode .card-text {
+    color: var(--dm-text) !important;
+}
+html.dark-mode .card-title {
+    color: var(--dm-text) !important;
+}
+html.dark-mode .card-title span,
+html.dark-mode .pagetitle h1 {
+    color: var(--dm-muted) !important;
+}
+
+/* --- Tablolar --- */
+html.dark-mode .table {
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .table > :not(caption) > * > * {
+    background-color: transparent !important;
+    border-bottom-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .table thead th {
+    color: var(--dm-muted) !important;
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(255,255,255,0.03) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .table-hover > tbody > tr:hover > * {
+    background-color: rgba(109,139,255,0.10) !important;
+    color: var(--dm-text) !important;
+}
+
+/* --- Form elemanları --- */
+html.dark-mode .form-control,
+html.dark-mode .form-select,
+html.dark-mode input[type="text"],
+html.dark-mode input[type="number"],
+html.dark-mode input[type="password"],
+html.dark-mode input[type="email"],
+html.dark-mode input[type="date"],
+html.dark-mode textarea {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .form-control::placeholder,
+html.dark-mode textarea::placeholder {
+    color: var(--dm-muted) !important;
+}
+html.dark-mode .form-control:focus,
+html.dark-mode .form-select:focus {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-primary) !important;
+    box-shadow: 0 0 0 3px rgba(109,139,255,0.15) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .form-label,
+html.dark-mode label {
+    color: var(--dm-text) !important;
+}
+html.dark-mode .input-group-text {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-muted) !important;
+}
+
+/* --- Dropdown menü --- */
+html.dark-mode .dropdown-menu {
+    background-color: var(--dm-surface) !important;
+    border: 1px solid var(--dm-border) !important;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.5) !important;
+}
+html.dark-mode .dropdown-item {
+    color: var(--dm-text) !important;
+}
+html.dark-mode .dropdown-item:hover {
+    background-color: var(--dm-surface-2) !important;
+    color: var(--dm-primary) !important;
+}
+html.dark-mode .dropdown-divider {
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .dropdown-header span {
+    color: var(--dm-muted) !important;
+}
+
+/* --- Modal --- */
+html.dark-mode .modal-content {
+    background-color: var(--dm-surface) !important;
+    color: var(--dm-text) !important;
+    border: 1px solid var(--dm-border) !important;
+}
+html.dark-mode .modal-header,
+html.dark-mode .modal-footer {
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .btn-close {
+    filter: invert(1) grayscale(1) brightness(1.5);
+}
+
+/* --- Genel yüzey yardımcıları --- */
+html.dark-mode .bg-white,
+html.dark-mode .bg-light {
+    background-color: var(--dm-surface) !important;
+}
+html.dark-mode hr {
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .border,
+html.dark-mode .border-top,
+html.dark-mode .border-bottom,
+html.dark-mode .border-start,
+html.dark-mode .border-end {
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .list-group-item {
+    background-color: var(--dm-surface) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+/* Pasif sekmeler koyu; aktif sekmenin kendi tasarımı (ör. mor) korunur */
+html.dark-mode .nav-tabs .nav-link:not(.active) {
+    background-color: var(--dm-surface) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-muted) !important;
+}
+html.dark-mode .nav-tabs .nav-link:not(.active):hover {
+    background-color: var(--dm-surface-2) !important;
+    color: var(--dm-text) !important;
+}
+
+/* --- Footer --- */
+html.dark-mode .footer {
+    background: var(--dm-surface) !important;
+    color: var(--dm-muted) !important;
+    border-top: 1px solid var(--dm-border);
+}
+html.dark-mode .footer .copyright {
+    color: var(--dm-muted) !important;
+}
+
+/* --- _Layout özel bileşenleri --- */
+/* Lisans batarya kutusu */
+html.dark-mode .phone-battery-wrapper {
+    background: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    box-shadow: none !important;
+}
+html.dark-mode .battery-shell {
+    border-color: var(--dm-muted) !important;
+}
+html.dark-mode .battery-shell::after {
+    background: var(--dm-muted) !important;
+}
+
+/* Select2 (koyu) */
+html.dark-mode .select2-container--default .select2-selection--single,
+html.dark-mode .select2-dropdown,
+html.dark-mode .select2-search__field {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--dm-text) !important;
+}
+html.dark-mode .select2-results__option {
+    color: var(--dm-text) !important;
+    background-color: var(--dm-surface) !important;
+}
+html.dark-mode .select2-results__option--highlighted {
+    background-color: var(--dm-primary) !important;
+    color: #fff !important;
+}
+
+/* --- Dark mode toggle butonu --- */
+.dm-toggle-btn {
+    background: transparent;
+    border: 0;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 6px 10px;
+}
+html.dark-mode .dm-toggle-btn {
+    color: #f6c453;
+}
+.dm-toggle-btn .bi-sun-fill { display: none; }
+html.dark-mode .dm-toggle-btn .bi-sun-fill { display: inline; }
+html.dark-mode .dm-toggle-btn .bi-moon-stars-fill { display: none; }
+
+/* ============================================================
+   SAYFA İÇİ ÖZEL BİLEŞENLER (tüm sayfalarda ortak)
+   Her .cshtml kendi <style> bloğunda sabit açık renkler
+   kullanıyor. Bu kurallar YALNIZCA koyu modda (html.dark-mode)
+   renk/zemin/kenarlık değiştirir; açık tema aynen korunur ve
+   hiçbir düzen (genişlik/konum/boşluk) özelliğine dokunulmaz.
+   Gradient yüzeyler (.card-header-*, .bg-income/expense,
+   .card-total-*, .duyuru-bar, .member-card, .summary-card)
+   bilinçli olarak DEĞİŞTİRİLMEZ.
+   ============================================================ */
+
+/* --- Sayfa zemini (noktalı desen dahil) --- */
+html.dark-mode body { background-image: none !important; }
+
+/* --- Beyaz/açık zeminli tüm kart, kutu, panel, bar yüzeyleri --- */
+html.dark-mode .table-card,
+html.dark-mode .table-modern,
+html.dark-mode .card-legendary,
+html.dark-mode .filter-card,
+html.dark-mode .report-card,
+html.dark-mode .report-header-card,
+html.dark-mode .action-card,
+html.dark-mode .action-bar,
+html.dark-mode .action-toolbar,
+html.dark-mode .action-header,
+html.dark-mode .page-header,
+html.dark-mode .edit-card,
+html.dark-mode .editor-card,
+html.dark-mode .search-card,
+html.dark-mode .search-wrapper,
+html.dark-mode .operation-card,
+html.dark-mode .selection-card,
+html.dark-mode .balance-card,
+html.dark-mode .balance-details,
+html.dark-mode .balance-flow-card,
+html.dark-mode .flow-card,
+html.dark-mode .flow-header,
+html.dark-mode .card-header-flex,
+html.dark-mode .card-header-clean,
+html.dark-mode .card-footer-custom,
+html.dark-mode .expense-box,
+html.dark-mode .expense-item,
+html.dark-mode .inner-info-box,
+html.dark-mode .info-box,
+html.dark-mode .info-card,
+html.dark-mode .detail-item,
+html.dark-mode .debt-card,
+html.dark-mode .debt-table-card,
+html.dark-mode .period-card,
+html.dark-mode .profile-card,
+html.dark-mode .result-card,
+html.dark-mode .checkout-card,
+html.dark-mode .receipt-preview,
+html.dark-mode .receipt-header,
+html.dark-mode .note-toolbar,
+html.dark-mode .setup-card,
+html.dark-mode .form-content,
+html.dark-mode .total-display,
+html.dark-mode .date-box {
+    background: var(--dm-surface) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+
+/* Cam (glass) kartlar */
+html.dark-mode .glass-card {
+    background: rgba(30, 35, 48, 0.80) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+
+/* Tarih kutusu iç metinleri */
+html.dark-mode .date-day { color: var(--dm-text) !important; }
+html.dark-mode .date-year { color: var(--dm-muted) !important; }
+
+/* Detay kutusu ayraçları */
+html.dark-mode .detail-item:first-child { border-right-color: var(--dm-border) !important; }
+html.dark-mode .detail-label { color: var(--dm-muted) !important; }
+html.dark-mode .detail-value { color: var(--dm-text) !important; }
+
+/* --- Özel tablolar (.modern-table / .table-modern) --- */
+html.dark-mode .modern-table,
+html.dark-mode .table-modern { color: var(--dm-text) !important; }
+html.dark-mode .modern-table thead th,
+html.dark-mode .table-modern thead th {
+    background-color: var(--dm-surface-2) !important;
+    color: var(--dm-muted) !important;
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .modern-table tbody td,
+html.dark-mode .table-modern tbody td,
+html.dark-mode .modern-table tbody tr,
+html.dark-mode .table-modern tbody tr {
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .modern-table tbody tr:hover,
+html.dark-mode .table-modern tbody tr:hover,
+html.dark-mode .modern-table tbody tr:hover td,
+html.dark-mode .table-modern tbody tr:hover td {
+    background-color: rgba(109,139,255,0.10) !important;
+}
+
+/* --- simple-datatables (tema bu kütüphaneyi kullanıyor) --- */
+html.dark-mode .datatable-wrapper,
+html.dark-mode .datatable-container { color: var(--dm-text) !important; }
+html.dark-mode .datatable-table,
+html.dark-mode .datatable-table td { color: var(--dm-text) !important; border-color: var(--dm-border) !important; }
+html.dark-mode .datatable-table thead th {
+    background-color: var(--dm-surface-2) !important;
+    color: var(--dm-muted) !important;
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .datatable-table tbody tr:hover td { background-color: rgba(109,139,255,0.10) !important; }
+html.dark-mode .datatable-input,
+html.dark-mode .datatable-selector {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .datatable-info,
+html.dark-mode .datatable-top,
+html.dark-mode .datatable-bottom,
+html.dark-mode .datatable-pagination a {
+    color: var(--dm-muted) !important;
+}
+html.dark-mode .datatable-pagination a:hover { background-color: var(--dm-surface-2) !important; color: var(--dm-text) !important; }
+html.dark-mode .datatable-sorter::before { border-bottom-color: var(--dm-muted) !important; }
+html.dark-mode .datatable-sorter::after { border-top-color: var(--dm-muted) !important; }
+
+/* --- Başlık / metin renkleri (koyu yazıları aç) --- */
+html.dark-mode .pagetitle h1,
+html.dark-mode .table-title,
+html.dark-mode .card-title-custom,
+html.dark-mode .summary-title,
+html.dark-mode .total-title,
+html.dark-mode .total-value,
+html.dark-mode .toolbar-title,
+html.dark-mode .flow-label,
+html.dark-mode .stat-amount,
+html.dark-mode .final-balance {
+    color: var(--dm-text) !important;
+}
+html.dark-mode .table-title { border-bottom-color: var(--dm-border) !important; }
+html.dark-mode .sub-title,
+html.dark-mode .text-helper,
+html.dark-mode .form-label-custom,
+html.dark-mode .detail-label,
+html.dark-mode .empty-state { color: var(--dm-muted) !important; }
+
+/* --- Özel form kontrolleri --- */
+html.dark-mode .form-control-modern,
+html.dark-mode .form-control-custom,
+html.dark-mode .form-control-lg,
+html.dark-mode .form-control-search,
+html.dark-mode .form-control-amount,
+html.dark-mode .form-select-lg,
+html.dark-mode .amount-input-group .form-control,
+html.dark-mode .amount-input-group input {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .form-control-modern:focus,
+html.dark-mode .form-control-custom:focus,
+html.dark-mode .form-control-lg:focus,
+html.dark-mode .form-control-search:focus,
+html.dark-mode .form-control-amount:focus,
+html.dark-mode .form-select-lg:focus {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-primary) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .currency-symbol,
+html.dark-mode .amount-input-group .input-group-text {
+    background-color: var(--dm-surface) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-muted) !important;
+}
+
+/* --- Sarı/amber uyarı kutuları (.info-alert / .alert-box) --- */
+html.dark-mode .info-alert,
+html.dark-mode .alert-box {
+    background: rgba(255, 193, 7, 0.12) !important;
+    border-color: rgba(255, 193, 7, 0.40) !important;
+    color: #ffd479 !important;
+}
+/* Uyarı kutusu içindeki tüm metin/başlık/ikon okunur olsun */
+html.dark-mode .info-alert *,
+html.dark-mode .alert-box * { color: #ffe0a3 !important; }
+html.dark-mode .mail-link { color: #ffcc66 !important; }
+
+/* --- Silinen kayıt bölümü (kırmızı temalı) --- */
+html.dark-mode .deleted-section { border-color: rgba(220, 53, 69, 0.5) !important; }
+html.dark-mode .deleted-section .modern-table thead th {
+    background: rgba(220, 53, 69, 0.15) !important;
+    color: #f8a5a5 !important;
+}
+
+/* --- Nötr (açık zeminli) butonlar --- */
+html.dark-mode .btn-cancel,
+html.dark-mode .btn-back {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+/* Soft-dark buton koyu zeminde görünsün */
+html.dark-mode .btn-soft-dark {
+    background-color: rgba(255,255,255,0.10) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .btn-soft-dark:hover {
+    background-color: rgba(255,255,255,0.85) !important;
+    color: #12151c !important;
+}
+
+/* --- Rozetler (açık zeminli pill'ler okunur kalsın) --- */
+html.dark-mode .daire-badge,
+html.dark-mode .info-badge,
+html.dark-mode .debt-badge,
+html.dark-mode .badge-period {
+    filter: brightness(0.95);
+}
+
+/* --- Gölgeler --- */
+html.dark-mode .balance-card,
+html.dark-mode .table-card,
+html.dark-mode .filter-card,
+html.dark-mode .report-card,
+html.dark-mode .action-card {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.40) !important;
+}
+
+/* ============================================================
+   ÜÇÜNCÜ PARTİ BİLEŞENLER (koyu tema)
+   SweetAlert2, Summernote, jQuery DataTables, Select2 vb.
+   Hepsi <body> altına render edilir; html.dark-mode ile yakalanır.
+   ============================================================ */
+
+/* --- SweetAlert2 --- */
+html.dark-mode .swal2-popup {
+    background: var(--dm-surface) !important;
+    color: var(--dm-text) !important;
+    border: 1px solid var(--dm-border) !important;
+}
+html.dark-mode .swal2-title,
+html.dark-mode .swal2-html-container,
+html.dark-mode .swal2-content {
+    color: var(--dm-text) !important;
+}
+html.dark-mode .swal2-input,
+html.dark-mode .swal2-textarea,
+html.dark-mode .swal2-select {
+    background: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .swal2-close { color: var(--dm-muted) !important; }
+html.dark-mode div:where(.swal2-container) .swal2-html-container { color: var(--dm-text) !important; }
+
+/* --- Summernote (Notlar) --- */
+html.dark-mode .note-editor.note-frame,
+html.dark-mode .note-editor.note-airframe {
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .note-toolbar,
+html.dark-mode .note-statusbar {
+    background: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .note-editable,
+html.dark-mode .note-editing-area .note-editable {
+    background: var(--dm-surface) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .note-btn,
+html.dark-mode .note-toolbar .btn {
+    background: var(--dm-surface) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .note-btn:hover { background: var(--dm-surface-2) !important; }
+html.dark-mode .note-dropdown-menu,
+html.dark-mode .note-modal-content {
+    background: var(--dm-surface) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .note-dropdown-item:hover { background: var(--dm-surface-2) !important; }
+html.dark-mode .note-icon-caret,
+html.dark-mode .note-current-fontname { color: var(--dm-text) !important; }
+
+/* --- jQuery DataTables (Makbuz/Ara vb.) --- */
+html.dark-mode .dataTables_wrapper,
+html.dark-mode .dataTables_wrapper .dataTables_length,
+html.dark-mode .dataTables_wrapper .dataTables_filter,
+html.dark-mode .dataTables_wrapper .dataTables_info,
+html.dark-mode .dataTables_wrapper .dataTables_processing,
+html.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: var(--dm-muted) !important;
+}
+html.dark-mode .dataTables_wrapper .dataTables_filter input,
+html.dark-mode .dataTables_wrapper .dataTables_length select {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+html.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    color: #fff !important;
+    background: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+}
+
+/* --- Genel: kart başlıkları --- */
+html.dark-mode .card-title,
+html.dark-mode .card-title span {
+    color: var(--dm-text) !important;
+}
+
+/* --- Select2 açık menü (dropdown) tam koyu --- */
+html.dark-mode .select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: var(--dm-surface-2) !important;
+}
+html.dark-mode .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: var(--dm-muted) !important;
+}
+
+/* --- Beyaz varyantlı kart başlığı (gradient .card-header-custom'dan ayrıştırıldı) --- */
+html.dark-mode .card-header-plain {
+    background: var(--dm-surface) !important;
+    border-bottom-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+
+/* --- Yumuşak (soft) silme butonu koyu zeminde okunur kalsın --- */
+html.dark-mode .btn-delete {
+    background: rgba(220, 38, 38, 0.18) !important;
+    color: #f8a5a5 !important;
+}
+html.dark-mode .btn-delete:hover {
+    background: #dc2626 !important;
+    color: #fff !important;
+}
+
+/* --- Diğer yumuşak ikon/silme butonları --- */
+html.dark-mode .btn-icon-delete,
+html.dark-mode .btn-remove {
+    background: rgba(220, 38, 38, 0.18) !important;
+    color: #f8a5a5 !important;
+    border-color: transparent !important;
+}
+html.dark-mode .btn-icon-delete:hover,
+html.dark-mode .btn-remove:hover {
+    background: #dc2626 !important;
+    color: #fff !important;
+}
+
+/* --- Bootstrap uyarı kutuları (.alert) --- */
+html.dark-mode .alert-light {
+    background-color: var(--dm-surface) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .alert-light.text-dark,
+html.dark-mode .alert-light .text-dark { color: var(--dm-text) !important; }
+html.dark-mode .alert-secondary {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .alert-warning {
+    background-color: rgba(255, 193, 7, 0.12) !important;
+    border-color: rgba(255, 193, 7, 0.40) !important;
+    color: #ffe0a3 !important;
+}
+html.dark-mode .alert-danger {
+    background-color: rgba(220, 53, 69, 0.15) !important;
+    border-color: rgba(220, 53, 69, 0.40) !important;
+    color: #f8a5a5 !important;
+}
+html.dark-mode .alert-success {
+    background-color: rgba(25, 135, 84, 0.15) !important;
+    border-color: rgba(25, 135, 84, 0.40) !important;
+    color: #86e0b2 !important;
+}
+html.dark-mode .alert-info {
+    background-color: rgba(13, 202, 240, 0.12) !important;
+    border-color: rgba(13, 202, 240, 0.35) !important;
+    color: #9fe6f5 !important;
+}
