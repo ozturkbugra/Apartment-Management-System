@@ -1,0 +1,93 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Admin - İki Adımlı Doğrulama</title>
+
+    <link href="/Content/Admin/assets/img/favicon.png" rel="icon">
+    <link href="/Content/Admin/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/css/style.css" rel="stylesheet">
+    <link href="/Content/Admin/assets/css/darkmode.css" rel="stylesheet">
+    <script src="/Content/Admin/assets/js/darkmode.js"></script>
+    <style>
+        .code-input { letter-spacing: 0.6rem; text-align: center; font-size: 1.4rem; font-weight: 600; }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div class="container">
+            <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="pt-4 pb-2 text-center">
+                                        <i class="bi bi-shield-lock-fill" style="font-size:2.5rem; color:#4f46e5;"></i>
+                                        <h5 class="card-title pb-0 fs-4 mt-2">İki Adımlı Doğrulama</h5>
+                                    </div>
+
+                                    <form action="/Admin/LoginDogrula" method="post" class="row g-3">
+
+                                        @if (!string.IsNullOrEmpty(ViewBag.Uyari))
+                                        {
+                                            <div class="col-12"><div class="alert alert-danger text-center mb-0">@ViewBag.Uyari</div></div>
+                                        }
+
+                                        <div id="modAuth" class="col-12">
+                                            <p class="text-center text-muted small mb-2">Authenticator uygulamanızdaki <b>6 haneli</b> kodu giriniz.</p>
+                                            <input type="text" id="authKod" name="kod" class="form-control code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="______">
+                                            <div class="text-center mt-2"><a href="#" id="linkYedek" class="small">Telefonuma erişemiyorum, yedek kod kullan</a></div>
+                                        </div>
+
+                                        <div id="modYedek" class="col-12" style="display:none;">
+                                            <p class="text-center text-muted small mb-2">Yedek kodlarınızdan birini giriniz.</p>
+                                            <input type="text" id="yedekKod" name="kod" class="form-control text-center" autocomplete="off" maxlength="11" placeholder="xxxxx-xxxxx" disabled style="font-family:monospace; font-size:1.15rem; letter-spacing:2px;">
+                                            <div class="text-center mt-2"><a href="#" id="linkAuth" class="small">Authenticator kodu ile devam et</a></div>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <button class="btn btn-success w-100" type="submit">Doğrula ve Giriş Yap</button>
+                                        </div>
+                                        <div class="col-12 text-center">
+                                            <p class="small mb-0"><a href="/Admin/Login">Girişe geri dön</a></p>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/Content/Admin/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            var modAuth = document.getElementById('modAuth'), modYedek = document.getElementById('modYedek');
+            var authKod = document.getElementById('authKod'), yedekKod = document.getElementById('yedekKod');
+            document.getElementById('linkYedek').addEventListener('click', function (e) {
+                e.preventDefault();
+                modAuth.style.display = 'none'; modYedek.style.display = 'block';
+                authKod.disabled = true; yedekKod.disabled = false; yedekKod.focus();
+            });
+            document.getElementById('linkAuth').addEventListener('click', function (e) {
+                e.preventDefault();
+                modYedek.style.display = 'none'; modAuth.style.display = 'block';
+                yedekKod.disabled = true; authKod.disabled = false; authKod.focus();
+            });
+        })();
+    </script>
+</body>
+</html>

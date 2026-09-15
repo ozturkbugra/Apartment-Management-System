@@ -1,4 +1,5 @@
-﻿using ApartmanAidatTakip.Models;
+﻿using ApartmanAidatTakip.Helpers;
+using ApartmanAidatTakip.Models;
 using iTextSharp.text.pdf;
 using iTextSharp.text;
 using System;
@@ -75,9 +76,20 @@ namespace ApartmanAidatTakip.Controllers
         [HttpPost]
         public ActionResult Login(Daireler daireler)
         {
+            string ipKey = Request.UserHostAddress ?? "unknown";
+            int kalanKilit = LoginRateLimiter.KalanKilitSaniye(ipKey);
+            if (kalanKilit > 0)
+            {
+                ViewBag.Uyari = LoginRateLimiter.KilitMesaji(kalanKilit);
+                DateTime kilitSimdi = DateTime.Now.Date;
+                ViewBag.Binalar = db.Binalars.Where(x => x.SozlesmeBitisTarihi >= kilitSimdi && x.Durum == "A").OrderBy(x => x.BinaKullaniciAdi).ToList();
+                return View();
+            }
+
             var varmi = db.Dairelers.Where(x => x.BinaID == daireler.BinaID && x.TC == daireler.TC && x.DaireNo == daireler.DaireNo && x.Telefon == daireler.Telefon).FirstOrDefault();
             if (varmi != null)
             {
+                LoginRateLimiter.Sifirla(ipKey);
                 Session["DaireID"] = varmi.DaireID;
                 Session["AdSoyad"] = varmi.AdSoyad;
                 Session["DaireNo"] = varmi.DaireNo;
@@ -86,10 +98,13 @@ namespace ApartmanAidatTakip.Controllers
                 Session["BinaID"] = varmi.BinaID;
                 return RedirectToAction("Index", "Daire");
             }
+
+            LoginRateLimiter.HataKaydet(ipKey);
+            int yeniKilit = LoginRateLimiter.KalanKilitSaniye(ipKey);
             DateTime simdi = DateTime.Now.Date;
             ViewBag.Binalar = db.Binalars.Where(x => x.SozlesmeBitisTarihi >= simdi && x.Durum == "A").OrderBy(x => x.BinaKullaniciAdi).ToList();
 
-            ViewBag.Uyari = "Hatalı Giriş";
+            ViewBag.Uyari = yeniKilit > 0 ? LoginRateLimiter.KilitMesaji(yeniKilit) : "Hatalı Giriş";
             return View();
         }
 

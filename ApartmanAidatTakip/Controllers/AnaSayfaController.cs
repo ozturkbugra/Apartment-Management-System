@@ -85,10 +85,21 @@ namespace ApartmanAidatTakip.Controllers
         [HttpPost]
         public ActionResult Login(string Parola, int? BinaID, string KullaniciAdi, bool? remember)
         {
+            string ipKey = Request.UserHostAddress ?? "unknown";
+            int kalanKilit = LoginRateLimiter.KalanKilitSaniye(ipKey);
+            if (kalanKilit > 0)
+            {
+                ViewBag.Uyari = LoginRateLimiter.KilitMesaji(kalanKilit);
+                DateTime kilitSimdi = DateTime.Now.Date;
+                ViewBag.Binalar = db.Binalars.Where(x => x.SozlesmeBitisTarihi >= kilitSimdi && x.Durum == "A").OrderBy(x => x.BinaKullaniciAdi).ToList();
+                return View();
+            }
+
             string p = Crypto.Hash(Parola, "MD5");
             var a = db.KullanicilarViews.Where(x => x.KullaniciAdi == KullaniciAdi && x.Parola == p && x.BinaID == BinaID && x.KullaniciDurumu == "A").FirstOrDefault();
             if (a != null)
             {
+                LoginRateLimiter.Sifirla(ipKey);
                 // İki adımlı doğrulama aktif mi? (Google Authenticator)
                 bool ikiAdimAktif = db.Database.SqlQuery<bool>(
                     "SELECT ISNULL(TwoFactorEnabled, 0) FROM Kullanicilar WHERE KullaniciID = @p0",
@@ -107,7 +118,11 @@ namespace ApartmanAidatTakip.Controllers
             }
             else
             {
-                ViewBag.Uyari = "Kullanıcı Adı, Şifre veya bina yanlış";
+                LoginRateLimiter.HataKaydet(ipKey);
+                int yeniKilit = LoginRateLimiter.KalanKilitSaniye(ipKey);
+                ViewBag.Uyari = yeniKilit > 0
+                    ? LoginRateLimiter.KilitMesaji(yeniKilit)
+                    : "Kullanıcı Adı, Şifre veya bina yanlış";
                 DateTime simdi = DateTime.Now.Date;
                 ViewBag.Binalar = db.Binalars.Where(x => x.SozlesmeBitisTarihi >= simdi && x.Durum == "A").OrderBy(x => x.BinaKullaniciAdi).ToList();
 
@@ -154,6 +169,14 @@ namespace ApartmanAidatTakip.Controllers
                 return RedirectToAction("Login", "AnaSayfa");
             }
 
+            string ipKey = Request.UserHostAddress ?? "unknown";
+            int kalanKilit = LoginRateLimiter.KalanKilitSaniye(ipKey);
+            if (kalanKilit > 0)
+            {
+                ViewBag.Uyari = LoginRateLimiter.KilitMesaji(kalanKilit);
+                return View();
+            }
+
             int kullaniciID = Convert.ToInt32(Session["Pending2FA_KullaniciID"]);
             bool remember = Session["Pending2FA_Remember"] != null && (bool)Session["Pending2FA_Remember"];
 
@@ -170,9 +193,15 @@ namespace ApartmanAidatTakip.Controllers
 
             if (!dogru)
             {
-                ViewBag.Uyari = "Doğrulama kodu hatalı veya süresi dolmuş. Lütfen tekrar deneyin.";
+                LoginRateLimiter.HataKaydet(ipKey);
+                int yeniKilit = LoginRateLimiter.KalanKilitSaniye(ipKey);
+                ViewBag.Uyari = yeniKilit > 0
+                    ? LoginRateLimiter.KilitMesaji(yeniKilit)
+                    : "Doğrulama kodu hatalı veya süresi dolmuş. Lütfen tekrar deneyin.";
                 return View();
             }
+
+            LoginRateLimiter.Sifirla(ipKey);
 
             // Kod doğru: kullanıcıyı yeniden çekip çerezi oluştur ve oturumu başlat.
             var a = db.KullanicilarViews.FirstOrDefault(x => x.KullaniciID == kullaniciID && x.KullaniciDurumu == "A");

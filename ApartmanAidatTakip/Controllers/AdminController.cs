@@ -1,4 +1,5 @@
-﻿using ApartmanAidatTakip.Models;
+﻿using ApartmanAidatTakip.Helpers;
+using ApartmanAidatTakip.Models;
 using Microsoft.Ajax.Utilities;
 using System;
 using System.Collections.Generic;
@@ -20,18 +21,287 @@ namespace ApartmanAidatTakip.Controllers
         [HttpPost]
         public ActionResult Login(Kullanicilar kullanicilar, string Parola)
         {
+            string ipKey = Request.UserHostAddress ?? "unknown";
+            int kalanKilit = LoginRateLimiter.KalanKilitSaniye(ipKey);
+            if (kalanKilit > 0)
+            {
+                ViewBag.Uyari = LoginRateLimiter.KilitMesaji(kalanKilit);
+                return View();
+            }
 
             var s = Crypto.Hash(Parola, "MD5");
             var l = db.Kullanicilars.FirstOrDefault(x => x.KullaniciAdi == kullanicilar.KullaniciAdi && x.Yetki == "1" && x.Durum=="A");
 
             if (l != null && l.Parola == s)
             {
+                LoginRateLimiter.Sifirla(ipKey);
+
+                // İki adımlı doğrulama aktifse önce kod istenir.
+                if (Ad_TwoFactorEnabled(l.KullaniciID))
+                {
+                    Session["Pending2FA_AdminID"] = l.KullaniciID;
+                    Session["Pending2FA_AdminAd"] = l.KullaniciAdi;
+                    return RedirectToAction("LoginDogrula", "Admin");
+                }
+
                 Session["AdminID"] = l.KullaniciID;
                 Session["KullaniciAdi"] = l.KullaniciAdi;
                 return RedirectToAction("Index", "Admin");
             }
-            ViewBag.Uyari = "Kullanıcı adı veya şifre yanlış";
+
+            LoginRateLimiter.HataKaydet(ipKey);
+            int yeniKilit = LoginRateLimiter.KalanKilitSaniye(ipKey);
+            ViewBag.Uyari = yeniKilit > 0 ? LoginRateLimiter.KilitMesaji(yeniKilit) : "Kullanıcı adı veya şifre yanlış";
             return View();
+        }
+
+        // ================== ADMIN 2FA ORTAK YARDIMCILAR ==================
+        private bool Ad_TwoFactorEnabled(int kullaniciID)
+        {
+            return db.Database.SqlQuery<bool>(
+                "SELECT ISNULL(TwoFactorEnabled, 0) FROM Kullanicilar WHERE KullaniciID = @p0",
+                kullaniciID).FirstOrDefault();
+        }
+
+        private string Ad_TwoFactorSecret(int kullaniciID)
+        {
+            return db.Database.SqlQuery<string>(
+                "SELECT TwoFactorSecret FROM Kullanicilar WHERE KullaniciID = @p0",
+                kullaniciID).FirstOrDefault();
+        }
+
+        // Girilen kod bir yedek koda uyuyorsa tüketir (tek kullanımlık) ve true döner.
+        private bool Ad_YedekKoduTuket(int kullaniciID, string kod)
+        {
+            string kodlar = db.Database.SqlQuery<string>(
+                "SELECT TwoFactorRecoveryCodes FROM Kullanicilar WHERE KullaniciID = @p0",
+                kullaniciID).FirstOrDefault();
+            if (string.IsNullOrEmpty(kodlar)) return false;
+
+            var liste = kodlar.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            string hash = TwoFactorHelper.HashRecoveryCode(kod);
+            if (!liste.Contains(hash)) return false;
+
+            liste.Remove(hash);
+            string yeni = string.Join(";", liste);
+            object yeniParam = string.IsNullOrEmpty(yeni) ? (object)DBNull.Value : yeni;
+            db.Database.ExecuteSqlCommand(
+                "UPDATE Kullanicilar SET TwoFactorRecoveryCodes = @p0 WHERE KullaniciID = @p1",
+                yeniParam, kullaniciID);
+            return true;
+        }
+
+        // ================== ADMIN GİRİŞ 2FA DOĞRULAMA ==================
+        public ActionResult LoginDogrula()
+        {
+            if (Session["Pending2FA_AdminID"] == null)
+                return RedirectToAction("Login", "Admin");
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult LoginDogrula(string kod)
+        {
+            if (Session["Pending2FA_AdminID"] == null)
+                return RedirectToAction("Login", "Admin");
+
+            string ipKey = Request.UserHostAddress ?? "unknown";
+            int kalanKilit = LoginRateLimiter.KalanKilitSaniye(ipKey);
+            if (kalanKilit > 0)
+            {
+                ViewBag.Uyari = LoginRateLimiter.KilitMesaji(kalanKilit);
+                return View();
+            }
+
+            int kullaniciID = Convert.ToInt32(Session["Pending2FA_AdminID"]);
+            string secret = Ad_TwoFactorSecret(kullaniciID);
+
+            bool dogru = TwoFactorHelper.ValidateCode(secret, kod);
+            if (!dogru) dogru = Ad_YedekKoduTuket(kullaniciID, kod);
+
+            if (!dogru)
+            {
+                LoginRateLimiter.HataKaydet(ipKey);
+                int yeniKilit = LoginRateLimiter.KalanKilitSaniye(ipKey);
+                ViewBag.Uyari = yeniKilit > 0
+                    ? LoginRateLimiter.KilitMesaji(yeniKilit)
+                    : "Doğrulama kodu hatalı veya süresi dolmuş. Lütfen tekrar deneyin.";
+                return View();
+            }
+
+            LoginRateLimiter.Sifirla(ipKey);
+            Session["AdminID"] = kullaniciID;
+            Session["KullaniciAdi"] = Session["Pending2FA_AdminAd"];
+            Session.Remove("Pending2FA_AdminID");
+            Session.Remove("Pending2FA_AdminAd");
+            return RedirectToAction("Index", "Admin");
+        }
+
+        // ================== ADMIN GÜVENLİK (2FA KURULUM) ==================
+        public ActionResult Guvenlik()
+        {
+            if (Session["AdminID"] == null)
+                return RedirectToAction("Login", "Admin");
+
+            int kullaniciID = Convert.ToInt32(Session["AdminID"]);
+            bool aktif = Ad_TwoFactorEnabled(kullaniciID);
+            ViewBag.IkiAdimAktif = aktif;
+
+            if (aktif)
+            {
+                string kodlar = db.Database.SqlQuery<string>(
+                    "SELECT TwoFactorRecoveryCodes FROM Kullanicilar WHERE KullaniciID = @p0",
+                    kullaniciID).FirstOrDefault();
+                ViewBag.IkiAdimYedekKalan = string.IsNullOrEmpty(kodlar)
+                    ? 0 : kodlar.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            }
+            else
+            {
+                string secret = Ad_TwoFactorSecret(kullaniciID);
+                if (string.IsNullOrEmpty(secret))
+                {
+                    secret = TwoFactorHelper.GenerateSecret();
+                    db.Database.ExecuteSqlCommand(
+                        "UPDATE Kullanicilar SET TwoFactorSecret = @p0 WHERE KullaniciID = @p1",
+                        secret, kullaniciID);
+                }
+                string ad = Session["KullaniciAdi"]?.ToString() ?? "admin";
+                ViewBag.IkiAdimSecret = secret;
+                ViewBag.IkiAdimOtpUri = TwoFactorHelper.GetOtpAuthUri(secret, ad, "Apartman Aidat - Admin");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public JsonResult IkiAdimAktiflestir(string kod)
+        {
+            if (Session["AdminID"] == null) return Json(new { success = false, message = "Oturum süresi dolmuş." });
+            int kullaniciID = Convert.ToInt32(Session["AdminID"]);
+            string secret = Ad_TwoFactorSecret(kullaniciID);
+
+            if (string.IsNullOrEmpty(secret))
+                return Json(new { success = false, message = "Gizli anahtar bulunamadı, sayfayı yenileyin." });
+            if (Ad_TwoFactorEnabled(kullaniciID))
+                return Json(new { success = true, message = "İki adımlı doğrulama zaten aktif." });
+            if (!TwoFactorHelper.ValidateCode(secret, kod))
+                return Json(new { success = false, message = "Girdiğiniz kod hatalı veya süresi dolmuş." });
+
+            var yedekKodlar = TwoFactorHelper.GenerateRecoveryCodes(8);
+            string hashler = string.Join(";", yedekKodlar.Select(TwoFactorHelper.HashRecoveryCode));
+            db.Database.ExecuteSqlCommand(
+                "UPDATE Kullanicilar SET TwoFactorEnabled = 1, TwoFactorRecoveryCodes = @p0 WHERE KullaniciID = @p1",
+                hashler, kullaniciID);
+
+            return Json(new { success = true, message = "İki adımlı doğrulama aktifleştirildi.", recoveryCodes = yedekKodlar });
+        }
+
+        [HttpPost]
+        public JsonResult IkiAdimYedekYenile()
+        {
+            if (Session["AdminID"] == null) return Json(new { success = false, message = "Oturum süresi dolmuş." });
+            int kullaniciID = Convert.ToInt32(Session["AdminID"]);
+            if (!Ad_TwoFactorEnabled(kullaniciID))
+                return Json(new { success = false, message = "İki adımlı doğrulama aktif değil." });
+
+            var yedekKodlar = TwoFactorHelper.GenerateRecoveryCodes(8);
+            string hashler = string.Join(";", yedekKodlar.Select(TwoFactorHelper.HashRecoveryCode));
+            db.Database.ExecuteSqlCommand(
+                "UPDATE Kullanicilar SET TwoFactorRecoveryCodes = @p0 WHERE KullaniciID = @p1",
+                hashler, kullaniciID);
+            return Json(new { success = true, recoveryCodes = yedekKodlar });
+        }
+
+        [HttpPost]
+        public JsonResult IkiAdimKapat()
+        {
+            if (Session["AdminID"] == null) return Json(new { success = false, message = "Oturum süresi dolmuş." });
+            int kullaniciID = Convert.ToInt32(Session["AdminID"]);
+            db.Database.ExecuteSqlCommand(
+                "UPDATE Kullanicilar SET TwoFactorEnabled = 0, TwoFactorSecret = NULL, TwoFactorRecoveryCodes = NULL WHERE KullaniciID = @p0",
+                kullaniciID);
+            return Json(new { success = true, message = "İki adımlı doğrulama kapatıldı." });
+        }
+
+        // ================== ADMIN ŞİFREMİ UNUTTUM ==================
+        public ActionResult SifremiUnuttum()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult SifremiUnuttum(string KullaniciAdi)
+        {
+            var l = db.Kullanicilars.FirstOrDefault(x => x.KullaniciAdi == KullaniciAdi && x.Yetki == "1" && x.Durum == "A");
+            if (l != null)
+            {
+                if (Ad_TwoFactorEnabled(l.KullaniciID))
+                {
+                    Session["AdminReset_KullaniciID"] = l.KullaniciID;
+                    return RedirectToAction("SifreYenile", "Admin");
+                }
+                ViewBag.Uyari = "Bu hesapta iki adımlı doğrulama aktif olmadığı için şifre sıfırlanamıyor.";
+            }
+            else
+            {
+                ViewBag.Uyari = "Yönetici kullanıcı adı hatalı.";
+            }
+            return View();
+        }
+
+        public ActionResult SifreYenile()
+        {
+            if (Session["AdminReset_KullaniciID"] == null)
+                return RedirectToAction("SifremiUnuttum", "Admin");
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult SifreYenile(string kod, string Parola, string Parola2)
+        {
+            if (Session["AdminReset_KullaniciID"] == null)
+                return RedirectToAction("SifremiUnuttum", "Admin");
+
+            int kullaniciID = Convert.ToInt32(Session["AdminReset_KullaniciID"]);
+
+            if (string.IsNullOrWhiteSpace(Parola) || Parola != Parola2)
+            {
+                ViewBag.Uyari = "Şifreler boş olamaz ve birbiriyle uyuşmalıdır.";
+                return View();
+            }
+
+            string secret = Ad_TwoFactorSecret(kullaniciID);
+            bool dogru = TwoFactorHelper.ValidateCode(secret, kod);
+            if (!dogru) dogru = Ad_YedekKoduTuket(kullaniciID, kod);
+
+            if (!dogru)
+            {
+                ViewBag.Uyari = "Doğrulama kodu hatalı veya süresi dolmuş. Lütfen tekrar deneyin.";
+                return View();
+            }
+
+            var k = db.Kullanicilars.FirstOrDefault(x => x.KullaniciID == kullaniciID);
+            if (k == null)
+            {
+                Session.Remove("AdminReset_KullaniciID");
+                return RedirectToAction("Login", "Admin");
+            }
+
+            k.Parola = Crypto.Hash(Parola, "MD5");
+            db.SaveChanges();
+
+            db.Hareketlers.Add(new Hareketler()
+            {
+                BinaID = k.BinaID ?? 0,
+                KullaniciID = kullaniciID,
+                OlayAciklama = "Yönetici iki adımlı doğrulama ile şifresini sıfırladı",
+                Tarih = DateTime.Now,
+                Tur = "Güncelleme",
+            });
+            db.SaveChanges();
+
+            Session.Remove("AdminReset_KullaniciID");
+            TempData["Basarili"] = "Şifreniz başarıyla güncellendi. Yeni şifrenizle giriş yapabilirsiniz.";
+            return RedirectToAction("Login", "Admin");
         }
         public ActionResult Index()
         {

@@ -82,10 +82,17 @@
                                         <div class="col-12">
                                             <a class="btn btn-warning w-100" href="/AnaSayfa">Siteye Geri Dön</a>
                                         </div>
+                                        <div class="col-12 text-center">
+                                            <a class="small" href="/Admin/SifremiUnuttum">Şifremi Unuttum</a>
+                                        </div>
                                         <div class="col-12">
                                             @if (!string.IsNullOrEmpty(ViewBag.Uyari))
                                             {
                                                 <div class="alert alert-danger text-center">@ViewBag.Uyari</div>
+                                            }
+                                            @if (TempData["Basarili"] != null)
+                                            {
+                                                <div class="alert alert-success text-center">@TempData["Basarili"]</div>
                                             }
                                         </div>
                                     </form>

@@ -192,6 +192,7 @@
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\AnaSayfaController.cs" />
     <Compile Include="Controllers\AyarlarController.cs" />
+    <Compile Include="Helpers\LoginRateLimiter.cs" />
     <Compile Include="Helpers\TwoFactorHelper.cs" />
     <Compile Include="Controllers\DaireController.cs" />
     <Compile Include="Controllers\MakbuzController.cs" />
@@ -758,6 +759,10 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_AdminLayout.cshtml" />
     <Content Include="Views\Admin\Login.cshtml" />
+    <Content Include="Views\Admin\LoginDogrula.cshtml" />
+    <Content Include="Views\Admin\Guvenlik.cshtml" />
+    <Content Include="Views\Admin\SifremiUnuttum.cshtml" />
+    <Content Include="Views\Admin\SifreYenile.cshtml" />
     <Content Include="Views\Admin\Index.cshtml" />
     <Content Include="Views\Admin\Binalar.cshtml" />
     <Content Include="Views\Admin\SilinenBinalar.cshtml" />
@@ -767,6 +772,9 @@
     <Content Include="Views\Admin\SilinenKullanicilar.cshtml" />
     <Content Include="Views\Admin\Password.cshtml" />
     <Content Include="Views\AnaSayfa\Login.cshtml" />
+    <Content Include="Views\AnaSayfa\LoginDogrula.cshtml" />
+    <Content Include="Views\AnaSayfa\SifremiUnuttum.cshtml" />
+    <Content Include="Views\AnaSayfa\SifreYenile.cshtml" />
     <Content Include="Views\AnaSayfa\Index.cshtml" />
     <Content Include="Views\AnaSayfa\Sakinler.cshtml" />
     <Content Include="Views\Admin\Hareketler.cshtml" />
