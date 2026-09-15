@@ -130,6 +130,28 @@
         opacity: 0.4;
         pointer-events: none;
     }
+
+    /* YEDEK KODLAR MODAL (açık tasarım) */
+    .yedek-modal-box {
+        background: #fff;
+        color: #344767;
+    }
+
+    .yedek-modal-baslik {
+        color: #1a1a1a;
+    }
+
+    .yedek-modal-aciklama {
+        color: #6c757d;
+    }
+
+    .yedek-kod-item {
+        background: #f1f3f5;
+        color: #1a1a1a;
+        padding: 8px 10px;
+        border-radius: 8px;
+        text-align: center;
+    }
 </style>
 
 @{
@@ -222,7 +244,128 @@
             </div>
         </div>
     </div>
+
+    <!-- 3. ÖZELLİK: İKİ ADIMLI DOĞRULAMA (GOOGLE AUTHENTICATOR) -->
+    <div class="row g-4 mt-1">
+        <div class="col-12">
+            <div class="card glass-card primary-glow">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="glass-icon shadow-sm me-3" style="background: var(--grad-success)">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">İki Adımlı Doğrulama (Google Authenticator)</h5>
+                            <small class="text-muted">Girişlerinizi tek kullanımlık kod ile ekstra koruma altına alın</small>
+                        </div>
+                    </div>
+
+                    @if (ViewBag.IkiAdimAktif == true)
+                    {
+                        <div class="inner-info-box mt-2" style="border-left-color:#059669;">
+                            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                                <div>
+                                    <h6 class="text-success fw-bold mb-1">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Aktifleştirildi
+                                    </h6>
+                                    <span class="text-secondary small">
+                                        Hesabınız iki adımlı doğrulama ile korunuyor. Her girişte Authenticator kodunuz istenecektir.
+                                    </span>
+                                </div>
+                                <button id="btnIkiAdimKapat" class="btn btn-outline-danger btn-sm flex-shrink-0">
+                                    <i class="bi bi-x-circle me-1"></i> Devre Dışı Bırak
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="inner-info-box mt-3">
+                            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                                <div>
+                                    <h6 class="text-primary fw-bold mb-1">
+                                        <i class="bi bi-key-fill me-1"></i> Yedek Kodlar
+                                    </h6>
+                                    <span class="text-secondary small">
+                                        Telefonunuza erişemediğinizde giriş için kullanılır.
+                                        Kalan kullanılabilir kod: <b>@ViewBag.IkiAdimYedekKalan</b>
+                                    </span>
+                                </div>
+                                <button id="btnYedekYenile" class="btn btn-outline-primary btn-sm flex-shrink-0">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Yeni Kodlar Üret
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row g-4 align-items-center">
+                            <div class="col-md-4 text-center">
+                                <div id="qrcode" class="d-inline-block p-2 bg-white rounded shadow-sm"></div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="inner-info-box">
+                                    <ol class="pl-3 mb-3 text-secondary small" style="line-height:1.8;">
+                                        <li>Telefonunuza <b>Google Authenticator</b> (veya benzeri) uygulamasını kurun.</li>
+                                        <li>Uygulamada <b>QR kodu tarayın</b> ya da aşağıdaki anahtarı elle girin.</li>
+                                        <li>Uygulamada beliren <b>6 haneli kodu</b> aşağıya yazıp aktifleştirin.</li>
+                                    </ol>
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted mb-1">Elle giriş anahtarı:</label>
+                                        <code class="d-block p-2 bg-light rounded" style="font-size:0.95rem; letter-spacing:1px;">@ViewBag.IkiAdimSecret</code>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-sm-6">
+                                            <input type="text" id="ikiAdimKod" class="form-control text-center"
+                                                   inputmode="numeric" maxlength="6" placeholder="6 haneli kod"
+                                                   style="letter-spacing:0.4rem; font-weight:600;">
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <button id="btnIkiAdimAktiflestir" class="btn btn-success w-100">
+                                                <i class="bi bi-shield-check me-1"></i> Aktifleştir
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="ikiAdimMesaj" class="small mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- YEDEK KODLAR MODAL (aktifleştirme ve yenileme sonrası kodları bir kez gösterir) -->
+<div id="yedekModal" style="display:none; position:fixed; inset:0; z-index:1080; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+    <div class="yedek-modal-box" style="border-radius:16px; max-width:420px; width:92%; padding:28px; box-shadow:0 10px 40px rgba(0,0,0,0.25);">
+        <h5 class="fw-bold yedek-modal-baslik mb-1"><i class="bi bi-key-fill text-primary me-1"></i> Yedek Kodlarınız</h5>
+        <p class="yedek-modal-aciklama small mb-3">
+            Bu kodları güvenli bir yerde saklayın. <b>Her kod yalnızca bir kez</b> kullanılabilir ve bu ekran
+            tekrar gösterilmeyecektir. Authenticator uygulamanıza erişemezseniz bu kodlarla giriş yapabilirsiniz.
+        </p>
+        <div id="yedekKodListe" class="mb-3" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-family:monospace; font-size:1.05rem; letter-spacing:1px;"></div>
+        <div class="d-flex gap-2">
+            <button type="button" id="btnKodKopyala" class="btn btn-outline-secondary btn-sm flex-grow-1"><i class="bi bi-clipboard me-1"></i> Kopyala</button>
+            <button type="button" id="btnKodKapat" class="btn btn-success btn-sm flex-grow-1">Kaydettim, Kapat</button>
+        </div>
+    </div>
+</div>
+
+@if (ViewBag.IkiAdimAktif != true)
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        (function () {
+            var otpUri = "@Html.Raw(ViewBag.IkiAdimOtpUri)";
+            new QRCode(document.getElementById("qrcode"), {
+                text: otpUri,
+                width: 180,
+                height: 180,
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        })();
+    </script>
+}
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -256,6 +399,123 @@
                     wrapper.removeClass('disabled-switch');
                     alert('Sistem hatası oluştu, lütfen tekrar deneyin.');
                     checkbox.prop('checked', !durum); // Hata durumunda butonu eski konumuna geri çek
+                }
+            });
+        });
+
+        // --- İKİ ADIMLI DOĞRULAMA: AKTİFLEŞTİR ---
+        $('#btnIkiAdimAktiflestir').click(function () {
+            var btn = $(this);
+            var kod = $('#ikiAdimKod').val();
+            var mesaj = $('#ikiAdimMesaj');
+
+            if (!kod || kod.length !== 6) {
+                mesaj.html('<span class="text-danger">Lütfen 6 haneli kodu giriniz.</span>');
+                return;
+            }
+
+            btn.prop('disabled', true);
+            mesaj.html('<span class="text-muted">Doğrulanıyor...</span>');
+
+            $.ajax({
+                url: '/Ayarlar/IkiAdimAktiflestir',
+                type: 'POST',
+                data: { kod: kod },
+                success: function (response) {
+                    if (response.success) {
+                        mesaj.html('<span class="text-success">' + response.message + '</span>');
+                        // Yedek kodları bir kez göster; modal kapanınca sayfayı yenile.
+                        yedekModalGoster(response.recoveryCodes, true);
+                    } else {
+                        btn.prop('disabled', false);
+                        mesaj.html('<span class="text-danger">' + response.message + '</span>');
+                    }
+                },
+                error: function () {
+                    btn.prop('disabled', false);
+                    mesaj.html('<span class="text-danger">Sistem hatası oluştu, lütfen tekrar deneyin.</span>');
+                }
+            });
+        });
+
+        // --- YEDEK KODLARI YENİLE ---
+        $('#btnYedekYenile').click(function () {
+            if (!confirm('Yeni yedek kodlar üretilecek ve eski kodlarınız geçersiz olacaktır. Devam edilsin mi?')) {
+                return;
+            }
+            var btn = $(this);
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: '/Ayarlar/IkiAdimYedekYenile',
+                type: 'POST',
+                success: function (response) {
+                    btn.prop('disabled', false);
+                    if (response.success) {
+                        yedekModalGoster(response.recoveryCodes, true);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    btn.prop('disabled', false);
+                    alert('Sistem hatası oluştu, lütfen tekrar deneyin.');
+                }
+            });
+        });
+
+        // --- YEDEK KODLAR MODAL YARDIMCILARI ---
+        var yedekReloadOnClose = false;
+        function yedekModalGoster(kodlar, reloadOnClose) {
+            if (!kodlar || !kodlar.length) { if (reloadOnClose) location.reload(); return; }
+            yedekReloadOnClose = reloadOnClose === true;
+            var html = '';
+            $.each(kodlar, function (i, k) {
+                html += '<div class="yedek-kod-item">' + k + '</div>';
+            });
+            $('#yedekKodListe').html(html);
+            $('#yedekModal').css('display', 'flex').data('kodlar', kodlar.join('\n'));
+        }
+
+        $('#btnKodKapat').click(function () {
+            $('#yedekModal').hide();
+            if (yedekReloadOnClose) location.reload();
+        });
+
+        $('#btnKodKopyala').click(function () {
+            var metin = $('#yedekModal').data('kodlar') || '';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(metin);
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = metin; document.body.appendChild(ta); ta.select();
+                document.execCommand('copy'); document.body.removeChild(ta);
+            }
+            $(this).html('<i class="bi bi-check2 me-1"></i> Kopyalandı');
+        });
+
+        // --- İKİ ADIMLI DOĞRULAMA: DEVRE DIŞI BIRAK ---
+        $('#btnIkiAdimKapat').click(function () {
+            if (!confirm('İki adımlı doğrulamayı devre dışı bırakmak istediğinize emin misiniz?')) {
+                return;
+            }
+            var btn = $(this);
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: '/Ayarlar/IkiAdimKapat',
+                type: 'POST',
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        btn.prop('disabled', false);
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    btn.prop('disabled', false);
+                    alert('Sistem hatası oluştu, lütfen tekrar deneyin.');
                 }
             });
         });

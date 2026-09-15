@@ -194,7 +194,20 @@ namespace ApartmanAidatTakip.Controllers
             DateTime Tarih = DateTime.Now.Date;
             ViewBag.Binalar = db.Binalars.Where(x => x.Durum == "A" && x.SozlesmeBitisTarihi >= Tarih).ToList();
             ViewBag.b = db.Kullanicilars.Where(x => x.KullaniciID == id).FirstOrDefault();
+            ViewBag.IkiAdimAktif = db.Database.SqlQuery<bool>(
+                "SELECT ISNULL(TwoFactorEnabled, 0) FROM Kullanicilar WHERE KullaniciID = @p0", id).FirstOrDefault();
             return View();
+        }
+
+        // Kullanıcı Authenticator'a ve yedek kodlarına erişimini tamamen kaybederse,
+        // yöneticinin (admin) 2FA'yı sıfırlaması için yedek kapı.
+        public ActionResult IkiAdimSifirla(int id)
+        {
+            db.Database.ExecuteSqlCommand(
+                "UPDATE Kullanicilar SET TwoFactorEnabled = 0, TwoFactorSecret = NULL, TwoFactorRecoveryCodes = NULL WHERE KullaniciID = @p0",
+                id);
+            TempData["Basarili"] = "Kullanıcının iki adımlı doğrulaması sıfırlandı. Kullanıcı tekrar kurulum yapabilir.";
+            return RedirectToAction("KullaniciDuzenle", "Admin", new { id = id });
         }
 
         [HttpPost]

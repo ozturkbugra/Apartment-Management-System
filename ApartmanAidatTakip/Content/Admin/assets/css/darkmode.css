@@ -711,3 +711,21 @@ html.dark-mode .alert-info {
     border-color: rgba(13, 202, 240, 0.35) !important;
     color: #9fe6f5 !important;
 }
+
+/* --- İki adımlı doğrulama: yedek kodlar modalı --- */
+html.dark-mode .yedek-modal-box {
+    background: var(--dm-surface) !important;
+    color: var(--dm-text) !important;
+    border: 1px solid var(--dm-border) !important;
+}
+html.dark-mode .yedek-modal-baslik { color: var(--dm-text) !important; }
+html.dark-mode .yedek-modal-aciklama { color: var(--dm-muted) !important; }
+html.dark-mode .yedek-kod-item {
+    background: var(--dm-surface-2) !important;
+    color: var(--dm-text) !important;
+}
+/* Elle giriş anahtarı (<code>) koyu zeminde okunur olsun */
+html.dark-mode .inner-info-box code {
+    background: var(--dm-surface-2) !important;
+    color: #86e0b2 !important;
+}

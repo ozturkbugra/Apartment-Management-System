@@ -1,4 +1,5 @@
-﻿using ApartmanAidatTakip.Models;
+﻿using ApartmanAidatTakip.Helpers;
+using ApartmanAidatTakip.Models;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
 using iTextSharp.text;
@@ -88,32 +89,20 @@ namespace ApartmanAidatTakip.Controllers
             var a = db.KullanicilarViews.Where(x => x.KullaniciAdi == KullaniciAdi && x.Parola == p && x.BinaID == BinaID && x.KullaniciDurumu == "A").FirstOrDefault();
             if (a != null)
             {
+                // İki adımlı doğrulama aktif mi? (Google Authenticator)
+                bool ikiAdimAktif = db.Database.SqlQuery<bool>(
+                    "SELECT ISNULL(TwoFactorEnabled, 0) FROM Kullanicilar WHERE KullaniciID = @p0",
+                    a.KullaniciID).FirstOrDefault();
 
-                var tarih = a.SozlesmeBitisTarihi;
-
-                HttpCookie userCookie = new HttpCookie("KullaniciBilgileri");
-                userCookie.Values["KullaniciID"] = a.KullaniciID.ToString();
-                userCookie.Values["AdSoyad"] = HttpUtility.UrlEncode(a.AdSoyad.ToString());
-                userCookie.Values["KullaniciAdi"] = HttpUtility.UrlEncode(a.KullaniciAdi.ToString());
-                userCookie.Values["BinaID"] = a.BinaID.ToString();
-                userCookie.Values["BinaAdi"] = HttpUtility.UrlEncode(a.BinaAdi.ToString());
-                userCookie.Values["BinaAdres"] = HttpUtility.UrlEncode(a.Adres.ToString());
-                userCookie.Values["Parola"] = HttpUtility.UrlEncode(a.Parola.ToString());
-                userCookie.Values["LisansTarih"] = HttpUtility.UrlEncode(tarih.Value.ToString("dd/MM/yyyy"));
-
-                // Cookie'nin geçerlilik süresini belirleyin (örneğin 1 gün)
-                if (remember != null)
+                if (ikiAdimAktif)
                 {
-                    userCookie.Expires = DateTime.Now.AddDays(365); // 1 ay
-                }
-                else
-                {
-                    userCookie.Expires = DateTime.Now.AddDays(1); // 1 gün
+                    // Parola doğru; henüz oturum açmıyoruz. Kod doğrulama ekranına yönlendiriyoruz.
+                    Session["Pending2FA_KullaniciID"] = a.KullaniciID;
+                    Session["Pending2FA_Remember"] = (remember != null);
+                    return RedirectToAction("LoginDogrula", "AnaSayfa");
                 }
 
-
-                // Cookie'yi ekle
-                Response.Cookies.Add(userCookie);
+                GirisCereziOlustur(a, remember != null);
                 return RedirectToAction("Index", "AnaSayfa");
             }
             else
@@ -125,6 +114,106 @@ namespace ApartmanAidatTakip.Controllers
                 return View();
             }
 
+        }
+
+        // Başarılı giriş sonrası kullanıcı çerezini oluşturur (normal giriş ve 2FA sonrası ortak kullanılır).
+        private void GirisCereziOlustur(KullanicilarView a, bool remember)
+        {
+            var tarih = a.SozlesmeBitisTarihi;
+
+            HttpCookie userCookie = new HttpCookie("KullaniciBilgileri");
+            userCookie.Values["KullaniciID"] = a.KullaniciID.ToString();
+            userCookie.Values["AdSoyad"] = HttpUtility.UrlEncode(a.AdSoyad.ToString());
+            userCookie.Values["KullaniciAdi"] = HttpUtility.UrlEncode(a.KullaniciAdi.ToString());
+            userCookie.Values["BinaID"] = a.BinaID.ToString();
+            userCookie.Values["BinaAdi"] = HttpUtility.UrlEncode(a.BinaAdi.ToString());
+            userCookie.Values["BinaAdres"] = HttpUtility.UrlEncode(a.Adres.ToString());
+            userCookie.Values["Parola"] = HttpUtility.UrlEncode(a.Parola.ToString());
+            userCookie.Values["LisansTarih"] = HttpUtility.UrlEncode(tarih.Value.ToString("dd/MM/yyyy"));
+
+            userCookie.Expires = remember ? DateTime.Now.AddDays(365) : DateTime.Now.AddDays(1);
+
+            Response.Cookies.Add(userCookie);
+        }
+
+        // 2FA aktif kullanıcılar için kod giriş ekranı.
+        public ActionResult LoginDogrula()
+        {
+            if (Session["Pending2FA_KullaniciID"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult LoginDogrula(string kod)
+        {
+            if (Session["Pending2FA_KullaniciID"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            int kullaniciID = Convert.ToInt32(Session["Pending2FA_KullaniciID"]);
+            bool remember = Session["Pending2FA_Remember"] != null && (bool)Session["Pending2FA_Remember"];
+
+            string secret = db.Database.SqlQuery<string>(
+                "SELECT TwoFactorSecret FROM Kullanicilar WHERE KullaniciID = @p0",
+                kullaniciID).FirstOrDefault();
+
+            // Önce Authenticator kodu, olmadıysa tek kullanımlık yedek kod denenir.
+            bool dogru = TwoFactorHelper.ValidateCode(secret, kod);
+            if (!dogru)
+            {
+                dogru = YedekKoduTuket(kullaniciID, kod);
+            }
+
+            if (!dogru)
+            {
+                ViewBag.Uyari = "Doğrulama kodu hatalı veya süresi dolmuş. Lütfen tekrar deneyin.";
+                return View();
+            }
+
+            // Kod doğru: kullanıcıyı yeniden çekip çerezi oluştur ve oturumu başlat.
+            var a = db.KullanicilarViews.FirstOrDefault(x => x.KullaniciID == kullaniciID && x.KullaniciDurumu == "A");
+            if (a == null)
+            {
+                Session.Remove("Pending2FA_KullaniciID");
+                Session.Remove("Pending2FA_Remember");
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            GirisCereziOlustur(a, remember);
+            Session.Remove("Pending2FA_KullaniciID");
+            Session.Remove("Pending2FA_Remember");
+            return RedirectToAction("Index", "AnaSayfa");
+        }
+
+        // Girilen kod bir yedek koda uyuyorsa onu tüketir (bir daha kullanılamaz) ve true döner.
+        private bool YedekKoduTuket(int kullaniciID, string kod)
+        {
+            string kodlar = db.Database.SqlQuery<string>(
+                "SELECT TwoFactorRecoveryCodes FROM Kullanicilar WHERE KullaniciID = @p0",
+                kullaniciID).FirstOrDefault();
+
+            if (string.IsNullOrEmpty(kodlar))
+                return false;
+
+            var hashListesi = kodlar.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            string girilenHash = TwoFactorHelper.HashRecoveryCode(kod);
+
+            if (!hashListesi.Contains(girilenHash))
+                return false;
+
+            hashListesi.Remove(girilenHash); // tek kullanımlık: listeden çıkar
+            string yeni = string.Join(";", hashListesi);
+            object yeniParam = string.IsNullOrEmpty(yeni) ? (object)DBNull.Value : yeni;
+
+            db.Database.ExecuteSqlCommand(
+                "UPDATE Kullanicilar SET TwoFactorRecoveryCodes = @p0 WHERE KullaniciID = @p1",
+                yeniParam, kullaniciID);
+
+            return true;
         }
 
         public class MakbuzGrupModel

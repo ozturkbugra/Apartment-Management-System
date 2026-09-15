@@ -29,3 +29,29 @@
     <button type="submit" class="btn btn-warning">Güncelle</button>
 </form>
 
+<hr class="my-4" />
+
+<h5>İki Adımlı Doğrulama (2FA)</h5>
+@if (ViewBag.IkiAdimAktif == true)
+{
+    <p class="mb-2">
+        Durum: <span class="badge bg-success">Aktif</span>
+    </p>
+    <p class="text-muted small">
+        Kullanıcı hem Authenticator uygulamasına hem de tüm yedek kodlarına erişimini kaybettiyse,
+        aşağıdaki butonla 2FA'yı sıfırlayabilirsiniz. Kullanıcı bir sonraki girişinde tekrar kurulum yapabilir.
+    </p>
+    <a href="/Admin/IkiAdimSifirla/@ViewBag.b.KullaniciID"
+       class="btn btn-outline-danger"
+       onclick="return confirm('Bu kullanıcının iki adımlı doğrulaması sıfırlanacak. Emin misiniz?');">
+        2FA'yı Sıfırla
+    </a>
+}
+else
+{
+    <p class="mb-0">
+        Durum: <span class="badge bg-secondary">Pasif</span>
+        <span class="text-muted small ms-2">Bu kullanıcı iki adımlı doğrulamayı aktifleştirmemiş.</span>
+    </p>
+}
+
