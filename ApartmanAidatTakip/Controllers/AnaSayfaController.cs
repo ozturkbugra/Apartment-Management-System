@@ -189,6 +189,111 @@ namespace ApartmanAidatTakip.Controllers
             return RedirectToAction("Index", "AnaSayfa");
         }
 
+        // --- ŞİFREMİ UNUTTUM (self-servis, 2FA ile kimlik doğrulamalı) ---
+        public ActionResult SifremiUnuttum()
+        {
+            DateTime simdi = DateTime.Now.Date;
+            ViewBag.Binalar = db.Binalars.Where(x => x.SozlesmeBitisTarihi >= simdi && x.Durum == "A").OrderBy(x => x.BinaKullaniciAdi).ToList();
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult SifremiUnuttum(int? BinaID, string KullaniciAdi)
+        {
+            var a = db.KullanicilarViews.FirstOrDefault(x => x.KullaniciAdi == KullaniciAdi && x.BinaID == BinaID && x.KullaniciDurumu == "A");
+            if (a != null)
+            {
+                bool ikiAdimAktif = db.Database.SqlQuery<bool>(
+                    "SELECT ISNULL(TwoFactorEnabled, 0) FROM Kullanicilar WHERE KullaniciID = @p0",
+                    a.KullaniciID).FirstOrDefault();
+
+                if (ikiAdimAktif)
+                {
+                    // Kimlik, bir sonraki adımda Authenticator kodu / yedek kod ile doğrulanacak.
+                    Session["Reset_KullaniciID"] = a.KullaniciID;
+                    return RedirectToAction("SifreYenile", "AnaSayfa");
+                }
+
+                ViewBag.Uyari = "Bu hesapta iki adımlı doğrulama aktif olmadığı için kendiniz şifre sıfırlayamazsınız. Lütfen sistem yöneticinize başvurun.";
+            }
+            else
+            {
+                ViewBag.Uyari = "Kullanıcı adı veya bina hatalı.";
+            }
+
+            DateTime simdi = DateTime.Now.Date;
+            ViewBag.Binalar = db.Binalars.Where(x => x.SozlesmeBitisTarihi >= simdi && x.Durum == "A").OrderBy(x => x.BinaKullaniciAdi).ToList();
+            return View();
+        }
+
+        public ActionResult SifreYenile()
+        {
+            if (Session["Reset_KullaniciID"] == null)
+            {
+                return RedirectToAction("SifremiUnuttum", "AnaSayfa");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult SifreYenile(string kod, string Parola, string Parola2)
+        {
+            if (Session["Reset_KullaniciID"] == null)
+            {
+                return RedirectToAction("SifremiUnuttum", "AnaSayfa");
+            }
+
+            int kullaniciID = Convert.ToInt32(Session["Reset_KullaniciID"]);
+
+            // Önce parolaları kontrol et (yanlışsa yedek kodu boşuna tüketmemek için).
+            if (string.IsNullOrWhiteSpace(Parola) || Parola != Parola2)
+            {
+                ViewBag.Uyari = "Şifreler boş olamaz ve birbiriyle uyuşmalıdır.";
+                return View();
+            }
+
+            // Kimlik doğrulama: önce Authenticator kodu, olmadıysa yedek kod (tek kullanımlık).
+            string secret = db.Database.SqlQuery<string>(
+                "SELECT TwoFactorSecret FROM Kullanicilar WHERE KullaniciID = @p0",
+                kullaniciID).FirstOrDefault();
+
+            bool dogru = TwoFactorHelper.ValidateCode(secret, kod);
+            if (!dogru)
+            {
+                dogru = YedekKoduTuket(kullaniciID, kod);
+            }
+
+            if (!dogru)
+            {
+                ViewBag.Uyari = "Doğrulama kodu hatalı veya süresi dolmuş. Lütfen tekrar deneyin.";
+                return View();
+            }
+
+            var k = db.Kullanicilars.FirstOrDefault(x => x.KullaniciID == kullaniciID);
+            if (k == null)
+            {
+                Session.Remove("Reset_KullaniciID");
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            k.Parola = Crypto.Hash(Parola, "MD5");
+            db.SaveChanges();
+
+            db.Hareketlers.Add(new Hareketler()
+            {
+                BinaID = k.BinaID ?? 0,
+                KullaniciID = kullaniciID,
+                OlayAciklama = "Kullanıcı iki adımlı doğrulama ile şifresini sıfırladı",
+                Tarih = DateTime.Now,
+                Tur = "Güncelleme",
+            });
+            db.SaveChanges();
+
+            Session.Remove("Reset_KullaniciID");
+            TempData["Basarili"] = "Şifreniz başarıyla güncellendi. Yeni şifrenizle giriş yapabilirsiniz.";
+            return RedirectToAction("Login", "AnaSayfa");
+        }
+
         // Girilen kod bir yedek koda uyuyorsa onu tüketir (bir daha kullanılamaz) ve true döner.
         private bool YedekKoduTuket(int kullaniciID, string kod)
         {

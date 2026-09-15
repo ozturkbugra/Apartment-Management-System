@@ -6,6 +6,15 @@
 
 <h2>Kullanıcı Düzenle</h2>
 
+@if (TempData["Basarili"] != null)
+{
+    <div class="alert alert-success">@TempData["Basarili"]</div>
+}
+@if (TempData["Hata"] != null)
+{
+    <div class="alert alert-danger">@TempData["Hata"]</div>
+}
+
 <form action="/Admin/KullaniciDuzenle" method="post">
     <input type="hidden" name="KullaniciID" value="@ViewBag.b.KullaniciID" />
     <label class="mt-2">Kullanıcı Adı</label>
@@ -27,6 +36,26 @@
 
     <br />
     <button type="submit" class="btn btn-warning">Güncelle</button>
+</form>
+
+<hr class="my-4" />
+
+<h5>Şifre Yenile</h5>
+<p class="text-muted small">Kullanıcı giriş yapamıyorsa buradan yeni bir şifre atayabilirsiniz.</p>
+<form action="/Admin/SifreSifirla" method="post" class="row g-2" style="max-width:520px;">
+    <input type="hidden" name="KullaniciID" value="@ViewBag.b.KullaniciID" />
+    <div class="col-md-6">
+        <input type="password" name="YeniParola" class="form-control" placeholder="Yeni Şifre" required />
+    </div>
+    <div class="col-md-6">
+        <input type="password" name="YeniParola2" class="form-control" placeholder="Yeni Şifre (Tekrar)" required />
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-danger"
+                onclick="return confirm('Bu kullanıcının şifresi değiştirilecek. Emin misiniz?');">
+            Şifreyi Sıfırla
+        </button>
+    </div>
 </form>
 
 <hr class="my-4" />

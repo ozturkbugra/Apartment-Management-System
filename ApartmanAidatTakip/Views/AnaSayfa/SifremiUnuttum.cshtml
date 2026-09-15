@@ -9,37 +9,27 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>Apartman Aidat Yazılımı - Giriş</title>
-    <meta content="" name="description">
-    <meta content="" name="keywords">
+    <title>Apartman Aidat Yazılımı - Şifremi Unuttum</title>
 
-    <!-- Favicons -->
     <link href="/Content/Admin/assets/img/favicon.png" rel="icon">
     <link href="/Content/Admin/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
 
-    <!-- Google Fonts -->
     <link href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Vendor CSS Files -->
     <link href="/Content/Admin/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="/Content/Admin/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
     <link href="/Content/Admin/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-    <!-- Select2 CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
 
-    <!-- Dark Mode (localStorage) -->
     <link href="/Content/Admin/assets/css/darkmode.css" rel="stylesheet">
     <script src="/Content/Admin/assets/js/darkmode.js"></script>
 
-    <!-- Custom CSS -->
     <style>
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f5f6fa;
         }
-
-
 
         .container {
             max-width: 400px;
@@ -69,77 +59,38 @@
             background-color: #28a745;
         }
 
-        .btn-success:hover {
-            background-color: #218838;
-        }
-
-        .back-to-top {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            background-color: #28a745;
-            color: #fff;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+            .btn-success:hover {
+                background-color: #218838;
+            }
 
         .small {
             font-size: 0.875rem;
-        }
-
-        /* Responsive adjustments */
-        @@media (max-width: 576px) {
-            .container {
-                margin-top: -10px;
-                padding-left: 10px;
-                padding-right: 10px;
-            }
-
-            .card {
-                margin-top: 10px;
-            }
-
-            .form-control {
-                font-size: 0.9rem;
-            }
-
-            .btn-success {
-                font-size: 0.9rem;
-            }
-
-            .small {
-                font-size: 0.8rem;
-            }
         }
     </style>
 </head>
 
 <body>
-
     <main>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <div class="container d-flex flex-column align-items-center justify-content-center min-vh-100">
-
             <section class="section register d-flex flex-column align-items-center justify-content-center py-4">
                 <div class="container">
                     <div class="row justify-content-center">
                         <div class="col-12 d-flex flex-column align-items-center justify-content-center">
 
-
                             <div class="card">
-
                                 <div class="card-body">
 
                                     <div class="text-center mb-3">
                                         <img src="~/Content/Admin/assets/img/logo.png" width="150" alt="">
                                     </div>
-                                    <h5 class="card-title text-center mb-3">Yönetici Giriş Paneli</h5>
+                                    <h5 class="card-title text-center mb-2">Şifremi Unuttum</h5>
+                                    <p class="text-center text-muted small mb-3">
+                                        Hesabınızı belirtin; kimliğinizi Google Authenticator kodunuz veya yedek kodunuzla
+                                        doğrulayıp yeni şifrenizi belirleyeceksiniz.
+                                    </p>
 
-                                    <form method="post" action="/AnaSayfa/Login" class="row g-3 needs-validation" novalidate>
+                                    <form method="post" action="/AnaSayfa/SifremiUnuttum" class="row g-3">
 
                                         <div class="col-12">
                                             <label for="BinaID" class="form-label">Bina Adı</label>
@@ -157,38 +108,20 @@
                                             <input type="text" name="KullaniciAdi" class="form-control" id="KullaniciAdi" required>
                                         </div>
 
-                                        <div class="col-12">
-                                            <label for="Parola" class="form-label">Parola</label>
-                                            <input type="password" name="Parola" class="form-control" id="Parola" required>
-                                        </div>
-
-                                        <div class="col-12">
-                                            @if (!string.IsNullOrEmpty(ViewBag.Uyari))
-                                            {
-                                                <div class="alert alert-danger text-center">@ViewBag.Uyari</div>
-                                            }
-                                            @if (TempData["Basarili"] != null)
-                                            {
-                                                <div class="alert alert-success text-center">@TempData["Basarili"]</div>
-                                            }
-                                        </div>
-
-                                        <div class="col-12">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="remember" value="true" id="rememberMe">
-                                                <label class="form-check-label" for="rememberMe">Beni Hatırla</label>
+                                        @if (!string.IsNullOrEmpty(ViewBag.Uyari))
+                                        {
+                                            <div class="col-12">
+                                                <div class="alert alert-danger text-center mb-0">@ViewBag.Uyari</div>
                                             </div>
-                                        </div>
+                                        }
 
                                         <div class="col-12">
-                                            <button class="btn btn-success w-100" type="submit">Giriş Yap</button>
-                                        </div>
-                                        <div class="col-12 text-center">
-                                            <p class="small mb-1"><a href="/AnaSayfa/SifremiUnuttum">Şifremi Unuttum</a></p>
-                                            <p class="small mb-0">Bu binada daireniz var ve borcunuzu mu sorgulamak istiyorsunuz? <a href="/Daire/Login">Daire Sakini Paneli</a></p>
+                                            <button class="btn btn-success w-100" type="submit">Devam Et</button>
                                         </div>
 
-                                        
+                                        <div class="col-12 text-center">
+                                            <p class="small mb-0"><a href="/AnaSayfa/Login">Girişe geri dön</a></p>
+                                        </div>
                                     </form>
 
                                 </div>
@@ -198,20 +131,11 @@
                     </div>
                 </div>
             </section>
-
         </div>
-    </main><!-- End #main -->
+    </main>
 
-    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-
-    <!-- Vendor JS Files -->
     <script src="/Content/Admin/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="/Content/Admin/assets/vendor/echarts/echarts.min.js"></script>
-    <script src="/Content/Admin/assets/vendor/simple-datatables/simple-datatables.js"></script>
-    <!-- Select2 JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
-    <!-- Initialize Select2 -->
     <script>
         $(document).ready(function () {
             $('#BinaID').select2({
@@ -221,7 +145,6 @@
             });
         });
     </script>
-
 </body>
 
 </html>

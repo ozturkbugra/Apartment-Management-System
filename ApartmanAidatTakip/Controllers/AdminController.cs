@@ -199,6 +199,40 @@ namespace ApartmanAidatTakip.Controllers
             return View();
         }
 
+        // Admin, bir kullanıcının şifresini yeniler (kullanıcı giriş yapamadığında).
+        [HttpPost]
+        public ActionResult SifreSifirla(int KullaniciID, string YeniParola, string YeniParola2)
+        {
+            var kullanici = db.Kullanicilars.FirstOrDefault(x => x.KullaniciID == KullaniciID);
+            if (kullanici == null)
+            {
+                TempData["Hata"] = "Kullanıcı bulunamadı.";
+                return RedirectToAction("Kullanicilar", "Admin");
+            }
+
+            if (string.IsNullOrWhiteSpace(YeniParola) || YeniParola != YeniParola2)
+            {
+                TempData["Hata"] = "Şifreler boş olamaz ve birbiriyle uyuşmalıdır.";
+                return RedirectToAction("KullaniciDuzenle", "Admin", new { id = KullaniciID });
+            }
+
+            kullanici.Parola = Crypto.Hash(YeniParola, "MD5");
+            db.SaveChanges();
+
+            db.Hareketlers.Add(new Hareketler()
+            {
+                BinaID = kullanici.BinaID ?? 0,
+                KullaniciID = KullaniciID,
+                OlayAciklama = "Yönetici tarafından kullanıcı şifresi sıfırlandı",
+                Tarih = DateTime.Now,
+                Tur = "Güncelleme",
+            });
+            db.SaveChanges();
+
+            TempData["Basarili"] = "Kullanıcının şifresi başarıyla güncellendi.";
+            return RedirectToAction("KullaniciDuzenle", "Admin", new { id = KullaniciID });
+        }
+
         // Kullanıcı Authenticator'a ve yedek kodlarına erişimini tamamen kaybederse,
         // yöneticinin (admin) 2FA'yı sıfırlaması için yedek kapı.
         public ActionResult IkiAdimSifirla(int id)
