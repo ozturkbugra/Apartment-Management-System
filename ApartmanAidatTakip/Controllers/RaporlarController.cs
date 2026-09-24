@@ -4,6 +4,7 @@ using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -44,7 +45,14 @@ namespace ApartmanAidatTakip.Controllers
 
             ViewBag.Percent = Math.Round(percent);
 
-            ViewBag.Duyurular = db.Duyurulars.Where(x => x.Durum == "A").OrderByDescending(x => x.ID).ToList();
+            var duyurular = System.Web.HttpRuntime.Cache["Duyurular_Aktif"] as System.Collections.Generic.List<ApartmanAidatTakip.Models.Duyurular>;
+            if (duyurular == null)
+            {
+                duyurular = db.Duyurulars.AsNoTracking().Where(x => x.Durum == "A").OrderByDescending(x => x.ID).ToList();
+                System.Web.HttpRuntime.Cache.Insert("Duyurular_Aktif", duyurular, null,
+                    DateTime.Now.AddMinutes(5), System.Web.Caching.Cache.NoSlidingExpiration);
+            }
+            ViewBag.Duyurular = duyurular;
 
 
 

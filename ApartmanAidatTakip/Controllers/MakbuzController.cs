@@ -3,6 +3,7 @@ using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -44,7 +45,14 @@ namespace ApartmanAidatTakip.Controllers
 
             ViewBag.Percent = Math.Round(percent);
 
-            ViewBag.Duyurular = db.Duyurulars.Where(x => x.Durum == "A").OrderByDescending(x => x.ID).ToList();
+            var duyurular = System.Web.HttpRuntime.Cache["Duyurular_Aktif"] as System.Collections.Generic.List<ApartmanAidatTakip.Models.Duyurular>;
+            if (duyurular == null)
+            {
+                duyurular = db.Duyurulars.AsNoTracking().Where(x => x.Durum == "A").OrderByDescending(x => x.ID).ToList();
+                System.Web.HttpRuntime.Cache.Insert("Duyurular_Aktif", duyurular, null,
+                    DateTime.Now.AddMinutes(5), System.Web.Caching.Cache.NoSlidingExpiration);
+            }
+            ViewBag.Duyurular = duyurular;
 
         }
 
@@ -100,8 +108,8 @@ namespace ApartmanAidatTakip.Controllers
 
             int ay = DateTime.Now.Month;
             int yil = DateTime.Now.Year;
-            ViewBag.Makbuzlar = db.MakbuzViews.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil).OrderByDescending(x => x.MakbuzID).ToList();
-            ViewBag.SilinenMakbuzlar = db.MakbuzViews.Where(x => x.BinaID == BinaID && x.Durum == "P").OrderByDescending(x => x.MakbuzID).ToList();
+            ViewBag.Makbuzlar = db.MakbuzViews.AsNoTracking().Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Month == ay && x.MakbuzTarihi.Value.Year == yil).OrderByDescending(x => x.MakbuzID).ToList();
+            ViewBag.SilinenMakbuzlar = db.MakbuzViews.AsNoTracking().Where(x => x.BinaID == BinaID && x.Durum == "P").OrderByDescending(x => x.MakbuzID).ToList();
             DonemEklendiMi();
            
             return View();
@@ -119,8 +127,8 @@ namespace ApartmanAidatTakip.Controllers
 
                 item.MakbuzNo = mno + 1;
                 mno++;
-                db.SaveChanges();
             }
+            db.SaveChanges();
         }
 
         [HttpPost]

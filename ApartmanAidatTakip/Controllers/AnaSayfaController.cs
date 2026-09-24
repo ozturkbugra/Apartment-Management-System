@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
+using System.Data.Entity;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -54,7 +55,14 @@ namespace ApartmanAidatTakip.Controllers
 
             ViewBag.Percent = Math.Round(percent);
 
-            ViewBag.Duyurular = db.Duyurulars.Where(x => x.Durum == "A").OrderByDescending(x => x.ID).ToList();
+            var duyurular = System.Web.HttpRuntime.Cache["Duyurular_Aktif"] as System.Collections.Generic.List<ApartmanAidatTakip.Models.Duyurular>;
+            if (duyurular == null)
+            {
+                duyurular = db.Duyurulars.AsNoTracking().Where(x => x.Durum == "A").OrderByDescending(x => x.ID).ToList();
+                System.Web.HttpRuntime.Cache.Insert("Duyurular_Aktif", duyurular, null,
+                    DateTime.Now.AddMinutes(5), System.Web.Caching.Cache.NoSlidingExpiration);
+            }
+            ViewBag.Duyurular = duyurular;
 
         }
         public void DonemEklendiMi()
@@ -1139,7 +1147,6 @@ namespace ApartmanAidatTakip.Controllers
                     aidat.Durum = "A";
                     aidat.ZamEklendiMi = "H";
                     db.Aidats.Add(aidat);
-                    db.SaveChanges();
                     Hareketler hareketler = new Hareketler()
                     {
                         BinaID = BinaID,
@@ -1149,7 +1156,6 @@ namespace ApartmanAidatTakip.Controllers
                         Tur = "Ekleme",
                     };
                     db.Hareketlers.Add(hareketler);
-                    db.SaveChanges();
                     var dairesorgu = db.Dairelers.Where(x => x.BinaID == BinaID && x.DaireNo == aidat.DaireNo).FirstOrDefault();
                     dairesorgu.Borc += aidat.AidatTutar;
                     db.SaveChanges();
@@ -1197,7 +1203,6 @@ namespace ApartmanAidatTakip.Controllers
                     aidat.Durum = "A";
                     aidat.ZamEklendiMi = "H";
                     db.Aidats.Add(aidat);
-                    db.SaveChanges();
 
                     var dairesorgu = db.Dairelers.Where(x => x.BinaID == BinaID && x.DaireNo == aidat.DaireNo).FirstOrDefault();
                     dairesorgu.Borc += aidat.AidatTutar;
@@ -1222,7 +1227,6 @@ namespace ApartmanAidatTakip.Controllers
 
                     };
                     db.Eks.Add(yeniek);
-                    db.SaveChanges();
 
                     var dairesorgu = db.Dairelers.Where(x => x.BinaID == BinaID && x.DaireNo == aidat.DaireNo).FirstOrDefault();
                     dairesorgu.Borc += aidat.AidatTutar;
@@ -2766,7 +2770,7 @@ namespace ApartmanAidatTakip.Controllers
             Sabit();
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
-            ViewBag.BorcluDaireler = db.Dairelers.Where(x => x.BinaID == BinaID && x.Borc > 0).OrderBy(x => x.DaireNo).ToList();
+            ViewBag.BorcluDaireler = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID && x.Borc > 0).OrderBy(x => x.DaireNo).ToList();
             return View();
         }
 
@@ -2783,8 +2787,8 @@ namespace ApartmanAidatTakip.Controllers
 
                 item.GiderNo = mno + 1;
                 mno++;
-                db.SaveChanges();
             }
+            db.SaveChanges();
         }
 
         public void TahsilatNoDuzenle()
@@ -2799,8 +2803,8 @@ namespace ApartmanAidatTakip.Controllers
 
                 item.TahsilatNo = mno + 1;
                 mno++;
-                db.SaveChanges();
             }
+            db.SaveChanges();
         }
 
 
@@ -2813,7 +2817,8 @@ namespace ApartmanAidatTakip.Controllers
             }
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
-            var a = db.AcilisBakiyes.Where(x => x.BinaID == BinaID).Count();
+            var bakiyeler = db.AcilisBakiyes.AsNoTracking().Where(x => x.BinaID == BinaID).ToList();
+            var a = bakiyeler.Count;
 
             Session["Aktif"] = "AcilisBakiye";
             Sabit();
@@ -2827,7 +2832,7 @@ namespace ApartmanAidatTakip.Controllers
                 ViewBag.Durum = true;
             }
 
-            ViewBag.Bakiye = db.AcilisBakiyes.Where(x => x.BinaID == BinaID).ToList();
+            ViewBag.Bakiye = bakiyeler;
 
             return View();
         }
@@ -2896,13 +2901,13 @@ namespace ApartmanAidatTakip.Controllers
                 ViewBag.b = varmi;
 
                 // AİDATLAR: Hem Ödenen (P) Hem Ödenmeyen (A) gelsin, ID'ye göre tersten sıralansın
-                ViewBag.Aidat = db.Aidats
+                ViewBag.Aidat = db.Aidats.AsNoTracking()
                     .Where(x => x.BinaID == BinaID && x.DaireNo == DaireNo && (x.Durum == "A" || x.Durum == "P"))
                     .OrderByDescending(x => x.AidatID)
                     .ToList();
 
                 // DEMİRBAŞLAR: Hem Ödenen (P) Hem Ödenmeyen (A) gelsin, ID'ye göre tersten sıralansın
-                ViewBag.Ek = db.Eks
+                ViewBag.Ek = db.Eks.AsNoTracking()
                     .Where(x => x.BinaID == BinaID && x.DaireNo == DaireNo && (x.Durum == "A" || x.Durum == "P"))
                     .OrderByDescending(x => x.EkID)
                     .ToList();
@@ -3053,8 +3058,8 @@ namespace ApartmanAidatTakip.Controllers
             Sabit();
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
-            ViewBag.List = db.PesinOdemelerViews.Where(x => x.BinaID == BinaID).ToList();
-            ViewBag.Daireler = db.Dairelers.Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
+            ViewBag.List = db.PesinOdemelerViews.AsNoTracking().Where(x => x.BinaID == BinaID).ToList();
+            ViewBag.Daireler = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
             return View();
         }
 

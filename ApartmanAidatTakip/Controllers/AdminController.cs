@@ -670,6 +670,7 @@ namespace ApartmanAidatTakip.Controllers
             duyurular.Durum = "A";
             db.Duyurulars.Add(duyurular);
             db.SaveChanges();
+            System.Web.HttpRuntime.Cache.Remove("Duyurular_Aktif");
             TempData["Basarili"] = "Duyuru başarıyla eklendi";
             ViewBag.Duyurular = db.Duyurulars.OrderByDescending(x => x.ID).ToList();
             return RedirectToAction("Duyurular","Admin");
@@ -681,6 +682,7 @@ namespace ApartmanAidatTakip.Controllers
             var varmi = db.Duyurulars.Where(x => x.ID == id).FirstOrDefault();
             varmi.Durum = "P";
             db.SaveChanges();
+            System.Web.HttpRuntime.Cache.Remove("Duyurular_Aktif");
             TempData["Basarili"] = "Duyuru başarıyla pasife alındı";
             return RedirectToAction("Duyurular", "Admin");
         }
@@ -690,6 +692,7 @@ namespace ApartmanAidatTakip.Controllers
             var varmi = db.Duyurulars.Where(x => x.ID == id).FirstOrDefault();
             varmi.Durum = "A";
             db.SaveChanges();
+            System.Web.HttpRuntime.Cache.Remove("Duyurular_Aktif");
             TempData["Basarili"] = "Duyuru başarıyla aktife alındı";
             return RedirectToAction("Duyurular", "Admin");
         }
