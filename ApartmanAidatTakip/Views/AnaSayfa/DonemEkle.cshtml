@@ -168,7 +168,7 @@
                     </div>
                 </div>
 
-                <button type="button" class="btn btn-submit" onclick="confirmSubmission()">
+                <button type="button" id="btnDonemEkle" class="btn btn-submit" onclick="confirmSubmission()">
                     <i class="bi bi-check-circle-fill me-2"></i> Dönemi Başlat
                 </button>
             </form>
@@ -191,6 +191,11 @@
             cancelButtonText: 'İptal'
         }).then((result) => {
             if (result.isConfirmed) {
+                // Çift kayıt önleyici: butonu kilitle ve spinner göster
+                var btn = document.getElementById("btnDonemEkle");
+                if (btn.disabled) { return; }
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> İşleniyor...';
                 document.getElementById("donemForm").submit();
             }
         });

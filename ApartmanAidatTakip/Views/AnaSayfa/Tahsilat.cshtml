@@ -348,7 +348,7 @@
                 <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Yeni Tahsilat Ekle</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="/AnaSayfa/TahsilatEkle" method="post">
+            <form action="/AnaSayfa/TahsilatEkle" method="post" class="js-lock">
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label text-muted small fw-bold text-uppercase">Tahsilat Türü</label>
@@ -390,7 +390,7 @@
                 <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Tahsilat Düzenle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="/AnaSayfa/TahsilatGuncelle" method="post">
+            <form action="/AnaSayfa/TahsilatGuncelle" method="post" class="js-lock">
                 <input type="hidden" name="TahsilatID" id="update_TahsilatID" />
 
                 <div class="modal-body p-4">
@@ -435,6 +435,25 @@
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
           return new bootstrap.Tooltip(tooltipTriggerEl)
         })
+
+        // ============================================================
+        // ÇİFT KAYIT ÖNLEYİCİ (Buton kilidi + spinner)
+        // ============================================================
+        $('form.js-lock').on('submit', function () {
+            var $btn = $(this).find('button[type="submit"]');
+            if ($btn.data('locked')) { return false; } // Zaten gönderiliyor
+            if ($btn.data('orig') === undefined) { $btn.data('orig', $btn.html()); }
+            $btn.data('locked', true).prop('disabled', true)
+                .html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> İşleniyor...');
+        });
+
+        // Modal iptal/kapatılırsa butonu tekrar aktif et
+        $('.modal').on('hidden.bs.modal', function () {
+            var $btn = $(this).find('button[type="submit"]');
+            if ($btn.data('orig') !== undefined) {
+                $btn.prop('disabled', false).data('locked', false).html($btn.data('orig'));
+            }
+        });
 
         // ============================================================
         // 1. OTOMATİK PARA FORMATLAMA (1.000,50 ŞEKLİNDE)

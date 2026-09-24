@@ -301,7 +301,7 @@
                 <h5 class="modal-title fw-bold text-primary"><i class="bi bi-person-plus-fill me-2"></i>Daire Sakini Ekle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="/AnaSayfa/SakinEkle" method="post" class="p-3">
+            <form action="/AnaSayfa/SakinEkle" method="post" class="p-3 js-lock">
                 <div class="modal-body form-floating-custom">
 
                     <div class="mb-3">
@@ -356,7 +356,7 @@
                 <h5 class="modal-title fw-bold text-success"><i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>Excel ile Toplu Ekle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="/AnaSayfa/SakinEkleExcel" method="post" enctype="multipart/form-data" class="p-3">
+            <form action="/AnaSayfa/SakinEkleExcel" method="post" enctype="multipart/form-data" class="p-3 js-lock">
                 <div class="modal-body">
                     <div class="text-center mb-4">
                         <i class="bi bi-cloud-upload display-1 text-muted opacity-25"></i>
@@ -377,6 +377,26 @@
 
 <script>
     $(document).ready(function() {
+
+        // ============================================================
+        // ÇİFT KAYIT ÖNLEYİCİ (Buton kilidi + spinner)
+        // ============================================================
+        $('form.js-lock').on('submit', function () {
+            var $btn = $(this).find('button[type="submit"]');
+            if ($btn.data('locked')) { return false; } // Zaten gönderiliyor
+            if ($btn.data('orig') === undefined) { $btn.data('orig', $btn.html()); }
+            $btn.data('locked', true).prop('disabled', true)
+                .html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> İşleniyor...');
+        });
+
+        // Modal iptal/kapatılırsa butonu tekrar aktif et
+        $('.modal').on('hidden.bs.modal', function () {
+            var $btn = $(this).find('button[type="submit"]');
+            if ($btn.data('orig') !== undefined) {
+                $btn.prop('disabled', false).data('locked', false).html($btn.data('orig'));
+            }
+        });
+
         @if (TempData["Hata"] != null)
         {
             <text>
