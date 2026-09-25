@@ -1132,7 +1132,7 @@ namespace ApartmanAidatTakip.Controllers
                               .FirstOrDefault();
 
                 // Eğer daha önce bir dönem eklendiyse ve yeni dönem eski bir dönemse hata döndür
-                if (sonKasaDonemi != null && aidat.AidatYil < sonKasaDonemi.KasaYil && yeniAyKodu < sonKasaDonemi.AyKodu)
+                if (sonKasaDonemi != null && (aidat.AidatYil < sonKasaDonemi.KasaYil || (aidat.AidatYil == sonKasaDonemi.KasaYil && yeniAyKodu < sonKasaDonemi.AyKodu)))
                 {
                     ViewBag.Daireler = db.Dairelers.Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
                     TempData["Hata"] = "Önceki aylara dönem ekleyemezsiniz!";
