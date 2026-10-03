@@ -123,7 +123,7 @@ Bunlara yazılmaz; join'li/özet verileri hazır sunarlar (ör. `KullanicilarVie
 
 | Controller | Rol |
 |-----------|-----|
-| **AnaSayfa** (~3000 satır) | Ana yönetici uygulaması: aidat (DaireBorclandir, DonemEkle, AidatDuzenle/Sil), ekler (Ek*), giderler (Giderler, GiderEkle/Guncelle/Sil, GiderMakbuz), sabit giderler (SabitGiderEkle/Guncelle/Sil, SabitGiderOlustur), tahsilatlar (Tahsilat*), sakinler (Sakinler, SakinEkle, SakinEkleExcel, SakinDuzenle, EkSakinEkle/Sil), açılış bakiyesi, notlar, peşin ödemeler, borçlu daireler (+PDF/Excel), daire sorgu (DaireSorgu), gecikme zammı (GecikmeZammı) |
+| **AnaSayfa** (~3000 satır) | Ana yönetici uygulaması: aidat (DaireBorclandir, DonemEkle, **DonemIptal**, AidatDuzenle/Sil), ekler (Ek*), giderler (Giderler, GiderEkle/Guncelle/Sil, GiderMakbuz), sabit giderler (SabitGiderEkle/Guncelle/Sil, SabitGiderOlustur), tahsilatlar (Tahsilat*), sakinler (Sakinler, SakinEkle, SakinEkleExcel, SakinDuzenle, EkSakinEkle/Sil), açılış bakiyesi, notlar, peşin ödemeler, borçlu daireler (+PDF/Excel), daire sorgu (DaireSorgu), gecikme zammı (GecikmeZammı) |
 | **Admin** | Superadmin paneli: Binalar ve Kullanicilar yönetimi, soft-delete + geri alma (BinaSil/BinaGeriAl/BinaTamamenSil, Kullanici eşdeğerleri), Duyurular, binalar arası Hareketler, şifre değişimi. Google Authenticator + rate limit + şifre sıfırlama içerir |
 | **Makbuz** | Tek makbuz yaşam döngüsü: Olustur/Ekle, satır ekleme (AidatSatirEkle, EkSatirEkle), SatirCikar, MakbuzSil, GeneratePdf, Ara |
 | **TopluMakbuz** | Bir daire için seçili aidat/eklerden toplu makbuz üretimi |
@@ -152,14 +152,20 @@ Bunlar merkezi değildir — ihtiyaç duyan her controller'a kopyalanmıştır. 
 - `Sabit()` — ortak ViewBag verisi (kalan lisans günü `KalanGun`/`Percent`, aktif `Duyurular`) cookie'deki BinaID'den; çoğu GET aksiyonunun başında çağrılır.
 - `DonemEklendiMi()` — geçerli ayın döneminin (BinaID+yıl+ay için Kasa satırı) var olup olmadığını kontrol eder; `ViewBag.DonemSorgu` atar.
 - `MakbuzNoDuzenle()` / `GiderNoDuzenle()` / `TahsilatNoDuzenle()` — belge numaralarını yeniden sıralar.
-- `borcduzenle(int DaireID)` — makbuz/aidat değişimi sonrası dairenin `Borc` değerini yeniden hesaplar.
+- `borcduzenle(int DaireID)` — makbuz/aidat değişimi sonrası dairenin `Borc` değerini yeniden hesaplar (`Durum=="A"` aidat + ek toplamı).
 - `bosmakbuzsil()` — boş makbuzları siler.
+- `DonemKasaOlustur(yil, ay, BinaID, acilis)` (AnaSayfa'ya özel, private) — verilen ay/yıl için devir bakiyesini (önceki ay kasası/açılış bakiyesi + önceki ayın tahsilat/makbuz gelirleri − giderleri) hesaplayıp o aya ait `Kasa` satırını oluşturur. `DonemEkle`'nin çok-aylı backfill'inde her ay için çağrılır; devir zinciri için kendi içinde `SaveChanges` yapar.
 
 ---
 
 ## 7. Temel İş Akışları
 
 **Dönem açma (aylık):** Yönetici `DonemEkle` ile ilgili ay/yıl için `Kasa` satırı oluşturur → `DaireBorclandir` her daireye o dönemin `Aidat` (ve varsa `Ek`) kaydını yazar → `Daireler.Borc` güncellenir.
+
+- **Aidat tutarı önerisi (DonemEkle GET):** Aidat kutusuna, en son açılan dönemin aidat kayıtlarından **en sık tekrar eden tutar (mod)** öneri olarak basılır (`ViewBag.OnerilenAidat`) — tek bir düşük daire tutarının yanlış referans olmasını önler. View'de kutuya yazıldıkça **binlik ayracı nokta** uygulanır (`formatThousands`); submit öncesi noktalar temizlenip (`stripSeparators`) sunucuya ham tam sayı gider. **Demirbaş/Ek kutusuna öneri yapılmaz**, boş kalır (değişken ve zorunlu olmayan alan).
+- **Atlanan ara ayları doldurma (DonemEkle POST):** Hedef ay yine içinde bulunulan ay olmalıdır; ancak en son `Kasa` dönemi ile hedef ay arasında atlanan aylar varsa (ör. son=Mayıs, hedef=Ekim → Haziran…Ekim) **tüm eksik aylar** sırayla borçlandırılır. Her ay için `DonemKasaOlustur` ile Kasa (devir) oluşturulur ve daireler **girilen aidat tutarıyla** borçlandırılır (peşin ödeyen + yönetici muafiyeti her ay için geçerli; peşin ödeme yıl bazlıdır). **Ek/Demirbaş yalnızca hedef aya** eklenir, ara aylara eklenmez. Tüm işlem tek transaction; aidat/borç toplu tek `SaveChanges`.
+
+**Dönem iptali (son dönemi sıfırlama — `DonemIptal`):** Yanlış tutarla açılan **yalnızca en son açılan dönemi** (Kasa'daki en büyük yıl+ay) geri alır; daha eski aylar iptal edilemez. **Güvenlik:** yöneticinin parolası (`Crypto.Hash(…,"MD5")` ile karşılaştırılır) + 2FA açıksa Google Authenticator kodu (`TwoFactorHelper.ValidateCode`) zorunlu; doğrulama başarısızsa hiçbir şey silinmez. Tek transaction içinde o ay/yıla ait **Makbuz + MakbuzSatir, Gider, Tahsilat, Aidat, Ek ve Kasa** kayıtları silinir, `MakbuzNoDuzenle`/`GiderNoDuzenle`/`TahsilatNoDuzenle` ile belge noları yeniden sıralanır, tüm daire borçları yeniden hesaplanır, `Hareketler`'e log yazılır. **Kritik:** Makbuz satırları silinmeden önce, iptal edilen dönem **dışındaki** bir aidat/ek'i kapatan satırların ilgili `Aidat`/`Ek` kaydı tekrar `Durum="A"` yapılır (geçmiş dönem ödemesinin borç yeniden hesapta geri doğması için) — iptal edilen dönemin kendi aidat/ek'i zaten tamamen silindiği için ona dokunulmaz. View'de SweetAlert ile çift onay; form `onsubmit="return false"` ile Enter'a basınca onaysız/spam gönderim engellenir (programatik `form.submit()` çalışmaya devam eder).
 
 **Tahsilat / Makbuz kesme:** `Makbuz.Olustur` başlık açar → `AidatSatirEkle`/`EkSatirEkle` ile `MakbuzSatir` kalemleri eklenir (`EkMiAidatMi` ayırır) → makbuz tutarı toplanır, `borcduzenle` ile dairenin borcu düşer → `MakbuzOnayKaldir` ayarına göre `OnayliMi` durumu. `TopluMakbuz` bunu bir dairenin birden çok borcu için tek seferde yapar.
 

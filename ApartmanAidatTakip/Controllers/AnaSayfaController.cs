@@ -1271,6 +1271,42 @@ namespace ApartmanAidatTakip.Controllers
             }
             Session["Aktif"] = "DonemEkle";
             Sabit();
+
+            // Özellik 1: En son eklenen dönemin aidat kayıtlarından EN SIK kullanılan (mod)
+            // tutarı aidat kutusuna öneri olarak taşı. Tek bir düşük daire tutarının yanlışlıkla
+            // referans alınmasını önlemek için "son kayıt" değil "en çok tekrar eden" tutar seçilir.
+            HttpCookie onericookie = Request.Cookies["KullaniciBilgileri"];
+            int oneriBinaID = Convert.ToInt32(onericookie.Values["BinaID"]);
+
+            var sonDonem = db.Kasas.AsNoTracking()
+                .Where(x => x.BinaID == oneriBinaID)
+                .OrderByDescending(x => x.KasaYil).ThenByDescending(x => x.AyKodu)
+                .FirstOrDefault();
+
+            if (sonDonem != null)
+            {
+                var sonAyAidatlari = db.Aidats.AsNoTracking()
+                    .Where(x => x.BinaID == oneriBinaID && x.Durum == "A"
+                                && x.AidatAy == sonDonem.KasaAy && x.AidatYil == sonDonem.KasaYil
+                                && x.AidatTutar != null)
+                    .Select(x => x.AidatTutar)
+                    .ToList();
+
+                if (sonAyAidatlari.Count > 0)
+                {
+                    decimal modTutar = sonAyAidatlari
+                        .GroupBy(x => x)
+                        .OrderByDescending(g => g.Count())
+                        .ThenByDescending(g => g.Key)
+                        .First().Key.Value;
+
+                    // Binlik ayracı nokta, ondalık yoksa gösterme (ör. 1.500 veya 1.250,50)
+                    ViewBag.OnerilenAidat = (modTutar == Math.Floor(modTutar))
+                        ? modTutar.ToString("#,##0", new System.Globalization.CultureInfo("tr-TR"))
+                        : modTutar.ToString("#,##0.##", new System.Globalization.CultureInfo("tr-TR"));
+                }
+            }
+
             return View();
 
         }
@@ -1351,102 +1387,65 @@ namespace ApartmanAidatTakip.Controllers
                         return View();
                     }
 
-                    // 2. KASA OLUŞTURMA VE DEVİR İŞLEMLERİ (Veritabanı Yazma Başlıyor)
+                    // 2. BORÇLANDIRILACAK AYLARI BELİRLE (Özellik 3: atlanan ara ayları da doldur)
+                    // En son açılan dönem ile hedef (içinde bulunulan) ay arasındaki TÜM eksik aylar
+                    // sırayla borçlandırılır. İlk dönem ise yalnızca hedef ay işlenir.
+                    var trKultur = new System.Globalization.CultureInfo("tr-TR");
+                    var borclanacakAylar = new List<Tuple<int, int>>(); // (yil, ayKodu)
 
-                    DateTime bugun = DateTime.Now;
-                    DateTime oncekiAy = bugun.AddMonths(-1);
-                    int oncekiYil = oncekiAy.Year;
-                    int oncekiAyKodu = oncekiAy.Month;
-
-                    var son_kasa = db.Kasas.FirstOrDefault(x => x.KasaYil == oncekiYil && x.AyKodu == oncekiAyKodu && x.BinaID == BinaID);
-
-                    // Eğer önceki ayın kasası yoksa oluştur (Devir Bakiyesi Oluşturma)
-                    if (son_kasa == null)
+                    if (sonKasaDonemi == null)
                     {
-                        var ayAdi = new DateTime(oncekiYil, oncekiAyKodu, 1).ToString("MMMM", new System.Globalization.CultureInfo("tr-TR"));
-                        var eklenensonkasa = db.Kasas.Where(x => x.BinaID == BinaID).OrderByDescending(x => x.KasaID).FirstOrDefault();
-
-                        decimal eklenecekaidat, eklenecekek;
-                        if (eklenensonkasa != null)
+                        borclanacakAylar.Add(Tuple.Create((int)aidat.AidatYil, yeniAyKodu));
+                    }
+                    else
+                    {
+                        var iter = new DateTime(sonKasaDonemi.KasaYil.Value, sonKasaDonemi.AyKodu.Value, 1).AddMonths(1);
+                        var hedef = new DateTime((int)aidat.AidatYil, yeniAyKodu, 1);
+                        while (iter <= hedef)
                         {
-                            eklenecekaidat = Convert.ToDecimal(eklenensonkasa.KasaAidat);
-                            eklenecekek = Convert.ToDecimal(eklenensonkasa.KasaEk);
+                            borclanacakAylar.Add(Tuple.Create(iter.Year, iter.Month));
+                            iter = iter.AddMonths(1);
                         }
-                        else
-                        {
-                            eklenecekaidat = Convert.ToDecimal(acilisbakiyesieklendimi.AidatTutar);
-                            eklenecekek = Convert.ToDecimal(acilisbakiyesieklendimi.EkTutar);
-                        }
-
-                        var yeniKasa = new Kasa
-                        {
-                            KasaYil = oncekiYil,
-                            AyKodu = oncekiAyKodu,
-                            BinaID = BinaID,
-                            KasaEk = eklenecekek,
-                            KasaAidat = eklenecekaidat,
-                            KasaAy = ayAdi,
-                            KasaToplam = eklenecekek + eklenecekaidat
-                        };
-
-                        db.Kasas.Add(yeniKasa);
-                        db.SaveChanges(); // Buradaki SaveChanges kasayı oluşturmak için zorunlu, transaction içinde olduğu için güvenli.
                     }
 
-                    // Mevcut ayın kasası ve toplamlarını hesaplama
-                    var son_kasa2 = db.Kasas.FirstOrDefault(x => x.KasaYil == oncekiYil && x.AyKodu == oncekiAyKodu && x.BinaID == BinaID);
-                    decimal kasaek = Convert.ToDecimal(son_kasa2.KasaEk);
-                    decimal kasaaidat = Convert.ToDecimal(son_kasa2.KasaAidat);
-
-                    int yil = oncekiAy.Year;
-                    int ay = oncekiAy.Month;
-
-                    var makbuzIDListesi = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Year == yil && x.MakbuzTarihi.Value.Month == ay).Select(x => x.MakbuzID).ToList();
-
-                    var makbuzToplam = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "A" && makbuzIDListesi.Contains((int)x.MakbuzID)).Sum(x => (decimal?)x.Tutar) ?? 0;
-                    var ektoplam2 = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "E" && makbuzIDListesi.Contains((int)x.MakbuzID)).Sum(x => (decimal?)x.Tutar) ?? 0;
-                    var ektoplam1 = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == yil && x.TahsilatTarih.Value.Month == ay && x.DemirbasMi == true).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
-                    var giderektoplam = db.Giders.Where(x => x.GiderTuruID == 6 && x.Durum == "A" && x.BinaID == BinaID && x.GiderTarih.Value.Year == yil && x.GiderTarih.Value.Month == ay).Sum(x => (decimal?)x.GiderTutar) ?? 0;
-                    var gidertoplam = db.Giders.Where(x => x.GiderTuruID != 6 && x.Durum == "A" && x.BinaID == BinaID && x.GiderTarih.Value.Year == yil && x.GiderTarih.Value.Month == ay).Sum(x => (decimal?)x.GiderTutar) ?? 0;
-                    var aidattoplam3 = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == yil && x.TahsilatTarih.Value.Month == ay && x.DemirbasMi == false).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
-
-                    var aidattoplam = (makbuzToplam + kasaaidat + aidattoplam3) - gidertoplam;
-                    var ektoplam = (ektoplam1 + ektoplam2 + kasaek) - giderektoplam;
-                    var fulltoplam = aidattoplam + ektoplam;
-
-
-                    // 3. AİDAT EKLEME İŞLEMİ (Peşin Ödeyen Kontrollü)
-                    if (aidat.AidatTutar != null)
+                    // 3. AİDAT EKLEME İŞLEMİ (Peşin Ödeyen Kontrollü, çok aylı)
+                    bool aidatEklendi = false;
+                    if (aidat.AidatTutar != null && borclanacakAylar.Count > 0)
                     {
-                        if (donemeklendimi == null)
-                        {
-                            var daireler = db.Dairelers.Where(x => x.BinaID == BinaID).ToList();
+                        aidatEklendi = true;
+                        var daireler = db.Dairelers.Where(x => x.BinaID == BinaID).ToList();
 
-                            // Peşin ödeyenleri döngü öncesi tek seferde çekiyoruz (Performans için)
-                            var pesinOdeyenlerListesi = db.PesinOdemelers
-                                                                         .Where(x => x.Yil == aidat.AidatYil && x.BinaID == BinaID)
-                                                                         .Select(x => x.DaireID)
-                                                                         .ToList();
+                        // Peşin ödeyenleri ilgili tüm yıllar için tek seferde çekiyoruz (Performans için)
+                        var ilgiliYillar = borclanacakAylar.Select(t => t.Item1).Distinct().ToList();
+                        var pesinOdeyenlerListesi = db.PesinOdemelers
+                                                        .Where(x => x.BinaID == BinaID && ilgiliYillar.Contains(x.Yil))
+                                                        .Select(x => new { x.DaireID, x.Yil })
+                                                        .ToList();
+
+                        foreach (var ayTuple in borclanacakAylar)
+                        {
+                            int dYil = ayTuple.Item1;
+                            int dAyKodu = ayTuple.Item2;
+                            string dAyAdi = new DateTime(dYil, dAyKodu, 1).ToString("MMMM", trKultur);
+
+                            // O ayın Kasa (devir) satırını oluştur. Devir zinciri için her ay kendi içinde kaydeder.
+                            DonemKasaOlustur(dYil, dAyKodu, BinaID, acilisbakiyesieklendimi);
 
                             foreach (var item in daireler)
                             {
-                                // GÜNCELLEME: Yönetici Kontrolü
-                                // Eğer YoneticiAidatEkleme true DEĞİLSE (yani null veya false ise) yöneticileri es geç (continue).
-                                // Eğer true ise bu if bloğuna girmeyecek ve yöneticiye de aidat ekleyecek.
+                                // Yönetici muafiyeti
                                 if (item.YonetimdeMi == "E" && (binaAyar?.YoneticiAidatEkleme != true))
                                     continue;
 
-                                // Peşin Ödeyen Kontrolü
-                                if (pesinOdeyenlerListesi.Contains(item.DaireID)) continue;
-
-                                var daireno = item.DaireNo;
+                                // Peşin Ödeyen Kontrolü (ilgili yıl bazında)
+                                if (pesinOdeyenlerListesi.Any(p => p.DaireID == item.DaireID && p.Yil == dYil)) continue;
 
                                 Aidat aidat1 = new Aidat()
                                 {
-                                    AidatAy = aidat.AidatAy,
-                                    AidatYil = aidat.AidatYil,
+                                    AidatAy = dAyAdi,
+                                    AidatYil = dYil,
                                     AidatTutar = aidat.AidatTutar,
-                                    DaireNo = daireno,
+                                    DaireNo = item.DaireNo,
                                     BinaID = BinaID,
                                     ZamEklendiMi = "H",
                                     Durum = "A",
@@ -1457,46 +1456,38 @@ namespace ApartmanAidatTakip.Controllers
                                 // Daire borcunu artır
                                 item.Borc += aidat.AidatTutar;
                             }
-
-                            // Döngü bitti, tüm aidatları ve borç güncellemelerini tek seferde kaydediyoruz.
-                            db.SaveChanges();
-
-                            // Kasa Kaydı
-                            Kasa kasa = new Kasa()
-                            {
-                                KasaAy = aidat.AidatAy,
-                                KasaYil = aidat.AidatYil,
-                                KasaAidat = aidattoplam,
-                                KasaEk = ektoplam,
-                                KasaToplam = fulltoplam,
-                                BinaID = BinaID,
-                                AyKodu = DateTime.Now.Month
-                            };
-                            db.Kasas.Add(kasa);
-
-                            // Hareket Kaydı
-                            Hareketler hareketler = new Hareketler()
-                            {
-                                BinaID = BinaID,
-                                KullaniciID = KullaniciID,
-                                OlayAciklama = aidat.AidatTutar + " TL tutarında " + aidat.AidatAy + " - " + aidat.AidatYil + " Dönemi Eklenmiştir.",
-                                Tarih = DateTime.Now,
-                                Tur = "Ekleme",
-                            };
-                            db.Hareketlers.Add(hareketler);
-
-                            // Bekleyen Makbuzları Onaylama
-                            var onaylanmayanmakbuzlar = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.OnayliMi == false).ToList();
-                            if (onaylanmayanmakbuzlar.Count > 0)
-                            {
-                                foreach (var makbuz in onaylanmayanmakbuzlar)
-                                {
-                                    makbuz.OnayliMi = true;
-                                }
-                            }
-
-                            db.SaveChanges(); // Kasa, Hareket ve Makbuz onaylarını kaydet
                         }
+
+                        // Tüm ayların aidatlarını ve borç güncellemelerini tek seferde kaydet.
+                        db.SaveChanges();
+
+                        // Hareket Kaydı (tek veya çok aylı özet)
+                        var ilk = borclanacakAylar.First();
+                        var son = borclanacakAylar.Last();
+                        string ilkAyAdi = new DateTime(ilk.Item1, ilk.Item2, 1).ToString("MMMM", trKultur);
+                        string sonAyAdi = new DateTime(son.Item1, son.Item2, 1).ToString("MMMM", trKultur);
+                        string olayAciklama = borclanacakAylar.Count == 1
+                            ? aidat.AidatTutar + " TL tutarında " + sonAyAdi + " - " + son.Item1 + " Dönemi Eklenmiştir."
+                            : aidat.AidatTutar + " TL tutarında " + ilkAyAdi + " " + ilk.Item1 + " - " + sonAyAdi + " " + son.Item1 + " arası " + borclanacakAylar.Count + " dönem eklenmiştir.";
+
+                        Hareketler hareketler = new Hareketler()
+                        {
+                            BinaID = BinaID,
+                            KullaniciID = KullaniciID,
+                            OlayAciklama = olayAciklama,
+                            Tarih = DateTime.Now,
+                            Tur = "Ekleme",
+                        };
+                        db.Hareketlers.Add(hareketler);
+
+                        // Bekleyen Makbuzları Onaylama
+                        var onaylanmayanmakbuzlar = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.OnayliMi == false).ToList();
+                        foreach (var makbuz in onaylanmayanmakbuzlar)
+                        {
+                            makbuz.OnayliMi = true;
+                        }
+
+                        db.SaveChanges(); // Hareket ve Makbuz onaylarını kaydet
                     }
 
                     // 4. EK (DEMİRBAŞ) EKLEME İŞLEMİ
@@ -1554,15 +1545,19 @@ namespace ApartmanAidatTakip.Controllers
                     // 5. SONUÇ VE TRANSACTION COMMIT
                     transaction.Commit();
 
-                    if (ek.EkTutar != null && donemeklendimi != null && donemeklendimi2 == null)
+                    bool ekEklendi = (ek.EkTutar != null && donemeklendimi2 == null);
+
+                    if (!aidatEklendi && ekEklendi)
                     {
                         TempData["Basarili"] = "Aidat Daha Önce Eklendiği İçin Sadece Ek Eklendi";
                     }
-                    else if (donemeklendimi == null && donemeklendimi2 != null)
+                    else if (aidatEklendi && !ekEklendi)
                     {
-                        TempData["Basarili"] = "Ek Daha Önce Eklendiği İçin Sadece Aidat Eklendi";
+                        TempData["Basarili"] = borclanacakAylar.Count > 1
+                            ? borclanacakAylar.Count + " Dönem Başarıyla Eklendi"
+                            : "Dönem Başarıyla Eklendi";
                     }
-                    else if (donemeklendimi == null && donemeklendimi2 == null)
+                    else if (aidatEklendi && ekEklendi)
                     {
                         TempData["Basarili"] = "Dönem Başarıyla Eklendi";
                     }
@@ -1582,6 +1577,307 @@ namespace ApartmanAidatTakip.Controllers
 
             Sabit();
             return View();
+        }
+
+        // Belirtilen ay/yıl için devir bakiyesini hesaplayıp o aya ait Kasa satırını oluşturur ve kaydeder.
+        // Devir = bir önceki ayın kasası (yoksa açılış bakiyesi/son kasa) + o önceki ayın tahsilat/makbuz
+        // gelirleri - giderleri. DonemEkle içindeki tek-ay mantığının çok aylı backfill için parametreli hali.
+        private void DonemKasaOlustur(int yil, int ay, int BinaID, AcilisBakiye acilis)
+        {
+            var trKultur = new System.Globalization.CultureInfo("tr-TR");
+            DateTime bugun = new DateTime(yil, ay, 1);
+            DateTime oncekiAy = bugun.AddMonths(-1);
+            int oncekiYil = oncekiAy.Year;
+            int oncekiAyKodu = oncekiAy.Month;
+
+            var son_kasa = db.Kasas.FirstOrDefault(x => x.KasaYil == oncekiYil && x.AyKodu == oncekiAyKodu && x.BinaID == BinaID);
+
+            // Önceki ayın kasası yoksa devir bakiyesi olarak oluştur.
+            if (son_kasa == null)
+            {
+                var oncekiAyAdi = new DateTime(oncekiYil, oncekiAyKodu, 1).ToString("MMMM", trKultur);
+                var eklenensonkasa = db.Kasas.Where(x => x.BinaID == BinaID).OrderByDescending(x => x.KasaID).FirstOrDefault();
+
+                decimal eklenecekaidat, eklenecekek;
+                if (eklenensonkasa != null)
+                {
+                    eklenecekaidat = Convert.ToDecimal(eklenensonkasa.KasaAidat);
+                    eklenecekek = Convert.ToDecimal(eklenensonkasa.KasaEk);
+                }
+                else
+                {
+                    eklenecekaidat = Convert.ToDecimal(acilis.AidatTutar);
+                    eklenecekek = Convert.ToDecimal(acilis.EkTutar);
+                }
+
+                var yeniKasa = new Kasa
+                {
+                    KasaYil = oncekiYil,
+                    AyKodu = oncekiAyKodu,
+                    BinaID = BinaID,
+                    KasaEk = eklenecekek,
+                    KasaAidat = eklenecekaidat,
+                    KasaAy = oncekiAyAdi,
+                    KasaToplam = eklenecekek + eklenecekaidat
+                };
+
+                db.Kasas.Add(yeniKasa);
+                db.SaveChanges();
+            }
+
+            var son_kasa2 = db.Kasas.FirstOrDefault(x => x.KasaYil == oncekiYil && x.AyKodu == oncekiAyKodu && x.BinaID == BinaID);
+            decimal kasaek = Convert.ToDecimal(son_kasa2.KasaEk);
+            decimal kasaaidat = Convert.ToDecimal(son_kasa2.KasaAidat);
+
+            int oy = oncekiAy.Year;
+            int oa = oncekiAy.Month;
+
+            var makbuzIDListesi = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi.Value.Year == oy && x.MakbuzTarihi.Value.Month == oa).Select(x => x.MakbuzID).ToList();
+
+            var makbuzToplam = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "A" && makbuzIDListesi.Contains((int)x.MakbuzID)).Sum(x => (decimal?)x.Tutar) ?? 0;
+            var ektoplam2 = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "E" && makbuzIDListesi.Contains((int)x.MakbuzID)).Sum(x => (decimal?)x.Tutar) ?? 0;
+            var ektoplam1 = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == oy && x.TahsilatTarih.Value.Month == oa && x.DemirbasMi == true).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+            var giderektoplam = db.Giders.Where(x => x.GiderTuruID == 6 && x.Durum == "A" && x.BinaID == BinaID && x.GiderTarih.Value.Year == oy && x.GiderTarih.Value.Month == oa).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+            var gidertoplam = db.Giders.Where(x => x.GiderTuruID != 6 && x.Durum == "A" && x.BinaID == BinaID && x.GiderTarih.Value.Year == oy && x.GiderTarih.Value.Month == oa).Sum(x => (decimal?)x.GiderTutar) ?? 0;
+            var aidattoplam3 = db.Tahsilats.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih.Value.Year == oy && x.TahsilatTarih.Value.Month == oa && x.DemirbasMi == false).Sum(x => (decimal?)x.TahsilatTutar) ?? 0;
+
+            var aidattoplam = (makbuzToplam + kasaaidat + aidattoplam3) - gidertoplam;
+            var ektoplam = (ektoplam1 + ektoplam2 + kasaek) - giderektoplam;
+            var fulltoplam = aidattoplam + ektoplam;
+
+            var ayAdi = new DateTime(yil, ay, 1).ToString("MMMM", trKultur);
+            Kasa kasa = new Kasa()
+            {
+                KasaAy = ayAdi,
+                KasaYil = yil,
+                KasaAidat = aidattoplam,
+                KasaEk = ektoplam,
+                KasaToplam = fulltoplam,
+                BinaID = BinaID,
+                AyKodu = ay
+            };
+            db.Kasas.Add(kasa);
+            db.SaveChanges();
+        }
+
+        // Makbuz belge numaralarını yeniden sıralar (AnaSayfa'ya özel kopya; MakbuzController ile aynı mantık).
+        public void MakbuzNoDuzenle()
+        {
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            var makbuzliste = db.Makbuzs.Where(x => x.BinaID == BinaID && x.Durum == "A").OrderBy(x => x.MakbuzID).ToList();
+
+            int mno = 0;
+            foreach (var item in makbuzliste)
+            {
+                item.MakbuzNo = mno + 1;
+                mno++;
+            }
+            db.SaveChanges();
+        }
+
+        // ================== DÖNEM İPTAL (Son dönemi sıfırlama) ==================
+        // Yanlış tutarla açılan SON dönemi geri alır: o ay/yıla ait makbuz+satır, gider, tahsilat,
+        // aidat, ek ve kasa kayıtlarını siler, daire borçlarını yeniden hesaplar.
+        // Güvenlik: yöneticinin parolası + (2FA açıksa) Google Authenticator kodu gerekir.
+        public ActionResult DonemIptal()
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+            Session["Aktif"] = "DonemIptal";
+            Sabit();
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+
+            // İptal edilebilecek son dönem
+            var sonDonem = db.Kasas.AsNoTracking()
+                .Where(x => x.BinaID == BinaID)
+                .OrderByDescending(x => x.KasaYil).ThenByDescending(x => x.AyKodu)
+                .FirstOrDefault();
+
+            ViewBag.SonDonem = sonDonem;
+
+            // 2FA açık mı?
+            bool ikiAdimAktif = db.Database.SqlQuery<bool>(
+                "SELECT ISNULL(TwoFactorEnabled, 0) FROM Kullanicilar WHERE KullaniciID = @p0",
+                KullaniciID).FirstOrDefault();
+            ViewBag.IkiAdimAktif = ikiAdimAktif;
+
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult DonemIptal(string parola, string kod)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+
+            // Güvenlik doğrulaması: parola
+            var kullanici = db.Kullanicilars.FirstOrDefault(x => x.KullaniciID == KullaniciID);
+            if (kullanici == null)
+            {
+                TempData["Hata"] = "Kullanıcı bulunamadı.";
+                return RedirectToAction("DonemIptal");
+            }
+
+            string girilenHash = Crypto.Hash(parola ?? "", "MD5");
+            if (!string.Equals(girilenHash, kullanici.Parola, StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Hata"] = "Parola hatalı. Dönem iptali yapılmadı.";
+                return RedirectToAction("DonemIptal");
+            }
+
+            // 2FA açıksa Google Authenticator kodu da zorunlu
+            bool ikiAdimAktif = db.Database.SqlQuery<bool>(
+                "SELECT ISNULL(TwoFactorEnabled, 0) FROM Kullanicilar WHERE KullaniciID = @p0",
+                KullaniciID).FirstOrDefault();
+
+            if (ikiAdimAktif)
+            {
+                string secret = db.Database.SqlQuery<string>(
+                    "SELECT TwoFactorSecret FROM Kullanicilar WHERE KullaniciID = @p0",
+                    KullaniciID).FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(kod) || !TwoFactorHelper.ValidateCode(secret, kod))
+                {
+                    TempData["Hata"] = "İki adımlı doğrulama kodu hatalı. Dönem iptali yapılmadı.";
+                    return RedirectToAction("DonemIptal");
+                }
+            }
+
+            // İptal edilecek SON dönem
+            var sonDonem = db.Kasas
+                .Where(x => x.BinaID == BinaID)
+                .OrderByDescending(x => x.KasaYil).ThenByDescending(x => x.AyKodu)
+                .FirstOrDefault();
+
+            if (sonDonem == null)
+            {
+                TempData["Hata"] = "İptal edilecek bir dönem bulunamadı.";
+                return RedirectToAction("DonemIptal");
+            }
+
+            int donemYil = sonDonem.KasaYil ?? 0;
+            int donemAyKodu = sonDonem.AyKodu ?? 0;
+            string donemAyAdi = sonDonem.KasaAy;
+
+            using (var transaction = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    // Bu dönemden etkilenen daireleri (borç yeniden hesabı için) önceden topla.
+                    var etkilenenDaireIdler = db.Dairelers.Where(x => x.BinaID == BinaID).Select(x => x.DaireID).ToList();
+
+                    // 1. MakbuzSatir + Makbuz (o ay/yıl)
+                    var makbuzlar = db.Makbuzs.Where(x => x.BinaID == BinaID
+                        && x.MakbuzTarihi.Value.Year == donemYil && x.MakbuzTarihi.Value.Month == donemAyKodu).ToList();
+                    var makbuzIdler = makbuzlar.Select(x => x.MakbuzID).ToList();
+
+                    var makbuzSatirlar = db.MakbuzSatirs.Where(x => x.BinaID == BinaID && makbuzIdler.Contains((int)x.MakbuzID)).ToList();
+
+                    // ÖNEMLİ: İptal edilen döneme ait makbuzlar, GEÇMİŞ dönem aidat/ek borçlarının
+                    // ödemesini de içerebilir. O geçmiş aidat/ek kayıtları ödendiği için Durum="P" olmuştur.
+                    // Makbuz satırları silinmeden önce, iptal edilen dönem DIŞINDAKİ bir aidat/ek'i kapatan
+                    // satırların ilgili kaydını tekrar "A" (ödenmemiş) yap ki borç yeniden hesapta doğru doğsun.
+                    // (İptal edilen dönemin kendi aidat/ek'i zaten aşağıda tamamen silineceği için ona dokunulmaz.)
+                    var daireNoMap = db.Dairelers.Where(x => x.BinaID == BinaID).ToDictionary(x => x.DaireID, x => x.DaireNo);
+                    foreach (var satir in makbuzSatirlar)
+                    {
+                        bool ayniDonem = (satir.AyAdi == donemAyAdi && satir.YilAdi == donemYil);
+                        if (ayniDonem) continue;
+
+                        if (!satir.DaireID.HasValue || !daireNoMap.ContainsKey(satir.DaireID.Value)) continue;
+                        int? dNo = daireNoMap[satir.DaireID.Value];
+
+                        if (satir.EkMiAidatMi == "A")
+                        {
+                            var aidatGeri = db.Aidats.FirstOrDefault(x => x.BinaID == BinaID && x.DaireNo == dNo && x.AidatAy == satir.AyAdi && x.AidatYil == satir.YilAdi && x.Durum == "P");
+                            if (aidatGeri != null) aidatGeri.Durum = "A";
+                        }
+                        else if (satir.EkMiAidatMi == "E")
+                        {
+                            var ekGeri = db.Eks.FirstOrDefault(x => x.BinaID == BinaID && x.DaireNo == dNo && x.EkAy == satir.AyAdi && x.EkYil == satir.YilAdi && x.Durum == "P");
+                            if (ekGeri != null) ekGeri.Durum = "A";
+                        }
+                    }
+
+                    db.MakbuzSatirs.RemoveRange(makbuzSatirlar);
+                    db.Makbuzs.RemoveRange(makbuzlar);
+
+                    // 2. Gider (o ay/yıl)
+                    var giderler = db.Giders.Where(x => x.BinaID == BinaID
+                        && x.GiderTarih.Value.Year == donemYil && x.GiderTarih.Value.Month == donemAyKodu).ToList();
+                    db.Giders.RemoveRange(giderler);
+
+                    // 3. Tahsilat (o ay/yıl)
+                    var tahsilatlar = db.Tahsilats.Where(x => x.BinaID == BinaID
+                        && x.TahsilatTarih.Value.Year == donemYil && x.TahsilatTarih.Value.Month == donemAyKodu).ToList();
+                    db.Tahsilats.RemoveRange(tahsilatlar);
+
+                    // 4. Aidat (bu dönem)
+                    var aidatlar = db.Aidats.Where(x => x.BinaID == BinaID && x.AidatAy == donemAyAdi && x.AidatYil == donemYil).ToList();
+                    db.Aidats.RemoveRange(aidatlar);
+
+                    // 5. Ek (bu dönem)
+                    var ekler = db.Eks.Where(x => x.BinaID == BinaID && x.EkAy == donemAyAdi && x.EkYil == donemYil).ToList();
+                    db.Eks.RemoveRange(ekler);
+
+                    // 6. Kasa (bu dönem)
+                    var kasalar = db.Kasas.Where(x => x.BinaID == BinaID && x.KasaYil == donemYil && x.AyKodu == donemAyKodu).ToList();
+                    db.Kasas.RemoveRange(kasalar);
+
+                    db.SaveChanges();
+
+                    // 7. Belge numaralarını yeniden sırala
+                    MakbuzNoDuzenle();
+                    GiderNoDuzenle();
+                    TahsilatNoDuzenle();
+
+                    // 8. Daire borçlarını yeniden hesapla (aidat + ek, aktif kayıtlar üzerinden)
+                    foreach (var daireId in etkilenenDaireIdler)
+                    {
+                        var daire = db.Dairelers.FirstOrDefault(x => x.BinaID == BinaID && x.DaireID == daireId);
+                        if (daire == null) continue;
+
+                        var aidatToplam = db.Aidats.Where(x => x.Durum == "A" && x.DaireNo == daire.DaireNo && x.BinaID == BinaID).Sum(x => (decimal?)x.AidatTutar) ?? 0;
+                        var ekToplam = db.Eks.Where(x => x.Durum == "A" && x.DaireNo == daire.DaireNo && x.BinaID == BinaID).Sum(x => (decimal?)x.EkTutar) ?? 0;
+                        daire.Borc = aidatToplam + ekToplam;
+                    }
+
+                    // 9. Hareket log'u
+                    Hareketler hareket = new Hareketler()
+                    {
+                        BinaID = BinaID,
+                        KullaniciID = KullaniciID,
+                        OlayAciklama = donemAyAdi + " - " + donemYil + " dönemi iptal edildi (makbuz, gider, tahsilat, aidat, ek ve kasa kayıtları silindi).",
+                        Tarih = DateTime.Now,
+                        Tur = "İptal",
+                    };
+                    db.Hareketlers.Add(hareket);
+
+                    db.SaveChanges();
+                    transaction.Commit();
+
+                    TempData["Basarili"] = donemAyAdi + " - " + donemYil + " dönemi başarıyla iptal edildi.";
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    TempData["Hata"] = "Dönem iptali sırasında hata oluştu, işlemler geri alındı. Hata: " + ex.Message;
+                }
+            }
+
+            return RedirectToAction("DonemIptal");
         }
 
         public ActionResult EklenenAidatlar()

@@ -786,6 +786,7 @@
     <Content Include="Views\AnaSayfa\Password.cshtml" />
     <Content Include="Views\AnaSayfa\DaireBorclandir.cshtml" />
     <Content Include="Views\AnaSayfa\DonemEkle.cshtml" />
+    <Content Include="Views\AnaSayfa\DonemIptal.cshtml" />
     <Content Include="Views\AnaSayfa\EklenenAidatlar.cshtml" />
     <Content Include="Views\AnaSayfa\AidatDuzenle.cshtml" />
     <Content Include="Views\AnaSayfa\EklenenEkler.cshtml" />

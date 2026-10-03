@@ -156,14 +156,14 @@
                         <label class="form-label-custom text-primary">AİDAT TUTARI</label>
                         <div class="input-group">
                             <span class="input-group-text text-primary bg-primary bg-opacity-10 border-primary border-opacity-25 fw-bold">₺</span>
-                            <input type="text" name="AidatTutar" class="form-control fw-bold text-dark" placeholder="0.00" onkeydown="preventDotAndComma(event)" />
+                            <input type="text" id="AidatTutar" name="AidatTutar" class="form-control fw-bold text-dark" placeholder="0" value="@(ViewBag.OnerilenAidat)" oninput="formatThousands(this)" />
                         </div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label-custom text-warning" style="color:#d97706 !important;">Demirbaş Tutarı</label>
                         <div class="input-group">
                             <span class="input-group-text text-warning bg-warning bg-opacity-10 border-warning border-opacity-25 fw-bold" style="color:#d97706 !important;">₺</span>
-                            <input type="text" name="EkTutar" class="form-control fw-bold text-dark" placeholder="0.00" onkeydown="preventDotAndComma(event)" />
+                            <input type="text" id="EkTutar" name="EkTutar" class="form-control fw-bold text-dark" placeholder="0" oninput="formatThousands(this)" />
                         </div>
                     </div>
                 </div>
@@ -179,6 +179,20 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+    // Binlik ayracı: kutuya yazıldıkça rakamları gruplayıp nokta ekler (ör. 1500 -> 1.500).
+    // Yalnızca tam sayı kabul eder (ondalık kullanılmaz), böylece sunucuya temiz sayı gider.
+    function formatThousands(el) {
+        var digits = (el.value || "").replace(/\D/g, "");
+        if (digits === "") { el.value = ""; return; }
+        el.value = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    // Submit öncesi binlik noktalarını temizle; sunucuya ham sayı (1500) gitsin.
+    function stripSeparators(id) {
+        var el = document.getElementById(id);
+        if (el) { el.value = (el.value || "").replace(/\./g, ""); }
+    }
+
     function confirmSubmission() {
         Swal.fire({
             title: 'Dönem Eklensin mi?',
@@ -196,6 +210,9 @@
                 if (btn.disabled) { return; }
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> İşleniyor...';
+                // Binlik ayraçlarını temizleyip gönder
+                stripSeparators("AidatTutar");
+                stripSeparators("EkTutar");
                 document.getElementById("donemForm").submit();
             }
         });

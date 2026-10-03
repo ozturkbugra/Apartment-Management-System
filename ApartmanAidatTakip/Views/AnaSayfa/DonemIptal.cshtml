@@ -1,0 +1,255 @@
+﻿@{
+    ViewBag.Title = "Dönem İptal";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var sonDonem = ViewBag.SonDonem as ApartmanAidatTakip.Models.Kasa;
+    bool ikiAdimAktif = ViewBag.IkiAdimAktif != null && (bool)ViewBag.IkiAdimAktif;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        --danger-grad: linear-gradient(135deg, #dc2626 0%, #f87171 100%);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
+
+    .period-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border: none;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .card-header-custom {
+        background: var(--danger-grad);
+        padding: 30px;
+        color: white;
+        text-align: center;
+    }
+
+    .form-label-custom {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-group-text {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        border-right: none;
+        color: #dc2626;
+    }
+
+    .form-control {
+        border: 1px solid #e2e8f0;
+        padding: 12px 15px;
+        font-size: 1rem;
+        border-radius: 8px;
+    }
+
+        .form-control:focus {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+        }
+
+    .btn-danger-custom {
+        background: var(--danger-grad);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        transition: transform 0.2s;
+    }
+
+        .btn-danger-custom:hover {
+            transform: translateY(-2px);
+            color: white;
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+        }
+
+        .btn-danger-custom:disabled {
+            opacity: 0.7;
+        }
+
+    .warn-box {
+        background: #fef2f2;
+        border-left: 4px solid #dc2626;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        color: #991b1b;
+        margin-bottom: 25px;
+    }
+
+    .donem-badge {
+        display: inline-block;
+        background: #fee2e2;
+        color: #991b1b;
+        font-weight: 700;
+        padding: 8px 18px;
+        border-radius: 999px;
+        font-size: 1.1rem;
+        margin: 10px 0;
+    }
+</style>
+
+<div class="container-fluid py-5">
+
+    <div class="period-card">
+        <div class="card-header-custom">
+            <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex p-3 mb-3">
+                <i class="bi bi-calendar-x display-6"></i>
+            </div>
+            <h3 class="fw-bold mb-1">Dönem İptal Et</h3>
+            <p class="mb-0 opacity-75">Yanlış tutarla açılan son dönemi geri alın.</p>
+        </div>
+
+        <div class="p-4 p-md-5">
+
+            @if (sonDonem == null)
+            {
+                <div class="warn-box">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    İptal edilebilecek bir dönem bulunmuyor.
+                </div>
+            }
+            else
+            {
+                <div class="warn-box">
+                    <strong><i class="bi bi-exclamation-triangle-fill me-2"></i>Dikkat!</strong>
+                    Bu işlem <strong>yalnızca en son açılan dönemi</strong> iptal eder. İptal edilen döneme ait
+                    <strong>makbuzlar, makbuz satırları, giderler, tahsilatlar, aidat ve ek/demirbaş kayıtları ile kasa satırı silinir</strong>
+                    ve daire borçları yeniden hesaplanır. <strong>Bu işlem geri alınamaz.</strong>
+                </div>
+
+                <div class="text-center mb-4">
+                    <div class="form-label-custom">İptal Edilecek Dönem</div>
+                    <span class="donem-badge">@sonDonem.KasaAy - @sonDonem.KasaYil</span>
+                </div>
+
+                @* onsubmit="return false" Enter ile doğrudan (onaysız) gönderimi engeller.
+                   Programatik form.submit() bu olayı tetiklemediği için SweetAlert onayından sonra gönderim yine çalışır. *@
+                <form id="iptalForm" action="/AnaSayfa/DonemIptal" method="post" onsubmit="return false;">
+
+                    <div class="mb-4">
+                        <label class="form-label-custom">Parolanız</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="parola" id="parola" class="form-control" placeholder="Giriş parolanız" autocomplete="off" />
+                        </div>
+                    </div>
+
+                    @if (ikiAdimAktif)
+                    {
+                        <div class="mb-4">
+                            <label class="form-label-custom">Google Authenticator Kodu</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                                <input type="text" name="kod" id="kod" class="form-control" placeholder="6 haneli kod" maxlength="8" inputmode="numeric" autocomplete="off" />
+                            </div>
+                        </div>
+                    }
+
+                    <button type="button" id="btnDonemIptal" class="btn btn-danger-custom" onclick="confirmIptal()">
+                        <i class="bi bi-trash3-fill me-2"></i> Dönemi İptal Et
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function confirmIptal() {
+        var parola = document.getElementById("parola");
+        if (!parola || parola.value.trim() === "") {
+            Swal.fire({ icon: 'warning', title: 'Parola Gerekli', text: 'Lütfen parolanızı girin.', confirmButtonColor: '#dc2626' });
+            return;
+        }
+        @if (ikiAdimAktif)
+        {
+            <text>
+            var kod = document.getElementById("kod");
+            if (!kod || kod.value.trim() === "") {
+                Swal.fire({ icon: 'warning', title: 'Kod Gerekli', text: 'Lütfen Google Authenticator kodunu girin.', confirmButtonColor: '#dc2626' });
+                return;
+            }
+            </text>
+        }
+
+        Swal.fire({
+            title: 'Dönem İptal Edilsin mi?',
+            html: "Bu döneme ait <b>tüm makbuz, gider, tahsilat, aidat ve ek kayıtları silinecek</b> ve borçlar yeniden hesaplanacaktır.<br><br>Bu işlem <b>geri alınamaz</b>.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Evet, İptal Et',
+            cancelButtonText: 'Vazgeç'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var btn = document.getElementById("btnDonemIptal");
+                if (btn.disabled) { return; }
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> İşleniyor...';
+                document.getElementById("iptalForm").submit();
+            }
+        });
+    }
+
+    // Kutularda Enter'a basılırsa doğrudan göndermek yerine onay diyaloğunu aç.
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            var t = e.target;
+            if (t && (t.id === "parola" || t.id === "kod")) {
+                e.preventDefault();
+                confirmIptal();
+            }
+        }
+    });
+
+    $(document).ready(function () {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'HATA!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                    confirmButtonColor: '#dc2626'
+                });
+            </text>
+        }
+
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))',
+                    confirmButtonColor: '#059669'
+                });
+            </text>
+        }
+    });
+</script>
