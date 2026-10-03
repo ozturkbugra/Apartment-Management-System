@@ -1,0 +1,506 @@
+﻿@{
+    ViewBag.Title = "Daire Ödeme Durumu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
+
+    .search-wrapper {
+        background: #fff;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .search-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--primary-grad);
+        }
+
+    .search-input-group {
+        max-width: 500px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .form-control-lg {
+        border-radius: 50px;
+        padding-left: 25px;
+        border: 2px solid #e2e8f0;
+        font-size: 1.1rem;
+        height: 60px;
+    }
+
+        .form-control-lg:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.1);
+        }
+
+    .btn-search-circle {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        height: 50px;
+        width: 50px;
+        border-radius: 50%;
+        background: var(--primary-grad);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+    }
+
+        .btn-search-circle:hover {
+            transform: scale(1.05);
+        }
+
+    .profile-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+        border-left: 5px solid #4f46e5;
+    }
+
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        background: #e0e7ff;
+        color: #4f46e5;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-right: 20px;
+    }
+
+    /* Özet kutuları */
+    .stat-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 18px;
+        margin-bottom: 25px;
+    }
+
+    .stat-box {
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px 22px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+        .stat-box .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .stat-box .label {
+            font-size: 0.78rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .stat-box .value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.1;
+            color: #1e293b;
+        }
+
+    .ic-green { background:#dcfce7; color:#166534; }
+    .ic-blue  { background:#dbeafe; color:#1d4ed8; }
+    .ic-red   { background:#fee2e2; color:#991b1b; }
+    .ic-amber { background:#fef3c7; color:#92400e; }
+
+    /* Yıl seçici */
+    .year-tabs {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+    }
+
+    .year-tab {
+        border: 2px solid #e2e8f0;
+        background: #fff;
+        border-radius: 50px;
+        padding: 8px 22px;
+        font-weight: 600;
+        cursor: pointer;
+        color: #475569;
+        transition: all .2s;
+    }
+
+        .year-tab:hover { border-color: #4f46e5; color:#4f46e5; }
+
+        .year-tab.active {
+            background: var(--primary-grad);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 6px 16px rgba(79,70,229,.3);
+        }
+
+    /* Takvim ızgarası */
+    .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+    }
+
+    .cal-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    .cal-head {
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: 700;
+        color: #fff;
+    }
+
+        .cal-head.paid    { background: linear-gradient(135deg,#16a34a,#22c55e); }
+        .cal-head.unpaid  { background: linear-gradient(135deg,#dc2626,#f87171); }
+        .cal-head.none    { background: linear-gradient(135deg,#94a3b8,#cbd5e1); }
+
+    .cal-head .st-badge {
+        font-size: 0.65rem;
+        background: rgba(255,255,255,.25);
+        padding: 3px 9px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .cal-body { padding: 12px; }
+
+    .cal-week, .cal-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+        text-align: center;
+    }
+
+    .cal-week span {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #94a3b8;
+        padding: 4px 0;
+    }
+
+    .cal-days > div {
+        aspect-ratio: 1 / 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.78rem;
+        border-radius: 8px;
+        color: #475569;
+        position: relative;
+    }
+
+    .cal-days .empty { background: transparent; }
+
+    .cal-days .pay {
+        background: linear-gradient(135deg,#16a34a,#22c55e);
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 3px 8px rgba(22,163,74,.35);
+    }
+
+    .cal-foot {
+        border-top: 1px solid #f1f5f9;
+        padding: 10px 14px;
+        font-size: 0.72rem;
+        color: #64748b;
+    }
+
+        .cal-foot .pay-line { color:#166534; font-weight:600; }
+
+    .legend {
+        display:flex; gap:18px; flex-wrap:wrap;
+        margin: 0 0 20px; font-size:0.8rem; color:#64748b;
+    }
+        .legend .dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="search-wrapper">
+        <h3 class="fw-bold mb-3 text-dark"><i class="bi bi-calendar-check text-primary me-2"></i>Daire Ödeme Durumu</h3>
+        <p class="text-muted mb-4">Dairenin hangi ay ve günlerde ödeme yaptığını takvim üzerinde görmek için daire numarasını giriniz.</p>
+
+        <form action="/AnaSayfa/DaireOdemeDurumu" method="get">
+            <div class="search-input-group">
+                <input type="number" class="form-control form-control-lg" name="DaireNo" placeholder="Daire No (Örn: 5)" value="@ViewBag.DaireNo" required />
+                <button type="submit" class="btn-search-circle">
+                    <i class="bi bi-search fs-5"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    @if (ViewBag.b != null)
+    {
+        <div class="profile-card">
+            <div class="d-flex align-items-center">
+                <div class="user-avatar"><i class="bi bi-person-badge"></i></div>
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark">@ViewBag.b.AdSoyad</h4>
+                    <div class="d-flex align-items-center mt-1">
+                        <span class="badge bg-dark me-2">Daire @ViewBag.DaireNo</span>
+                        <span class="badge bg-light text-dark border">@ViewBag.b.DaireDurum</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-end mt-3 mt-md-0">
+                <div style="font-size:0.78rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Toplam Kalan Borç</div>
+                <div style="font-size:2rem;font-weight:700;line-height:1;color:@(ViewBag.b.Borc > 0 ? "#dc2626" : "#059669")">
+                    @(((decimal?)ViewBag.b.Borc ?? 0).ToString("N2")) ₺
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-row" id="statRow"></div>
+
+        <div class="legend">
+            <span><span class="dot" style="background:#22c55e"></span>Ödeme yapılan gün</span>
+            <span><span class="dot" style="background:#16a34a"></span>Aidat ödenmiş ay</span>
+            <span><span class="dot" style="background:#f87171"></span>Aidat ödenmemiş ay</span>
+            <span><span class="dot" style="background:#cbd5e1"></span>Kayıt yok</span>
+        </div>
+
+        <div class="year-tabs" id="yearTabs"></div>
+        <div class="cal-grid" id="calGrid"></div>
+
+        <script>
+            var aidatData = @Html.Raw(ViewBag.AidatJson);
+            var ekData    = @Html.Raw(ViewBag.EkJson);
+            var odemeData = @Html.Raw(ViewBag.OdemeJson);
+        </script>
+    }
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    (function () {
+        if (typeof odemeData === 'undefined') return;
+
+        var AYLAR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+        var HAFTA = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
+
+        function ayIndex(ad) {
+            if (ad == null) return -1;
+            var t = (ad + "").trim().toLocaleLowerCase('tr-TR');
+            for (var i = 0; i < AYLAR.length; i++) {
+                if (AYLAR[i].toLocaleLowerCase('tr-TR') === t) return i; // 0-based
+            }
+            return -1;
+        }
+
+        function tl(n) {
+            try { return Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺'; }
+            catch (e) { return n + ' ₺'; }
+        }
+
+        // Aidat durumu: yil -> ay(0-based) -> "P"/"A"
+        var aidatMap = {};
+        aidatData.forEach(function (a) {
+            var y = a.AidatYil, mi = ayIndex(a.AidatAy);
+            if (y == null || mi < 0) return;
+            if (!aidatMap[y]) aidatMap[y] = {};
+            // Ödenmiş (P) bilgisi önceliklidir
+            if (aidatMap[y][mi] !== 'P') aidatMap[y][mi] = a.Durum;
+        });
+
+        // Demirbaş durumu: yil -> ay(0-based) -> "P"/"A" (varsa)
+        var ekMap = {};
+        ekData.forEach(function (e) {
+            var y = e.EkYil, mi = ayIndex(e.EkAy);
+            if (y == null || mi < 0) return;
+            if (!ekMap[y]) ekMap[y] = {};
+            if (ekMap[y][mi] !== 'P') ekMap[y][mi] = e.Durum;
+        });
+
+        // Ödeme günleri: yil -> ay(0-based) -> gun -> [ {tutar,no} ]
+        var payMap = {};
+        odemeData.forEach(function (o) {
+            var y = o.yil, mi = o.ay - 1, d = o.gun;
+            if (!payMap[y]) payMap[y] = {};
+            if (!payMap[y][mi]) payMap[y][mi] = {};
+            if (!payMap[y][mi][d]) payMap[y][mi][d] = [];
+            payMap[y][mi][d].push({ tutar: o.tutar, no: o.no });
+        });
+
+        // Yıl listesi
+        var yilSet = {};
+        Object.keys(aidatMap).forEach(function (y) { yilSet[y] = true; });
+        Object.keys(ekMap).forEach(function (y) { yilSet[y] = true; });
+        Object.keys(payMap).forEach(function (y) { yilSet[y] = true; });
+        var yillar = Object.keys(yilSet).map(Number).sort(function (a, b) { return b - a; });
+
+        // Özet
+        var toplamOdeme = odemeData.length;
+        var toplamTutar = odemeData.reduce(function (s, o) { return s + Number(o.tutar || 0); }, 0);
+        var odenenAy = aidatData.filter(function (a) { return a.Durum === 'P'; }).length;
+        var odenmeyenAy = aidatData.filter(function (a) { return a.Durum === 'A'; }).length;
+
+        document.getElementById('statRow').innerHTML =
+            statBox('ic-blue', 'bi-receipt', 'Toplam Ödeme', toplamOdeme + ' adet') +
+            statBox('ic-green', 'bi-cash-coin', 'Tahsil Edilen', tl(toplamTutar)) +
+            statBox('ic-green', 'bi-check2-circle', 'Ödenen Aidat Ayı', odenenAy + ' ay') +
+            statBox('ic-red', 'bi-exclamation-circle', 'Ödenmeyen Aidat Ayı', odenmeyenAy + ' ay');
+
+        function statBox(ic, icon, label, value) {
+            return '<div class="stat-box"><div class="icon ' + ic + '"><i class="bi ' + icon + '"></i></div>' +
+                '<div><div class="label">' + label + '</div><div class="value">' + value + '</div></div></div>';
+        }
+
+        var yearTabs = document.getElementById('yearTabs');
+        if (yillar.length === 0) {
+            document.getElementById('calGrid').innerHTML =
+                '<div class="text-center text-muted py-5 w-100"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Bu daire için kayıt bulunamadı.</div>';
+            return;
+        }
+
+        yillar.forEach(function (y, idx) {
+            var b = document.createElement('button');
+            b.className = 'year-tab' + (idx === 0 ? ' active' : '');
+            b.textContent = y;
+            b.onclick = function () {
+                document.querySelectorAll('.year-tab').forEach(function (e) { e.classList.remove('active'); });
+                b.classList.add('active');
+                render(y);
+            };
+            yearTabs.appendChild(b);
+        });
+
+        function render(yil) {
+            var grid = document.getElementById('calGrid');
+            var html = '';
+            for (var m = 0; m < 12; m++) {
+                var durum = (aidatMap[yil] && aidatMap[yil][m]) || null;
+                var ekDurum = (ekMap[yil] && ekMap[yil][m]) || null;
+                var headClass = durum === 'P' ? 'paid' : (durum === 'A' ? 'unpaid' : 'none');
+                var headText = durum === 'P' ? 'ÖDENDİ' : (durum === 'A' ? 'ÖDENMEDİ' : 'KAYIT YOK');
+
+                html += '<div class="cal-card">';
+                html += '<div class="cal-head ' + headClass + '"><span>' + AYLAR[m] + ' ' + yil + '</span><span class="st-badge">' + headText + '</span></div>';
+                html += '<div class="cal-body"><div class="cal-week">';
+                HAFTA.forEach(function (h) { html += '<span>' + h + '</span>'; });
+                html += '</div><div class="cal-days">';
+
+                var first = new Date(yil, m, 1);
+                var offset = (first.getDay() + 6) % 7; // Pazartesi = 0
+                var gunSayisi = new Date(yil, m + 1, 0).getDate();
+                for (var e = 0; e < offset; e++) html += '<div class="empty"></div>';
+
+                var monthPays = (payMap[yil] && payMap[yil][m]) || {};
+                for (var d = 1; d <= gunSayisi; d++) {
+                    if (monthPays[d]) {
+                        var toplam = monthPays[d].reduce(function (s, p) { return s + Number(p.tutar || 0); }, 0);
+                        html += '<div class="pay" data-y="' + yil + '" data-m="' + m + '" data-d="' + d + '" title="' +
+                            d + ' ' + AYLAR[m] + ': ' + tl(toplam) + '">' + d + '</div>';
+                    } else {
+                        html += '<div>' + d + '</div>';
+                    }
+                }
+                html += '</div></div>';
+
+                // Alt kısım: o ayın ödeme özetleri + demirbaş rozeti
+                var footParts = [];
+                var paidDays = Object.keys(monthPays).map(Number).sort(function (a, b) { return a - b; });
+                if (paidDays.length > 0) {
+                    paidDays.forEach(function (d) {
+                        var toplam = monthPays[d].reduce(function (s, p) { return s + Number(p.tutar || 0); }, 0);
+                        footParts.push('<div class="pay-line"><i class="bi bi-cash me-1"></i>' + d + ' ' + AYLAR[m] + ' — ' + tl(toplam) + '</div>');
+                    });
+                }
+                if (ekDurum) {
+                    footParts.push('<div style="color:#92400e"><i class="bi bi-box-seam me-1"></i>Demirbaş: ' + (ekDurum === 'P' ? 'Ödendi' : 'Ödenmedi') + '</div>');
+                }
+                if (footParts.length > 0) {
+                    html += '<div class="cal-foot">' + footParts.join('') + '</div>';
+                }
+                html += '</div>';
+            }
+            grid.innerHTML = html;
+
+            grid.querySelectorAll('.pay').forEach(function (cell) {
+                cell.addEventListener('click', function () {
+                    var y = +cell.dataset.y, m = +cell.dataset.m, d = +cell.dataset.d;
+                    var list = payMap[y][m][d];
+                    var rows = list.map(function (p) {
+                        return '<tr><td style="text-align:left">Makbuz No ' + p.no + '</td><td style="text-align:right;font-weight:600">' + tl(p.tutar) + '</td></tr>';
+                    }).join('');
+                    Swal.fire({
+                        title: d + ' ' + AYLAR[m] + ' ' + y,
+                        html: '<table style="width:100%;border-collapse:collapse">' + rows + '</table>',
+                        icon: 'success',
+                        confirmButtonColor: '#16a34a'
+                    });
+                });
+            });
+        }
+
+        render(yillar[0]);
+    })();
+
+    $(document).ready(function () {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'error',
+                title: 'HATA!',
+                text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))',
+                confirmButtonColor: '#d33'
+            });
+            </text>
+        }
+    });
+</script>

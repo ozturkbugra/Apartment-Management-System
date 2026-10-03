@@ -423,11 +423,12 @@
                 <a class="nav-link collapsed" id="link-diger" data-bs-target="#diger-nav" data-bs-toggle="collapse" href="#">
                     <i class="bi bi-collection color-orange"></i><span>Diğer</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <ul id="diger-nav" class="nav-content collapse @(aktif == "EklenenAidatlar" || aktif == "EklenenEkler" || aktif == "Ara" || aktif == "DaireSorgu" || aktif == "Notlar" ? "show" : "")">
+                <ul id="diger-nav" class="nav-content collapse @(aktif == "EklenenAidatlar" || aktif == "EklenenEkler" || aktif == "Ara" || aktif == "DaireSorgu" || aktif == "DaireOdemeDurumu" || aktif == "Notlar" ? "show" : "")">
                     <li><a href="/AnaSayfa/EklenenAidatlar" class="@(aktif == "EklenenAidatlar" ? "active" : "")"><i class="bi bi-building-check"></i><span>Aidat Listesi</span></a></li>
                     <li><a href="/AnaSayfa/EklenenEkler" class="@(aktif == "EklenenEkler" ? "active" : "")"><i class="bi bi-layers"></i><span>Demirbaş Listesi</span></a></li>
                     <li><a href="/Makbuz/Ara" class="@(aktif == "Ara" ? "active" : "")"><i class="bi bi-search"></i><span>Makbuz Ara</span></a></li>
                     <li><a href="/AnaSayfa/DaireSorgu" class="@(aktif == "DaireSorgu" ? "active" : "")"><i class="bi bi-zoom-in"></i><span>Daire Sorgula</span></a></li>
+                    <li><a href="/AnaSayfa/DaireOdemeDurumu" class="@(aktif == "DaireOdemeDurumu" ? "active" : "")"><i class="bi bi-calendar-check"></i><span>Ödeme Durumu</span></a></li>
                     <li><a href="/AnaSayfa/Notlar" class="@(aktif == "Notlar" ? "active" : "")"><i class="bi bi-journal-bookmark"></i><span>Notlarım</span></a></li>
                 </ul>
             </li>

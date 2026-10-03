@@ -783,19 +783,38 @@ namespace ApartmanAidatTakip.Controllers
             table.SpacingAfter = 0f; // Tablonun altındaki boşluğu kaldır
             document.Add(table);
 
-            // Borçlu bilgilerini içeren tablo oluştur
+            var trCulture = new System.Globalization.CultureInfo("tr-TR");
+
+            // Ödenmeyen (açık) dönemleri "Yıl- Ay Tutar TL" biçiminde yan yana topla (demirbaş ise parantezle belirt)
+            var odenmeyenParcalari = new List<string>();
+            var acikAidatlar = db.Aidats
+                .Where(x => x.Durum == "A" && x.DaireNo == daire.DaireNo && x.BinaID == BinaID)
+                .OrderBy(x => x.AidatYil).ToList();
+            foreach (var a in acikAidatlar)
+            {
+                odenmeyenParcalari.Add((a.AidatYil?.ToString() ?? "") + " - " + (a.AidatAy ?? "N/A") + " " + (a.AidatTutar ?? 0).ToString("#,##0.##", trCulture) + " TL");
+            }
+            var acikEkler = db.Eks
+                .Where(x => x.Durum == "A" && x.DaireNo == daire.DaireNo && x.BinaID == BinaID)
+                .OrderBy(x => x.EkYil).ToList();
+            foreach (var e in acikEkler)
+            {
+                odenmeyenParcalari.Add((e.EkYil?.ToString() ?? "") + " - " + (e.EkAy ?? "N/A") + " " + (e.EkTutar ?? 0).ToString("#,##0.##", trCulture) + " TL (Demirbaş)");
+            }
+            string odenmeyenDonemler = string.Join(", ", odenmeyenParcalari);
+
+            // Üst blok: sol tarafta daire bilgileri, sağ köşede KAŞE - İMZA
             PdfPTable debtorTable = new PdfPTable(2);
             debtorTable.WidthPercentage = 100;
             debtorTable.SetWidths(new float[] { 70, 30 });
 
-            // Sol tarafa borçlu bilgileri
+            // Sol tarafa borçlu bilgileri (Daire No / Ad Soyad / Toplam Borç)
             PdfPCell debtorInfoCellLeft = new PdfPCell();
             debtorInfoCellLeft.Border = PdfPCell.NO_BORDER;
             debtorInfoCellLeft.VerticalAlignment = Element.ALIGN_MIDDLE;
-
             debtorInfoCellLeft.AddElement(new Paragraph("Daire No: " + daire.DaireNo, subTitleFont));
             debtorInfoCellLeft.AddElement(new Paragraph("Ad Soyad: " + daire.AdSoyad, subTitleFont));
-            debtorInfoCellLeft.AddElement(new Paragraph("Toplam Borç: " + daire.Borc, subTitleFont));
+            debtorInfoCellLeft.AddElement(new Paragraph("Toplam Borç: " + (daire.Borc ?? 0).ToString("#,##0.##", trCulture) + " TL", subTitleFont));
 
             if (daire.Borc > 0)
             {
@@ -828,12 +847,18 @@ namespace ApartmanAidatTakip.Controllers
                                 new Font(bfArialTurkish, 12, Font.BOLD, BaseColor.BLACK));
             kaşeImzaParagraph.Alignment = Element.ALIGN_RIGHT;
             kaşeImzaCell.AddElement(kaşeImzaParagraph);
-
             debtorTable.AddCell(kaşeImzaCell);
 
-            // Tabloyu PDF'ye ekle
             document.Add(debtorTable);
 
+            // Ödenmeyen Dönemler: VUK notunun hemen üstünde, tam genişlik, küçük punto
+            if (!string.IsNullOrEmpty(odenmeyenDonemler))
+            {
+                Font odenmeyenFont = new Font(bfArialTurkish, 9, Font.UNDERLINE);
+                Paragraph odenmeyenParagraph = new Paragraph("Ödenmeyen Dönemler: " + odenmeyenDonemler, odenmeyenFont);
+                odenmeyenParagraph.SpacingBefore = 10f;
+                document.Add(odenmeyenParagraph);
+            }
 
             Font vukFont = new Font(bfArialTurkish, 8, Font.NORMAL);
 

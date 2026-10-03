@@ -3482,6 +3482,75 @@ namespace ApartmanAidatTakip.Controllers
         }
 
 
+        public ActionResult DaireOdemeDurumu(int? DaireNo)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            Session["Aktif"] = "DaireOdemeDurumu";
+            Sabit();
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+
+            ViewBag.DaireNo = null;
+
+            if (DaireNo != null)
+            {
+                var daire = db.Dairelers.AsNoTracking()
+                    .FirstOrDefault(x => x.DaireNo == DaireNo && x.BinaID == BinaID);
+
+                if (daire == null)
+                {
+                    TempData["Hata"] = "Daire Bulunamadı";
+                    return View();
+                }
+
+                ViewBag.b = daire;
+                ViewBag.DaireNo = DaireNo;
+
+                // Aidat dönemleri (ödenen P / ödenmeyen A) - aylık durum ızgarası için
+                var aidatlar = db.Aidats.AsNoTracking()
+                    .Where(x => x.BinaID == BinaID && x.DaireNo == DaireNo && (x.Durum == "A" || x.Durum == "P"))
+                    .Select(x => new { x.AidatYil, x.AidatAy, x.Durum, x.AidatTutar })
+                    .ToList();
+
+                // Demirbaş dönemleri
+                var ekler = db.Eks.AsNoTracking()
+                    .Where(x => x.BinaID == BinaID && x.DaireNo == DaireNo && (x.Durum == "A" || x.Durum == "P"))
+                    .Select(x => new { x.EkYil, x.EkAy, x.Durum, x.EkTutar })
+                    .ToList();
+
+                // Fiili ödeme günleri (makbuz tarihleri) - takvimde işaretlenecek
+                var makbuzlar = db.Makbuzs.AsNoTracking()
+                    .Where(x => x.BinaID == BinaID && x.DaireID == daire.DaireID && x.Durum == "A" && x.MakbuzTarihi != null)
+                    .Select(x => new { x.MakbuzTarihi, x.MabuzTutar, x.MakbuzNo })
+                    .ToList();
+
+                var odemeGunleri = makbuzlar
+                    .Where(x => x.MakbuzTarihi.HasValue)
+                    .Select(x => new
+                    {
+                        yil = x.MakbuzTarihi.Value.Year,
+                        ay = x.MakbuzTarihi.Value.Month,
+                        gun = x.MakbuzTarihi.Value.Day,
+                        tutar = x.MabuzTutar ?? 0,
+                        no = x.MakbuzNo
+                    })
+                    .OrderBy(x => x.yil).ThenBy(x => x.ay).ThenBy(x => x.gun)
+                    .ToList();
+
+                ViewBag.AidatJson = Newtonsoft.Json.JsonConvert.SerializeObject(aidatlar);
+                ViewBag.EkJson = Newtonsoft.Json.JsonConvert.SerializeObject(ekler);
+                ViewBag.OdemeJson = Newtonsoft.Json.JsonConvert.SerializeObject(odemeGunleri);
+            }
+
+            return View();
+        }
+
+
         [HttpPost]
         public ActionResult GecikmeZammı(Aidat aidat, string tutar, bool? durum)
         {
