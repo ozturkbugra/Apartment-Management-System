@@ -101,6 +101,8 @@ EF Database First. Aşağıdaki tablolar `Models/*.cs` entity'lerinden birebir �
 
 **GiderTuru** — gider tipi sözlüğü: `GiderTuruID PK`, `GiderTuruAdi`, `BinaID`.
 
+**SabitGider** — sabit (her ay tekrar eden) gider şablonu: `SabitGiderID PK`, `GiderAciklama` (nvarchar 500), `GiderTuruID`, `GiderTutar` (decimal 18,2), `BinaID`, `Durum` (`A`/`P` soft-delete). DB'ye yazılır; bir **şablondur**, gerçek gider değildir — `SabitGiderOlustur` ile `Gider` kaydına kopyalanır. EDMX'e elle eklendi (SSDL+CSDL+mapping); entity `Models/SabitGider.cs`, DbSet `SabitGiders`. Ekrana taşırken tür adıyla join'li salt-okunur DTO `Models/SabitGiderListe.cs` kullanılır (DB view değil).
+
 ### 3.4 Yardımcı tablolar
 - **Hareketler** — denetim/işlem günlüğü: `HareketID PK`, `BinaID`, `KullaniciID`, `OlayAciklama`, `Tarih`, `Tur`.
 - **Duyurular** — duyurular: `ID PK`, `Baslik`, `Aciklama`, `Tarih`, `Durum`.
@@ -121,7 +123,7 @@ Bunlara yazılmaz; join'li/özet verileri hazır sunarlar (ör. `KullanicilarVie
 
 | Controller | Rol |
 |-----------|-----|
-| **AnaSayfa** (~2900 satır) | Ana yönetici uygulaması: aidat (DaireBorclandir, DonemEkle, AidatDuzenle/Sil), ekler (Ek*), giderler (Giderler, GiderEkle/Guncelle/Sil, GiderMakbuz), tahsilatlar (Tahsilat*), sakinler (Sakinler, SakinEkle, SakinEkleExcel, SakinDuzenle, EkSakinEkle/Sil), açılış bakiyesi, notlar, peşin ödemeler, borçlu daireler (+PDF/Excel), daire sorgu (DaireSorgu), gecikme zammı (GecikmeZammı) |
+| **AnaSayfa** (~3000 satır) | Ana yönetici uygulaması: aidat (DaireBorclandir, DonemEkle, AidatDuzenle/Sil), ekler (Ek*), giderler (Giderler, GiderEkle/Guncelle/Sil, GiderMakbuz), sabit giderler (SabitGiderEkle/Guncelle/Sil, SabitGiderOlustur), tahsilatlar (Tahsilat*), sakinler (Sakinler, SakinEkle, SakinEkleExcel, SakinDuzenle, EkSakinEkle/Sil), açılış bakiyesi, notlar, peşin ödemeler, borçlu daireler (+PDF/Excel), daire sorgu (DaireSorgu), gecikme zammı (GecikmeZammı) |
 | **Admin** | Superadmin paneli: Binalar ve Kullanicilar yönetimi, soft-delete + geri alma (BinaSil/BinaGeriAl/BinaTamamenSil, Kullanici eşdeğerleri), Duyurular, binalar arası Hareketler, şifre değişimi. Google Authenticator + rate limit + şifre sıfırlama içerir |
 | **Makbuz** | Tek makbuz yaşam döngüsü: Olustur/Ekle, satır ekleme (AidatSatirEkle, EkSatirEkle), SatirCikar, MakbuzSil, GeneratePdf, Ara |
 | **TopluMakbuz** | Bir daire için seçili aidat/eklerden toplu makbuz üretimi |
@@ -161,7 +163,9 @@ Bunlar merkezi değildir — ihtiyaç duyan her controller'a kopyalanmıştır. 
 
 **Tahsilat / Makbuz kesme:** `Makbuz.Olustur` başlık açar → `AidatSatirEkle`/`EkSatirEkle` ile `MakbuzSatir` kalemleri eklenir (`EkMiAidatMi` ayırır) → makbuz tutarı toplanır, `borcduzenle` ile dairenin borcu düşer → `MakbuzOnayKaldir` ayarına göre `OnayliMi` durumu. `TopluMakbuz` bunu bir dairenin birden çok borcu için tek seferde yapar.
 
-**Gider:** `GiderEkle` bir `GiderTuru`'ne bağlı `Gider` yazar; gelir-gider raporlarında `Tahsilat` (gelir) ile karşılaştırılır.
+**Gider:** `GiderEkle` bir `GiderTuru`'ne bağlı `Gider` yazar; gelir-gider raporlarında `Tahsilat` (gelir) ile karşılaştırılır. `GiderEkle` sonrası, eklenen giderin ID'si `TempData["YeniGiderMakbuzID"]` ile view'a taşınır ve makbuz PDF'i yeni sekmede otomatik açılır.
+
+**Sabit gider:** Giderler ekranında `SabitGider` şablonları listelenir (eklenir/güncellenir/soft-delete edilir). Her satırdaki **"Gider Makbuzu Oluştur"** butonu `SabitGiderOlustur` ile şablonu sıralı `GiderNo` + bugünün tarihiyle gerçek bir `Gider` kaydına kopyalar (Hareket log'u yazar), dönem kapalıysa engeller, sonra makbuz PDF'ine yönlendirir (yeni sekmede). DB tablosu `SabitGider_tablo.sql` ile oluşturulur.
 
 **Raporlama:** Her Raporlar aksiyonu ekranda gösterir; eş `*PDF` aksiyonu iTextSharp ile PDF, borçlu listeleri ClosedXML/EPPlus ile Excel üretir.
 
