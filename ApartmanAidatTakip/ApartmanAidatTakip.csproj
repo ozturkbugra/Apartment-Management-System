@@ -233,6 +233,10 @@
     <Compile Include="Models\Gider.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\SabitGider.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SabitGiderListe.cs" />
     <Compile Include="Models\GiderTuru.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>

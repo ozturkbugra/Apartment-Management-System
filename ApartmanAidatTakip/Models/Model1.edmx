@@ -105,6 +105,17 @@
           <Property Name="BinaID" Type="int" />
           <Property Name="Durum" Type="nvarchar" MaxLength="1" />
         </EntityType>
+        <EntityType Name="SabitGider">
+          <Key>
+            <PropertyRef Name="SabitGiderID" />
+          </Key>
+          <Property Name="SabitGiderID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GiderAciklama" Type="nvarchar" MaxLength="500" />
+          <Property Name="GiderTuruID" Type="int" />
+          <Property Name="GiderTutar" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="BinaID" Type="int" />
+          <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+        </EntityType>
         <EntityType Name="GiderTuru">
           <Key>
             <PropertyRef Name="GiderTuruID" />
@@ -406,6 +417,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <EntitySet Name="Duyurular" EntityType="Self.Duyurular" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Ek" EntityType="Self.Ek" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Gider" EntityType="Self.Gider" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SabitGider" EntityType="Self.SabitGider" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="GiderTuru" EntityType="Self.GiderTuru" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Hareketler" EntityType="Self.Hareketler" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Kasa" EntityType="Self.Kasa" Schema="dbo" store:Type="Tables" />
@@ -625,6 +637,17 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
           <Property Name="GiderNo" Type="Int32" />
         </EntityType>
+        <EntityType Name="SabitGider">
+          <Key>
+            <PropertyRef Name="SabitGiderID" />
+          </Key>
+          <Property Name="SabitGiderID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="GiderAciklama" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="GiderTuruID" Type="Int32" />
+          <Property Name="GiderTutar" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="BinaID" Type="Int32" />
+          <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+        </EntityType>
         <EntityType Name="GiderTuru">
           <Key>
             <PropertyRef Name="GiderTuruID" />
@@ -781,6 +804,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <EntitySet Name="Dairelers" EntityType="Self.Daireler" />
           <EntitySet Name="Eks" EntityType="Self.Ek" />
           <EntitySet Name="Giders" EntityType="Self.Gider" />
+          <EntitySet Name="SabitGiders" EntityType="Self.SabitGider" />
           <EntitySet Name="GiderTurus" EntityType="Self.GiderTuru" />
           <EntitySet Name="Hareketlers" EntityType="Self.Hareketler" />
           <EntitySet Name="Kasas" EntityType="Self.Kasa" />
@@ -1031,6 +1055,18 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
                 <ScalarProperty Name="GiderTuruID" ColumnName="GiderTuruID" />
                 <ScalarProperty Name="GiderTutar" ColumnName="GiderTutar" />
                 <ScalarProperty Name="GiderTarih" ColumnName="GiderTarih" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
+                <ScalarProperty Name="Durum" ColumnName="Durum" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SabitGiders">
+            <EntityTypeMapping TypeName="AptVTModel.SabitGider">
+              <MappingFragment StoreEntitySet="SabitGider">
+                <ScalarProperty Name="SabitGiderID" ColumnName="SabitGiderID" />
+                <ScalarProperty Name="GiderAciklama" ColumnName="GiderAciklama" />
+                <ScalarProperty Name="GiderTuruID" ColumnName="GiderTuruID" />
+                <ScalarProperty Name="GiderTutar" ColumnName="GiderTutar" />
                 <ScalarProperty Name="BinaID" ColumnName="BinaID" />
                 <ScalarProperty Name="Durum" ColumnName="Durum" />
               </MappingFragment>

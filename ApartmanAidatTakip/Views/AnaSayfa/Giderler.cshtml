@@ -368,6 +368,90 @@
     </div>
 </div>
 
+<div class="card card-legendary mb-5">
+    <div class="card-header-legendary d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #0cebeb 0%, #20e3b2 50%, #29ffc6 100%);">
+        <h5 class="m-0 fw-bold text-dark"><i class="bi bi-arrow-repeat me-2"></i>Sabit (Tekrar Eden) Giderler</h5>
+        <button type="button" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#SabitEkleModal">
+            <i class="bi bi-plus-lg me-1"></i>Yeni Sabit Gider
+        </button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-modern align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">KATEGORİ</th>
+                        <th>AÇIKLAMA</th>
+                        <th class="text-end">TUTAR</th>
+                        <th class="text-center pe-4">İŞLEMLER</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.SabitGiderler)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge badge-soft" style="background-color: #e0f2fe; color: #0369a1;">
+                                    <i class="bi bi-tag-fill me-1"></i> @item.GiderTuruAdi
+                                </span>
+                            </td>
+                            <td class="text-dark fw-bold">@item.GiderAciklama</td>
+                            <td class="text-end">
+                                <span class="amount-text">@(((decimal?)item.GiderTutar ?? 0).ToString("N2"))</span>
+                                <span class="text-muted small">@tl</span>
+                            </td>
+                            <td class="text-center pe-4">
+                                @if (ViewBag.DonemSorgu == true)
+                                {
+                                    <button type="button"
+                                            class="btn btn-success btn-sm rounded-pill px-3 btn-sabit-olustur"
+                                            data-id="@item.SabitGiderID"
+                                            data-aciklama="@item.GiderAciklama"
+                                            title="Bu sabit giderden gider kaydı oluştur ve makbuzunu aç">
+                                        <i class="bi bi-receipt me-1"></i>Gider Makbuzu Oluştur
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" disabled title="Dönem kapalı">
+                                        <i class="bi bi-lock-fill me-1"></i>Dönem Kapalı
+                                    </button>
+                                }
+                                <button type="button"
+                                        class="btn-icon-soft btn-soft-warning btn-sabit-duzenle"
+                                        title="Düzenle" data-bs-toggle="tooltip"
+                                        data-id="@item.SabitGiderID"
+                                        data-turid="@item.GiderTuruID"
+                                        data-aciklama="@item.GiderAciklama"
+                                        data-tutar="@(((decimal?)item.GiderTutar ?? 0).ToString("F2"))">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button type="button"
+                                        class="btn-icon-soft btn-soft-danger"
+                                        onclick="confirmDeleteSabit(event, @item.SabitGiderID)"
+                                        title="Sabit gideri sil" data-bs-toggle="tooltip">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    @if (ViewBag.SabitGiderler.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-arrow-repeat fs-1 d-block mb-3 opacity-25"></i>
+                                    Henüz sabit gider tanımlanmamış. Her ay tekrar eden giderlerinizi buraya ekleyin.
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <div class="accordion mb-5 shadow-sm rounded-3 overflow-hidden" id="accordionDeleted">
     <div class="accordion-item border-0">
         <h2 class="accordion-header" id="headingDeleted">
@@ -495,6 +579,95 @@
     </div>
 </div>
 
+<div class="modal fade" id="SabitEkleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header text-dark border-0" style="background: linear-gradient(135deg, #0cebeb 0%, #20e3b2 50%, #29ffc6 100%);">
+                <h5 class="modal-title fw-bold"><i class="bi bi-arrow-repeat me-2"></i>Yeni Sabit Gider</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/AnaSayfa/SabitGiderEkle" method="post" class="js-lock">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Gider Türü</label>
+                        <select name="GiderTuruID" class="form-select form-select-lg" required>
+                            @foreach (var item in ViewBag.GiderTuru)
+                            {
+                                <option value="@item.GiderTuruID">@item.GiderTuruAdi</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Açıklama</label>
+                        <textarea name="GiderAciklama" class="form-control" rows="2" maxlength="500" required placeholder="Örn: Aylık temizlik ücreti"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Tutar</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0">₺</span>
+                            <input type="text"
+                                   name="GiderTutar"
+                                   class="form-control border-start-0 ps-0 fw-bold text-success money-input"
+                                   placeholder="0,00"
+                                   required
+                                   autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success px-4 rounded-pill">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="SabitGuncelleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Sabit Gider Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/AnaSayfa/SabitGiderGuncelle" method="post" class="js-lock">
+                <input type="hidden" name="SabitGiderID" id="update_SabitGiderID" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Gider Türü</label>
+                        <select name="GiderTuruID" id="update_SabitGiderTuruID" class="form-select form-select-lg" required>
+                            @foreach (var item in ViewBag.GiderTuru)
+                            {
+                                <option value="@item.GiderTuruID">@item.GiderTuruAdi</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Açıklama</label>
+                        <textarea name="GiderAciklama" id="update_SabitGiderAciklama" class="form-control" rows="2" maxlength="500" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Tutar</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0">₺</span>
+                            <input type="text"
+                                   name="GiderTutar"
+                                   id="update_SabitGiderTutar"
+                                   class="form-control border-start-0 ps-0 fw-bold text-warning money-input"
+                                   required
+                                   autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-warning px-4 rounded-pill">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function() {
@@ -579,6 +752,56 @@
         });
 
         // ============================================================
+        // 3.2 SABİT GİDER DÜZENLEME BUTONU
+        // ============================================================
+        $('.btn-sabit-duzenle').click(function() {
+            $('#update_SabitGiderID').val($(this).data('id'));
+            $('#update_SabitGiderTuruID').val($(this).data('turid'));
+            $('#update_SabitGiderAciklama').val($(this).data('aciklama'));
+            $('#update_SabitGiderTutar').val($(this).data('tutar')).trigger('input');
+
+            var m = new bootstrap.Modal(document.getElementById('SabitGuncelleModal'));
+            m.show();
+        });
+
+        // ============================================================
+        // 3.1 SABİT GİDERDEN MAKBUZ OLUŞTURMA
+        // ============================================================
+        $('.btn-sabit-olustur').click(function() {
+            var id = $(this).data('id');
+            var aciklama = $(this).data('aciklama');
+
+            Swal.fire({
+                title: 'Gider Oluşturulsun mu?',
+                html: "<b>" + $('<div>').text(aciklama).html() + "</b><br>bu dönem için gider olarak eklenecek ve makbuzu açılacak.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#20e3b2',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Evet, Oluştur',
+                cancelButtonText: 'Vazgeç',
+                customClass: {
+                    confirmButton: 'btn btn-success px-4 rounded-pill',
+                    cancelButton: 'btn btn-secondary px-4 rounded-pill ml-2'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Gideri oluştur + makbuz PDF'ini yeni sekmede aç
+                    window.open('/AnaSayfa/SabitGiderOlustur/' + id, '_blank');
+                    // Listenin güncellenmesi için sayfayı tazele
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Gider Oluşturuldu',
+                        text: 'Makbuz yeni sekmede açıldı.',
+                        timer: 1800,
+                        showConfirmButton: false
+                    }).then(() => { window.location.reload(); });
+                }
+            });
+        });
+
+        // ============================================================
         // 4. SWEETALERT BİLDİRİMLERİ (SERVER TARAFLI)
         // ============================================================
         @if (TempData["Hata"] != null)
@@ -592,6 +815,14 @@
                     background: '#fff',
                     color: '#333'
                 });
+            </text>
+        }
+
+        @if (TempData["YeniGiderMakbuzID"] != null)
+        {
+            <text>
+                // Yeni eklenen giderin makbuzunu yeni sekmede aç
+                window.open('/AnaSayfa/GiderMakbuz?GiderID=@TempData["YeniGiderMakbuzID"]', '_blank');
             </text>
         }
 
@@ -635,6 +866,33 @@
             if (result.isConfirmed) {
                 // Onay verilirse silme linkine git
                 window.location.href = '/AnaSayfa/GiderSil/' + id;
+            }
+        })
+    }
+
+    // ============================================================
+    // 6. SABİT GİDER SİLME ONAYI
+    // ============================================================
+    function confirmDeleteSabit(event, id) {
+        event.preventDefault();
+
+        Swal.fire({
+            title: 'Sabit Gider Silinsin mi?',
+            text: "Bu sabit gider şablonu listeden kaldırılacak. (Daha önce oluşturulmuş gider kayıtları etkilenmez.)",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Evet, Sil',
+            cancelButtonText: 'Vazgeç',
+            customClass: {
+                confirmButton: 'btn btn-danger px-4 rounded-pill',
+                cancelButton: 'btn btn-secondary px-4 rounded-pill ml-2'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/AnaSayfa/SabitGiderSil/' + id;
             }
         })
     }

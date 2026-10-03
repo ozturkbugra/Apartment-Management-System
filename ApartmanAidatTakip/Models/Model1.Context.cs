@@ -29,6 +29,7 @@ namespace ApartmanAidatTakip.Models
         public virtual DbSet<Daireler> Dairelers { get; set; }
         public virtual DbSet<Ek> Eks { get; set; }
         public virtual DbSet<Gider> Giders { get; set; }
+        public virtual DbSet<SabitGider> SabitGiders { get; set; }
         public virtual DbSet<GiderTuru> GiderTurus { get; set; }
         public virtual DbSet<Hareketler> Hareketlers { get; set; }
         public virtual DbSet<Kasa> Kasas { get; set; }

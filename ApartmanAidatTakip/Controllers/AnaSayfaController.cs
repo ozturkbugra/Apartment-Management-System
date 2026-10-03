@@ -1903,6 +1903,20 @@ namespace ApartmanAidatTakip.Controllers
             int yil = DateTime.Now.Year;
             ViewBag.Giderler = db.GiderViews.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).OrderByDescending(x => x.GiderID).ToList();
             ViewBag.SilinenGiderler = db.GiderViews.Where(x => x.BinaID == BinaID && x.Durum == "P").OrderByDescending(x => x.GiderID).ToList();
+            // Sabit (tekrar eden) gider şablonları
+            ViewBag.SabitGiderler = (from s in db.SabitGiders.AsNoTracking()
+                                     join t in db.GiderTurus on s.GiderTuruID equals t.GiderTuruID into tg
+                                     from t in tg.DefaultIfEmpty()
+                                     where s.BinaID == BinaID && s.Durum == "A"
+                                     orderby s.SabitGiderID descending
+                                     select new SabitGiderListe
+                                     {
+                                         SabitGiderID = s.SabitGiderID,
+                                         GiderAciklama = s.GiderAciklama,
+                                         GiderTuruID = s.GiderTuruID,
+                                         GiderTuruAdi = t.GiderTuruAdi,
+                                         GiderTutar = s.GiderTutar
+                                     }).ToList();
             DonemEklendiMi();
             ViewBag.GiderTuru = db.GiderTurus.OrderBy(x => x.GiderTuruAdi).ToList();
             return View();
@@ -1957,6 +1971,8 @@ namespace ApartmanAidatTakip.Controllers
                 db.Hareketlers.Add(hareketler);
                 db.SaveChanges();
 
+                // Eklenen giderin makbuzunu Giderler sayfasında yeni sekmede aç
+                TempData["YeniGiderMakbuzID"] = gider.GiderID;
                 TempData["Basarili"] = "Gider Başarıyla Eklendi";
             }
             catch (Exception ex) // Hata detayını görmek için ex ekledim
@@ -1970,6 +1986,182 @@ namespace ApartmanAidatTakip.Controllers
             ViewBag.GiderTuru = db.GiderTurus.OrderBy(x => x.GiderTuruAdi).ToList();
 
             return RedirectToAction("Giderler", "AnaSayfa");
+        }
+
+        // ============================================================
+        // SABİT (TEKRAR EDEN) GİDER ŞABLONLARI
+        // ============================================================
+
+        [HttpPost]
+        public ActionResult SabitGiderEkle(SabitGider sabitGider, string GiderTutar)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+
+            try
+            {
+                decimal parsedTutar = 0;
+                if (!string.IsNullOrEmpty(GiderTutar))
+                {
+                    parsedTutar = decimal.Parse(GiderTutar, new CultureInfo("tr-TR"));
+                }
+                sabitGider.GiderTutar = parsedTutar;
+                sabitGider.BinaID = BinaID;
+                sabitGider.Durum = "A";
+
+                db.SabitGiders.Add(sabitGider);
+                db.SaveChanges();
+
+                TempData["Basarili"] = "Sabit Gider Başarıyla Eklendi";
+            }
+            catch (Exception ex)
+            {
+                TempData["Hata"] = "Bir Hata Oluştu! " + ex.Message;
+            }
+
+            return RedirectToAction("Giderler", "AnaSayfa");
+        }
+
+        public ActionResult SabitGiderSil(int id)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+
+            try
+            {
+                var sabit = db.SabitGiders.FirstOrDefault(x => x.SabitGiderID == id && x.BinaID == BinaID);
+                if (sabit != null)
+                {
+                    sabit.Durum = "P";
+                    db.SaveChanges();
+                    TempData["Basarili"] = "Sabit Gider Silindi";
+                }
+                else
+                {
+                    TempData["Hata"] = "Sabit gider bulunamadı!";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Hata"] = "Bir Hata Oluştu! " + ex.Message;
+            }
+
+            return RedirectToAction("Giderler", "AnaSayfa");
+        }
+
+        [HttpPost]
+        public ActionResult SabitGiderGuncelle(SabitGider sabitGider, string GiderTutar)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+
+            try
+            {
+                decimal parsedTutar = 0;
+                if (!string.IsNullOrEmpty(GiderTutar))
+                {
+                    parsedTutar = decimal.Parse(GiderTutar, new CultureInfo("tr-TR"));
+                }
+
+                var mevcut = db.SabitGiders.FirstOrDefault(x => x.SabitGiderID == sabitGider.SabitGiderID && x.BinaID == BinaID);
+                if (mevcut == null)
+                {
+                    TempData["Hata"] = "Sabit gider bulunamadı!";
+                    return RedirectToAction("Giderler", "AnaSayfa");
+                }
+
+                mevcut.GiderTuruID = sabitGider.GiderTuruID;
+                mevcut.GiderAciklama = sabitGider.GiderAciklama;
+                mevcut.GiderTutar = parsedTutar;
+                db.SaveChanges();
+
+                TempData["Basarili"] = "Sabit Gider Başarıyla Güncellendi";
+            }
+            catch (Exception ex)
+            {
+                TempData["Hata"] = "Bir Hata Oluştu! " + ex.Message;
+            }
+
+            return RedirectToAction("Giderler", "AnaSayfa");
+        }
+
+        // Seçili sabit giderden gerçek bir Gider kaydı oluşturur ve makbuzunu açar.
+        public ActionResult SabitGiderOlustur(int id)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+
+            // Dönem açık değilse gider eklenemez (GiderEkle ile aynı kural)
+            DonemEklendiMi();
+            if (ViewBag.DonemSorgu != true)
+            {
+                TempData["Hata"] = "Dönem kapalı. Önce dönemi başlatmalısınız.";
+                return RedirectToAction("Giderler", "AnaSayfa");
+            }
+
+            var sabit = db.SabitGiders.AsNoTracking().FirstOrDefault(x => x.SabitGiderID == id && x.BinaID == BinaID && x.Durum == "A");
+            if (sabit == null)
+            {
+                TempData["Hata"] = "Sabit gider bulunamadı!";
+                return RedirectToAction("Giderler", "AnaSayfa");
+            }
+
+            try
+            {
+                var songider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A").OrderByDescending(x => x.GiderNo).FirstOrDefault();
+                int songiderno = (songider?.GiderNo ?? 0) + 1;
+
+                Gider gider = new Gider()
+                {
+                    GiderAciklama = sabit.GiderAciklama,
+                    GiderTuruID = sabit.GiderTuruID,
+                    GiderTutar = sabit.GiderTutar,
+                    GiderNo = songiderno,
+                    BinaID = BinaID,
+                    GiderTarih = DateTime.Now.Date,
+                    Durum = "A"
+                };
+
+                db.Giders.Add(gider);
+
+                Hareketler hareketler = new Hareketler()
+                {
+                    BinaID = BinaID,
+                    KullaniciID = KullaniciID,
+                    OlayAciklama = gider.GiderTutar + " Tutarında sabit giderden " + gider.GiderNo + " numaralı gider oluşturuldu.",
+                    Tarih = DateTime.Now,
+                    Tur = "Ekleme",
+                };
+                db.Hareketlers.Add(hareketler);
+                db.SaveChanges();
+
+                GiderNoDuzenle();
+
+                // Oluşturulan giderin makbuzunu (PDF) aç
+                return RedirectToAction("GiderMakbuz", "AnaSayfa", new { GiderID = gider.GiderID });
+            }
+            catch (Exception ex)
+            {
+                TempData["Hata"] = "Bir Hata Oluştu! " + ex.Message;
+                return RedirectToAction("Giderler", "AnaSayfa");
+            }
         }
 
         public ActionResult GiderMakbuz(int? GiderID)
