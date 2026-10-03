@@ -377,7 +377,7 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-modern align-middle mb-0">
+            <table class="table table-modern align-middle mb-0 @(ViewBag.SabitGiderler.Count > 0 ? "datatable" : "")">
                 <thead>
                     <tr>
                         <th class="ps-4">KATEGORİ</th>

@@ -237,6 +237,7 @@
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\SabitGiderListe.cs" />
+    <Compile Include="Models\AylikPesinOdemeListe.cs" />
     <Compile Include="Models\GiderTuru.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
@@ -292,6 +293,9 @@
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PesinOdemeler.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AylikPesinOdemeler.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\PesinOdemelerView.cs">

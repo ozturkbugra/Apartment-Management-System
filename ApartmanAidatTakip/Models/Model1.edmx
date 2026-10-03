@@ -207,6 +207,16 @@
           <Property Name="Yil" Type="int" Nullable="false" />
           <Property Name="BinaID" Type="int" Nullable="false" />
         </EntityType>
+        <EntityType Name="AylikPesinOdemeler">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DaireID" Type="int" Nullable="false" />
+          <Property Name="Yil" Type="int" Nullable="false" />
+          <Property Name="Ay" Type="int" Nullable="false" />
+          <Property Name="BinaID" Type="int" Nullable="false" />
+        </EntityType>
         <EntityType Name="Tahsilat">
           <Key>
             <PropertyRef Name="TahsilatID" />
@@ -426,6 +436,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <EntitySet Name="MakbuzSatir" EntityType="Self.MakbuzSatir" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Notlar" EntityType="Self.Notlar" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PesinOdemeler" EntityType="Self.PesinOdemeler" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AylikPesinOdemeler" EntityType="Self.AylikPesinOdemeler" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Tahsilat" EntityType="Self.Tahsilat" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AidatView" EntityType="Self.AidatView" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
@@ -826,6 +837,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <EntitySet Name="Notlars" EntityType="AptVTModel.Notlar" />
           <EntitySet Name="TahsilatViews" EntityType="AptVTModel.TahsilatView" />
           <EntitySet Name="PesinOdemelers" EntityType="AptVTModel.PesinOdemeler" />
+          <EntitySet Name="AylikPesinOdemelers" EntityType="AptVTModel.AylikPesinOdemeler" />
           <EntitySet Name="PesinOdemelerViews" EntityType="AptVTModel.PesinOdemelerView" />
           <EntitySet Name="DigerDaireSakinleris" EntityType="AptVTModel.DigerDaireSakinleri" />
         </EntityContainer>
@@ -965,6 +977,16 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="DaireID" Type="Int32" Nullable="false" />
           <Property Name="Yil" Type="Int32" Nullable="false" />
+          <Property Name="BinaID" Type="Int32" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AylikPesinOdemeler">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DaireID" Type="Int32" Nullable="false" />
+          <Property Name="Yil" Type="Int32" Nullable="false" />
+          <Property Name="Ay" Type="Int32" Nullable="false" />
           <Property Name="BinaID" Type="Int32" Nullable="false" />
         </EntityType>
         <EntityType Name="PesinOdemelerView">
@@ -1376,6 +1398,17 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
                 <ScalarProperty Name="Yil" ColumnName="Yil" />
                 <ScalarProperty Name="DaireID" ColumnName="DaireID" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AylikPesinOdemelers">
+            <EntityTypeMapping TypeName="AptVTModel.AylikPesinOdemeler">
+              <MappingFragment StoreEntitySet="AylikPesinOdemeler">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="DaireID" ColumnName="DaireID" />
+                <ScalarProperty Name="Yil" ColumnName="Yil" />
+                <ScalarProperty Name="Ay" ColumnName="Ay" />
+                <ScalarProperty Name="BinaID" ColumnName="BinaID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

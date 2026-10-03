@@ -1,6 +1,7 @@
 ﻿@{
     ViewBag.Title = "Peşin Ödemeler";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var ayAdlari = new[] { "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık" };
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -135,6 +136,75 @@
         font-weight: 600;
         margin-top: 20px;
     }
+
+    /* Ay Rozeti */
+    .badge-month {
+        display: inline-block;
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #dbeafe;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin: 2px 3px 2px 0;
+    }
+
+    /* Düzenle Butonu */
+    .btn-icon-edit {
+        width: 35px;
+        height: 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        color: #2563eb;
+        background: #eff6ff;
+        transition: all 0.2s;
+        border: 1px solid #dbeafe;
+    }
+
+        .btn-icon-edit:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+    /* Ay seçim ızgarası */
+    .ay-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .ay-check {
+        position: relative;
+    }
+
+        .ay-check input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .ay-check label {
+            display: block;
+            text-align: center;
+            padding: 10px 6px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #64748b;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .ay-check input:checked + label {
+            background: var(--success-grad);
+            color: #fff;
+            border-color: transparent;
+        }
 </style>
 
 <div class="container-fluid py-4">
@@ -194,6 +264,70 @@
         </div>
     </div>
 
+    <!-- ================= AYLIK PEŞİN ÖDEMELER ================= -->
+    <div class="page-header mt-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Aylık Peşin Ödemeler</h3>
+            <span class="text-muted small">Belirli ayları peşin ödeyen daireler (@DateTime.Now.Year)</span>
+        </div>
+        <button type="button" class="btn-add" data-bs-toggle="modal" data-bs-target="#aylikEkleModal">
+            <i class="bi bi-calendar2-range-fill"></i> Aylık Ödeme Ekle
+        </button>
+    </div>
+
+    <div class="card table-card">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="card-title fw-bold text-dark mb-0"><i class="bi bi-calendar3 me-2 text-success"></i>Aylık Ödeme Listesi</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table modern-table mb-0 @(ViewBag.AylikList.Count > 0 ? "datatable" : "")">
+                    <thead>
+                        <tr>
+                            <th scope="col">Daire Bilgisi</th>
+                            <th scope="col">Yıl</th>
+                            <th scope="col">Peşin Ödenen Aylar</th>
+                            <th scope="col" class="text-end">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.AylikList)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="flat-icon">@item.DaireNo</div>
+                                        <div>
+                                            <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                            <div class="small text-muted">Daire No: @item.DaireNo</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge-year"><i class="bi bi-calendar-check me-1"></i> @item.Yil</span></td>
+                                <td>
+                                    @foreach (var ay in (List<int>)item.Aylar)
+                                    {
+                                        <span class="badge-month">@ayAdlari[ay]</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <button type="button" class="btn-icon-edit me-1"
+                                            onclick="aylikDuzenle(@item.DaireID, @item.Yil, '@string.Join(",", (List<int>)item.Aylar)', '@item.DaireNo', '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.AdSoyad))')"
+                                            title="Düzenle">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <a href="#" class="btn-icon-delete" onclick="aylikSil(event, @item.DaireID, @item.Yil)" title="Sil">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <div class="modal fade" id="verticalycentered" tabindex="-1">
@@ -227,6 +361,84 @@
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
                     <button type="submit" class="btn btn-success px-4" style="background: var(--success-grad); border:none;">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- AYLIK PEŞİN ÖDEME EKLE MODAL -->
+<div class="modal fade" id="aylikEkleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-success">
+                    <i class="bi bi-calendar2-range-fill me-2"></i>Aylık Peşin Ödeme Ekle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="aylikEkleForm" action="/AnaSayfa/AylikPesinOdemeEkle" method="post" class="p-3" onsubmit="return aylikSubmitKontrol(this);">
+                <div class="modal-body">
+                    <label class="fw-bold small mb-2 text-muted text-uppercase">Daire Seçimi</label>
+                    <select name="DaireID" class="form-select form-select-lg shadow-none" style="border-color: #e2e8f0; font-size: 1rem;">
+                        @foreach (var item in ViewBag.Daireler)
+                        {
+                            <option value="@item.DaireID">Daire @item.DaireNo - @item.AdSoyad</option>
+                        }
+                    </select>
+
+                    <label class="fw-bold small mb-2 mt-3 text-muted text-uppercase d-block">Peşin Ödenen Aylar (@DateTime.Now.Year)</label>
+                    <div class="ay-grid">
+                        @for (int a = 1; a <= 12; a++)
+                        {
+                            <div class="ay-check">
+                                <input type="checkbox" name="Aylar" value="@a" id="ekle_ay_@a" />
+                                <label for="ekle_ay_@a">@ayAdlari[a]</label>
+                            </div>
+                        }
+                    </div>
+                    <p class="text-muted small text-center mt-3 mb-0">
+                        Seçilen aylar, dönem eklenirken borç oluşturmadan otomatik "Ödendi" (makbuzlu) işlenir.
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success px-4" style="background: var(--success-grad); border:none;">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- AYLIK PEŞİN ÖDEME DÜZENLE MODAL -->
+<div class="modal fade" id="aylikDuzenleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-primary">
+                    <i class="bi bi-pencil-square me-2"></i>Aylık Ödeme Düzenle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="aylikDuzenleForm" action="/AnaSayfa/AylikPesinOdemeGuncelle" method="post" class="p-3" onsubmit="return aylikSubmitKontrol(this);">
+                <input type="hidden" name="DaireID" id="duzenle_DaireID" />
+                <input type="hidden" name="Yil" id="duzenle_Yil" />
+                <div class="modal-body">
+                    <div class="info-year-card mb-3" id="duzenle_baslik"></div>
+                    <label class="fw-bold small mb-2 text-muted text-uppercase d-block">Peşin Ödenen Aylar</label>
+                    <div class="ay-grid">
+                        @for (int a = 1; a <= 12; a++)
+                        {
+                            <div class="ay-check">
+                                <input type="checkbox" name="Aylar" value="@a" id="duzenle_ay_@a" />
+                                <label for="duzenle_ay_@a">@ayAdlari[a]</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary px-4">Güncelle</button>
                 </div>
             </form>
         </div>
@@ -278,6 +490,99 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = '/AnaSayfa/PesinOdemeSil/' + id;
+            }
+        });
+    }
+
+    // ===== AYLIK PEŞİN ÖDEME =====
+
+    // Seçili ayları toplar
+    function seciliAylar(form) {
+        return Array.from(form.querySelectorAll('input[name="Aylar"]:checked'))
+                    .map(function (c) { return parseInt(c.value, 10); })
+                    .sort(function (a, b) { return a - b; });
+    }
+
+    // Ardışık mı? (atlanan ay var mı?)
+    function aylarArdisikMi(aylar) {
+        for (var i = 0; i < aylar.length - 1; i++) {
+            if (aylar[i + 1] - aylar[i] !== 1) return false;
+        }
+        return true;
+    }
+
+    // Ay adları (uyarı metni için)
+    var AY_ADLARI = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+
+    // Submit kontrolü: en az 1 ay + atlama (boşluk) uyarısı
+    function aylikSubmitKontrol(form) {
+        var aylar = seciliAylar(form);
+
+        if (aylar.length === 0) {
+            Swal.fire({ icon: 'error', title: 'Ay seçilmedi', text: 'En az bir ay seçmelisiniz.', confirmButtonColor: '#d33' });
+            return false;
+        }
+
+        if (!aylarArdisikMi(aylar)) {
+            var secili = aylar.map(function (a) { return AY_ADLARI[a]; }).join(', ');
+            Swal.fire({
+                title: 'Ay atlanmış olabilir!',
+                html: 'Seçtiğiniz aylar ardışık değil:<br><b>' + secili + '</b><br><br>Arada atladığınız ay(lar) var. Yine de kaydetmek istiyor musunuz?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Evet, kaydet',
+                cancelButtonText: 'Geri dön, düzelteyim'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+            return false; // ardışık değilse önce onay bekle
+        }
+
+        return true; // ardışık, direkt gönder
+    }
+
+    // Düzenle modalını doldur
+    function aylikDuzenle(daireID, yil, aylarCsv, daireNo, adSoyad) {
+        document.getElementById('duzenle_DaireID').value = daireID;
+        document.getElementById('duzenle_Yil').value = yil;
+        document.getElementById('duzenle_baslik').innerHTML =
+            '<i class="bi bi-house-door me-2"></i>Daire ' + daireNo + ' - ' + adSoyad + ' (' + yil + ')';
+
+        // Önce hepsini temizle
+        for (var a = 1; a <= 12; a++) {
+            document.getElementById('duzenle_ay_' + a).checked = false;
+        }
+        // Kayıtlı ayları işaretle
+        if (aylarCsv && aylarCsv.length > 0) {
+            aylarCsv.split(',').forEach(function (v) {
+                var el = document.getElementById('duzenle_ay_' + parseInt(v, 10));
+                if (el) el.checked = true;
+            });
+        }
+
+        var modal = new bootstrap.Modal(document.getElementById('aylikDuzenleModal'));
+        modal.show();
+    }
+
+    // Aylık kaydı sil
+    function aylikSil(event, daireID, yil) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Emin misiniz?',
+            text: "Bu dairenin aylık peşin ödeme kaydını silmek istediğinize emin misiniz?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Evet, Sil!',
+            cancelButtonText: 'İptal'
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                window.location.href = '/AnaSayfa/AylikPesinOdemeSil?DaireID=' + daireID + '&Yil=' + yil;
             }
         });
     }
