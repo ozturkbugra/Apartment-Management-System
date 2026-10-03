@@ -817,6 +817,7 @@
     <Content Include="Views\AnaSayfa\PesinOdemeler.cshtml" />
     <Content Include="Views\Raporlar\TureGoreGelirGiderTarihBazli.cshtml" />
     <Content Include="Views\Ayarlar\Index.cshtml" />
+    <Content Include="Views\AnaSayfa\DaireOdemeDurumu.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
