@@ -1551,6 +1551,145 @@ namespace ApartmanAidatTakip.Controllers
         }
 
 
+        public ActionResult YillikTureGoreGiderler(int? Yil)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+            Session["Aktif"] = "YillikTureGoreGiderler";
+            Sabit();
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            
+            ViewBag.Yil = Yil;
+            
+            if (Yil != null)
+            {
+                var giderler = db.GiderViews
+                    .Where(x => x.BinaID == BinaID && x.GiderTarih.Value.Year == Yil && x.Durum == "A")
+                    .OrderBy(x => x.GiderTuruID)
+                    .ThenBy(x => x.GiderTarih)
+                    .ToList();
+                
+                var giderTurleri = db.GiderTurus.OrderBy(x => x.GiderTuruAdi).ToList();
+                
+                ViewBag.Giderler = giderler;
+                ViewBag.GiderTurleri = giderTurleri;
+                ViewBag.ToplamGider = giderler.Sum(x => x.GiderTutar) ?? 0;
+            }
+            else
+            {
+                ViewBag.Yil = DateTime.Now.Year;
+            }
+            
+            return View();
+        }
 
+        public ActionResult YillikTureGoreGiderlerPDF(int? Yil)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null) return RedirectToAction("Login", "AnaSayfa");
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            string binaAdi = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdi"]);
+            
+            if (Yil == null) Yil = DateTime.Now.Year;
+
+            var giderler = db.GiderViews
+                .Where(x => x.BinaID == BinaID && x.GiderTarih.Value.Year == Yil && x.Durum == "A")
+                .OrderBy(x => x.GiderTuruID)
+                .ThenBy(x => x.GiderTarih)
+                .ToList();
+                
+            var giderTurleri = db.GiderTurus.OrderBy(x => x.GiderTuruAdi).ToList();
+            
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4, 25, 25, 25, 25);
+                PdfWriter writer = PdfWriter.GetInstance(document, ms);
+                document.Open();
+
+                string arialFontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
+                BaseFont bf = BaseFont.CreateFont(arialFontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                Font titleFont = new Font(bf, 14, Font.BOLD);
+                Font subTitleFont = new Font(bf, 12, Font.BOLD);
+                Font tableFont = new Font(bf, 9);
+                Font boldTableFont = new Font(bf, 10, Font.BOLD);
+
+                string currentDateTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                Paragraph dateTimeParagraph = new Paragraph($"ÇIKTI TARİHİ: {currentDateTime}", tableFont)
+                {
+                    Alignment = Element.ALIGN_RIGHT
+                };
+                document.Add(dateTimeParagraph);
+
+                document.Add(new Paragraph(binaAdi, titleFont) { Alignment = Element.ALIGN_CENTER });
+                document.Add(new Paragraph($"{Yil} YILI GİDERLERİ", subTitleFont) { Alignment = Element.ALIGN_CENTER });
+                document.Add(new Paragraph("\n"));
+
+                decimal genelToplam = 0;
+
+                int i = 1;
+                foreach (var tur in giderTurleri)
+                {
+                    var turGiderleri = giderler.Where(x => x.GiderTuruID == tur.GiderTuruID).ToList();
+                    decimal turToplam = turGiderleri.Sum(x => x.GiderTutar) ?? 0;
+                    
+                    if (turGiderleri.Any())
+                    {
+                        PdfPTable table = new PdfPTable(4);
+                        table.WidthPercentage = 100;
+                        table.SetWidths(new float[] { 8f, 55f, 15f, 22f });
+                        table.HeaderRows = 2; // Keeps title and headers repeating on new pages
+
+                        // Group Title Row (No Border)
+                        PdfPCell titleCell = new PdfPCell(new Phrase($"{i}. {tur.GiderTuruAdi.ToUpper()}", boldTableFont));
+                        titleCell.Colspan = 4;
+                        titleCell.Border = iTextSharp.text.Rectangle.NO_BORDER;
+                        titleCell.PaddingTop = 15f;
+                        titleCell.PaddingBottom = 8f;
+                        table.AddCell(titleCell);
+
+                        // Column Headers
+                        PdfPCell h1 = new PdfPCell(new Phrase("S.No", boldTableFont)) { BackgroundColor = iTextSharp.text.BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 5 };
+                        PdfPCell h2 = new PdfPCell(new Phrase("Açıklama", boldTableFont)) { BackgroundColor = iTextSharp.text.BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_LEFT, Padding = 5 };
+                        PdfPCell h3 = new PdfPCell(new Phrase("Tarih", boldTableFont)) { BackgroundColor = iTextSharp.text.BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_CENTER, Padding = 5 };
+                        PdfPCell h4 = new PdfPCell(new Phrase("Tutar", boldTableFont)) { BackgroundColor = iTextSharp.text.BaseColor.LIGHT_GRAY, HorizontalAlignment = Element.ALIGN_RIGHT, Padding = 5 };
+                        table.AddCell(h1); table.AddCell(h2); table.AddCell(h3); table.AddCell(h4);
+
+                        int sNo = 1;
+                        foreach (var g in turGiderleri)
+                        {
+                            PdfPCell c1 = new PdfPCell(new Phrase(sNo.ToString(), tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 4 };
+                            PdfPCell c2 = new PdfPCell(new Phrase(g.GiderAciklama, tableFont)) { HorizontalAlignment = Element.ALIGN_LEFT, Padding = 4 };
+                            PdfPCell c3 = new PdfPCell(new Phrase(g.GiderTarih.Value.ToString("dd.MM.yyyy"), tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 4 };
+                            PdfPCell c4 = new PdfPCell(new Phrase($"{g.GiderTutar.Value.ToString("N2")} TL", tableFont)) { HorizontalAlignment = Element.ALIGN_RIGHT, Padding = 4 };
+                            table.AddCell(c1); table.AddCell(c2); table.AddCell(c3); table.AddCell(c4);
+                            sNo++;
+                        }
+
+                        PdfPCell totLbl = new PdfPCell(new Phrase("Ara Toplam", boldTableFont)) { Colspan = 3, HorizontalAlignment = Element.ALIGN_RIGHT, BackgroundColor = new iTextSharp.text.BaseColor(245, 245, 245), Padding = 5 };
+                        PdfPCell totVal = new PdfPCell(new Phrase($"{turToplam.ToString("N2")} TL", boldTableFont)) { HorizontalAlignment = Element.ALIGN_RIGHT, BackgroundColor = new iTextSharp.text.BaseColor(245, 245, 245), Padding = 5 };
+                        table.AddCell(totLbl);
+                        table.AddCell(totVal);
+
+                        document.Add(table);
+                        i++;
+                        genelToplam += turToplam;
+                    }
+                }
+                
+                document.Add(new Paragraph("\n"));
+                Paragraph dipnot = new Paragraph($"{Yil} YILI TOPLAM GİDERLER {genelToplam.ToString("N2")} TL", titleFont) { Alignment = Element.ALIGN_CENTER };
+                document.Add(dipnot);
+
+                document.Close();
+                
+                byte[] byteInfo = ms.ToArray();
+                Response.AppendHeader("Content-Disposition", $"inline; filename=YillikTureGoreGiderler_{Yil}.pdf");
+                return File(byteInfo, "application/pdf");
+            }
+        }
     }
 }

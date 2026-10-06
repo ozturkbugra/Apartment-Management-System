@@ -18,6 +18,8 @@ Bu dosya projenin mimarisini, veri tabanı yapısını, iş akışını ve dosya
 | Frontend | Bootstrap, jQuery 3.4.1, NiceAdmin teması (`Content/Admin/assets`: apexcharts, echarts, quill, tinymce, simple-datatables, boxicons, remixicon) |
 
 ### Kritik kurallar
+- **Git Commit Yasaktır:** Bu projede hiçbir zaman `git commit` veya otomatik commit komutu atılmamalıdır.
+- **`.csproj` Kaydı:** Yeni bir sayfa, component veya kod dosyası oluşturulduğunda/eklendiğinde, bu dosya mutlaka `ApartmanAidatTakip/ApartmanAidatTakip.csproj` dosyasına (örn. `<Content Include="..." />` veya `<Compile Include="..." />`) kaydedilmelidir. Aksi halde `publish` (yayınlama) aşamasında projeye dahil edilmemektedir.
 - **Üretilen dosyaları elle düzenleme:** `Model1.Context.cs`, `Model1.Designer.cs`, `Model1.cs`. Değişiklik gerekiyorsa EDMX'ten yeniden üret.
 - **Yeni `.cs` / `.cshtml` dosyaları UTF-8 (BOM'lu) kaydedilmeli**, yoksa Türkçe karakterler bozulur.
 - **Mevcut açık (light) tasarım hiç bozulmadan** korunur; dark mode ayrı katman olarak eklenmiştir.
@@ -129,7 +131,7 @@ Bunlara yazılmaz; join'li/özet verileri hazır sunarlar (ör. `KullanicilarVie
 | **Admin** | Superadmin paneli: Binalar ve Kullanicilar yönetimi, soft-delete + geri alma (BinaSil/BinaGeriAl/BinaTamamenSil, Kullanici eşdeğerleri), Duyurular, binalar arası Hareketler, şifre değişimi. Google Authenticator + rate limit + şifre sıfırlama içerir |
 | **Makbuz** | Tek makbuz yaşam döngüsü: Olustur/Ekle, satır ekleme (AidatSatirEkle, EkSatirEkle), SatirCikar, MakbuzSil, GeneratePdf, Ara |
 | **TopluMakbuz** | Bir daire için seçili aidat/eklerden toplu makbuz üretimi |
-| **Raporlar** | Her raporun ekran + `*PDF` aksiyonu: GelirGider, DetayliGelirGider, DenetciRaporu, TureGoreGiderler, DevirBakiyeleri, TureGoreGelirGiderTarihBazli |
+| **Raporlar** | Her raporun ekran + `*PDF` aksiyonu: GelirGider, DetayliGelirGider, DenetciRaporu, TureGoreGiderler, **YillikTureGoreGiderler**, DevirBakiyeleri, TureGoreGelirGiderTarihBazli |
 | **Daire** | Sakin (kiracı) tarafı: giriş + kendi makbuzlarını görüntüleme |
 | **Ayarlar** | Bina ayarları: `AyarlariGuncelle` `Binalar` üzerindeki bit bayraklarını (MakbuzOnayKaldir, YoneticiAidatEkleme) JSON ile açar/kapatır |
 | **MobilApi** | Tek `[HttpPost] GetBorcluDaireler` JSON ucu; auth = **sabit paylaşılan şifre** (`bugraozturk1905`), cookie/session değil |
@@ -180,6 +182,8 @@ Bunlar merkezi değildir — ihtiyaç duyan her controller'a kopyalanmıştır. 
 **Makbuz PDF içeriği (GeneratePdf — MakbuzController + DaireController'da KOPYALANMIŞ):** Üst blok iki sütunlu tablo: solda **Daire No / Ad Soyad / Toplam Borç / NOT** (ve varsa `Notlar.BorcAciklama`), sağ köşede **KAŞE - İMZA**. Tutarlar `tr-TR` kültürüyle `#,##0.##` (binlik nokta ayracı, ör. `1.000 TL`). Tablonun altında, **VUK notunun ("Bu belge 213 sayılı...") hemen üstünde**, tam genişlikte, **altı çizili** ve küçük punto (9pt) ile **"Ödenmeyen Dönemler"** satırı: dairenin açık (`Durum="A"`) `Aidat` + `Ek` kayıtlarından `Yıl - Ay Tutar TL` biçiminde yan yana; demirbaşlar `(Demirbaş)` ile işaretlenir (ör. `2026 - Şubat 1.000 TL, 2026 - Ocak 500 TL (Demirbaş)`). Daire panelinde (DaireController) VUK notu olmadığından ödenmeyen dönemler en altta durur. **İki controller da aynı mantığı taşır — birini değiştirince diğerini de güncelle.**
 
 **Daire ödeme durumu takvimi (DaireOdemeDurumu):** Daire no ile sorgulanır; dairenin ödeme geçmişini görsel takvimle sunar. Veri controller'da JSON olarak (Newtonsoft) view'a aktarılır, takvim JS ile çizilir. İki ayrı veri birlikte gösterilir: (1) **ödeme günü** = `Makbuz.MakbuzTarihi` (makbuzun kesildiği gün) → ilgili ayın mini takviminde yeşil işaretli gün, tıklanınca makbuz no + tutar; (2) **ay başlığı rengi** = o ayın `Aidat` durumu (P=yeşil "ÖDENDİ" / A=kırmızı "ÖDENMEDİ" / kayıt yok=gri). **Önemli nüans:** geçmiş aylar ileri bir tarihte toplu ödenirse (ör. Mayıs+Haziran+Temmuz hepsi Temmuz'da) yeşil gün yalnızca **ödemenin yapıldığı Temmuz takviminde** çıkar; Mayıs/Haziran'da yeşil gün olmaz ama o ayların başlıkları `Aidat` durumu `P` olduğu için yine yeşil "ÖDENDİ" olur. Yıl sekmeleri + özet kutuları (toplam ödeme adedi, tahsil edilen tutar, ödenen/ödenmeyen aidat ayı) içerir. Menü: **Diğer → Ödeme Durumu**.
+
+**Yıllık Kategori Giderleri Raporu (YillikTureGoreGiderler / YillikTureGoreGiderlerPDF):** Seçilen yıla ait tüm aktif (`Durum="A"`) giderleri veritabanında tanımlı `GiderTuru` bazında gruplayarak listeler. Web ekranında Bootstrap Card + Tablo yapısında S.No, Açıklama, Tarih ve Tutar kolonlarıyla sunulur. `YillikTureGoreGiderlerPDF` aksiyonu, iTextSharp `PdfPTable` ile gruplandırılmış, sayfa kesintilerinde tablo başlıklarını otomatik koruyan (`HeaderRows=2`), inline önizlenebilir yeni sekme PDF çıktısı verir.
 
 **Raporlama:** Her Raporlar aksiyonu ekranda gösterir; eş `*PDF` aksiyonu iTextSharp ile PDF, borçlu listeleri ClosedXML/EPPlus ile Excel üretir.
 

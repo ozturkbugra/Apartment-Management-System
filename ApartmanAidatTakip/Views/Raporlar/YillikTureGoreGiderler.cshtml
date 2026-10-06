@@ -1,0 +1,246 @@
+﻿@{
+    ViewBag.Title = "Yıllık Kategori Giderleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string tl = "₺";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --danger-grad: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
+
+    /* Filtre Kartı */
+    .filter-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 30px;
+        border-left: 5px solid #ef4444;
+    }
+
+    .form-label-custom {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control-modern {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 15px;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+
+    .form-control-modern:focus {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+    }
+
+    .btn-filter {
+        background: var(--danger-grad);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-pdf {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        color: #ffffff !important;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-pdf:hover, .btn-pdf:focus, .btn-pdf:active, .btn-pdf i {
+        transform: translateY(-2px);
+        color: #ffffff !important;
+    }
+
+    /* Tablo Kartı */
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        border-top: 4px solid #ef4444;
+        height: 100%;
+        padding: 20px;
+    }
+
+    .category-title {
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #344767;
+        border-bottom: 2px solid #ef4444;
+        padding-bottom: 5px;
+        margin-top: 20px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .category-item {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+        border-bottom: 1px dashed #e2e8f0;
+    }
+
+    .category-item:last-child {
+        border-bottom: none;
+    }
+
+    .total-card {
+        background: var(--danger-grad);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        margin-top: 30px;
+        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+    }
+    .total-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    .total-amount {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">Yıllık Gider Analizi</h3>
+            <span class="text-muted small">Kategori bazlı yıllık harcama raporu</span>
+        </div>
+    </div>
+
+    <div class="filter-card">
+        <form action="/Raporlar/YillikTureGoreGiderler" method="get">
+            <div class="row align-items-end g-3">
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label-custom"><i class="bi bi-calendar me-1"></i> YIL</label>
+                    <input type="number" name="Yil" class="form-control form-control-modern" value="@ViewBag.Yil" min="2000" max="2100" />
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <button type="submit" class="btn-filter">
+                        <i class="bi bi-search me-2"></i> Listele
+                    </button>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <a href="/Raporlar/YillikTureGoreGiderlerPDF?Yil=@ViewBag.Yil" target="_blank" class="btn btn-pdf d-block text-center text-decoration-none">
+                        <i class="bi bi-file-earmark-pdf me-2"></i> PDF İndir
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @if (ViewBag.Giderler != null)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+            <h4 class="fw-bold mb-0 text-dark"><i class="bi bi-bar-chart-line-fill text-danger me-2"></i> @ViewBag.Yil YILI DETAYLI GİDERLER</h4>
+        </div>
+        
+        <div class="row g-4">
+            @{
+                decimal genelToplam = 0;
+            }
+            
+            @foreach (var tur in ViewBag.GiderTurleri)
+            {
+                var turGiderleri = ((IEnumerable<ApartmanAidatTakip.Models.GiderView>)ViewBag.Giderler)
+                    .Where(x => x.GiderTuruID == tur.GiderTuruID).ToList();
+                    
+                if (turGiderleri.Any())
+                {
+                    decimal turToplam = turGiderleri.Sum(x => x.GiderTutar) ?? 0;
+                    genelToplam += turToplam;
+                    
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
+                            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center" style="border-bottom-width: 2px !important; border-bottom-color: #f1f5f9 !important;">
+                                <h5 class="mb-0 fw-bold text-dark">
+                                    <span class="text-danger me-2">|</span> @tur.GiderTuruAdi.ToUpper()
+                                </h5>
+                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fs-6 fw-bold border border-danger border-opacity-25">
+                                    @turToplam.ToString("N2") @tl
+                                </span>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0" style="font-size: 0.95rem;">
+                                        <thead class="bg-light text-muted small text-uppercase" style="letter-spacing: 0.5px;">
+                                            <tr>
+                                                <th class="ps-4 fw-semibold border-0" style="width: 10%">S.No</th>
+                                                <th class="fw-semibold border-0" style="width: 55%">Açıklama</th>
+                                                <th class="text-center fw-semibold border-0" style="width: 15%">Tarih</th>
+                                                <th class="text-end pe-4 fw-semibold border-0" style="width: 20%">Tutar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @{ int sNo = 1; }
+                                            @foreach (var g in turGiderleri)
+                                            {
+                                                <tr>
+                                                    <td class="ps-4 fw-medium text-secondary">
+                                                        @sNo
+                                                    </td>
+                                                    <td class="text-dark">@g.GiderAciklama</td>
+                                                    <td class="text-center text-muted">@g.GiderTarih.Value.ToString("dd.MM.yyyy")</td>
+                                                    <td class="text-end pe-4 fw-bold text-dark">@g.GiderTutar.Value.ToString("N2") @tl</td>
+                                                </tr>
+                                                sNo++;
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+            <div class="col-12 mt-4">
+                <div class="total-card">
+                    <div class="total-title opacity-75 mb-1">@ViewBag.Yil YILI GENEL TOPLAM GİDER</div>
+                    <div class="total-amount">@genelToplam.ToString("N2") @tl</div>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>

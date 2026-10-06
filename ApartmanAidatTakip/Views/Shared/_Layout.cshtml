@@ -437,13 +437,14 @@
                 <a class="nav-link collapsed" id="link-raporlar" data-bs-target="#raporlar-nav" data-bs-toggle="collapse" href="#">
                     <i class="bi bi-pie-chart-fill color-red"></i><span>Raporlar</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <ul id="raporlar-nav" class="nav-content collapse @(aktif == "BorcluDaireler" || aktif == "GelirGider" || aktif == "TureGoreGelirGider" || aktif == "DetayliGelirGider" || aktif == "DenetciRaporu" || aktif == "TureGoreGiderler" || aktif == "DevirBakiyeleri" ? "show" : "")">
+                <ul id="raporlar-nav" class="nav-content collapse @(aktif == "BorcluDaireler" || aktif == "GelirGider" || aktif == "TureGoreGelirGider" || aktif == "DetayliGelirGider" || aktif == "DenetciRaporu" || aktif == "TureGoreGiderler" || aktif == "YillikTureGoreGiderler" || aktif == "DevirBakiyeleri" ? "show" : "")">
                     <li><a href="/AnaSayfa/BorcluDaireler" class="@(aktif == "BorcluDaireler" ? "active" : "")"><i class="bi bi-person-exclamation"></i><span>Borçlu Daireler</span></a></li>
                     <li><a href="/Raporlar/GelirGider" class="@(aktif == "GelirGider" ? "active" : "")"><i class="bi bi-pie-chart"></i><span>Gelir Gider Raporu</span></a></li>
                     <li><a href="/Raporlar/TureGoreGelirGiderTarihBazli" class="@(aktif == "TureGoreGelirGider" ? "active" : "")"><i class="bi bi-bar-chart"></i><span>Türe Göre Gelir Giderler</span></a></li>
                     <li><a href="/Raporlar/DetayliGelirGider?yil=@DateTime.Now.Year&ay=@DateTime.Now.Month" class="@(aktif == "DetayliGelirGider" ? "active" : "")"><i class="bi bi-table"></i><span>Detaylı Gelir Gider Raporu</span></a></li>
                     <li><a href="/Raporlar/DenetciRaporu" class="@(aktif == "DenetciRaporu" ? "active" : "")"><i class="bi bi-clipboard-check"></i><span>Denetçi Raporu</span></a></li>
                     <li><a href="/Raporlar/TureGoreGiderler" class="@(aktif == "TureGoreGiderler" ? "active" : "")"><i class="bi bi-graph-down-arrow"></i><span>Kategori Bazlı Giderler</span></a></li>
+                    <li><a href="/Raporlar/YillikTureGoreGiderler" class="@(aktif == "YillikTureGoreGiderler" ? "active" : "")"><i class="bi bi-calendar-range"></i><span>Yıllık Kategori Giderleri</span></a></li>
                     <li><a href="/Raporlar/DevirBakiyeleri" class="@(aktif == "DevirBakiyeleri" ? "active" : "")"><i class="bi bi-arrow-repeat"></i><span>Devir Bakiyeleri</span></a></li>
                 </ul>
             </li>
