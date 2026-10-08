@@ -281,9 +281,24 @@
             </div>
 
             <div class="checkout-card mb-5">
-                <h5 class="text-muted text-uppercase small ls-1">Ödenecek Tutar</h5>
+                <h5 class="text-muted text-uppercase small ls-1">Seçilen Toplam Borç</h5>
                 <div class="total-display">
                     <span id="toplamTutar">0,00</span> <small style="font-size: 1.5rem">₺</small>
+                </div>
+
+                <div class="row justify-content-center mb-2">
+                    <div class="col-md-6 col-lg-4">
+                        <label class="fw-bold small text-muted d-block mb-1 text-start">
+                            ÖDENEN TUTAR <span class="text-muted fw-normal">(kısmi ödeme için)</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">₺</span>
+                            <input type="text" name="odenecekTutar" id="odenecekTutar" class="form-control form-control-modern" placeholder="Tam tahsilat için boş bırakın" onkeydown="return odenenTus(event)" />
+                        </div>
+                        <small class="text-muted d-block mt-1 text-start" id="kismiBilgi" style="display:none !important;">
+                            <i class="bi bi-info-circle"></i> Kısmi ödeme: en eski dönemden başlanır, kalan tutar en son döneme <b>"Kısmi Ödeme"</b> olarak yazılır.
+                        </small>
+                    </div>
                 </div>
 
                 @if (ViewBag.DonemSorgu == true)
@@ -387,7 +402,30 @@
                 toplam += parseFloat(val);
             });
             $("#toplamTutar").text(toplam.toLocaleString('tr-TR', { minimumFractionDigits: 2 }));
+            window.__secilenToplam = toplam;
+            kismiBilgiGuncelle();
         });
+
+        // Seçilen toplamı sayısal al
+        function secilenToplamNum() {
+            return window.__secilenToplam || 0;
+        }
+
+        // Ödenen tutar < seçilen toplam ise kısmi ödeme bilgisini göster
+        function kismiBilgiGuncelle() {
+            var ham = ($("#odenecekTutar").val() || '').replace(/[.\s]/g, '').replace(',', '.');
+            var odenen = parseFloat(ham);
+            var toplam = secilenToplamNum();
+            if (!isNaN(odenen) && odenen > 0 && odenen < toplam) {
+                $("#kismiBilgi").css('display', 'block');
+                $("#btnOlustur").html('<i class="bi bi-receipt-cutoff me-2"></i> Kısmi Tahsilat Yap');
+            } else {
+                $("#kismiBilgi").css('display', 'none');
+                $("#btnOlustur").html('<i class="bi bi-receipt-cutoff me-2"></i> Makbuzu Oluştur');
+            }
+        }
+
+        $("#odenecekTutar").on('input', kismiBilgiGuncelle);
 
         // 🔹 Form Gönderim Kontrolü (Çift Tıklama Önleyici) -- YENİ EKLENEN KISIM
         $("#makbuzForm").on("submit", function (e) {
@@ -432,6 +470,16 @@
             </text>
         }
     });
+
+    // Ödenen tutar kutusu: sadece rakam + tek virgül (ondalık) kabul; harf/nokta engellenir
+    function odenenTus(e) {
+        var k = e.key;
+        if (k === 'Backspace' || k === 'Delete' || k === 'Tab' || k === 'ArrowLeft' || k === 'ArrowRight' || k === 'Home' || k === 'End') return true;
+        if (k === ',') { return (e.target.value.indexOf(',') === -1); } // tek virgül
+        if (/^[0-9]$/.test(k)) return true;
+        e.preventDefault();
+        return false;
+    }
 
     function confirmDeleteReceipt(event, id) {
         event.preventDefault(); // Sayfa yenilenmesini engelle

@@ -136,7 +136,7 @@ namespace ApartmanAidatTakip.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult Olustur(int[] SecilenAidatlar, int[] SecilenEkler, int daireID)
+        public ActionResult Olustur(int[] SecilenAidatlar, int[] SecilenEkler, int daireID, string odenecekTutar = null)
         {
             // ... (Giriş kontrolleri aynı kalsın) ...
             if (Request.Cookies["KullaniciBilgileri"] == null) return RedirectToAction("Login", "AnaSayfa");
@@ -202,71 +202,163 @@ namespace ApartmanAidatTakip.Controllers
                     decimal toplamEkTutar = ekListesi.Sum(x => (decimal?)x.EkTutar) ?? 0;
                     decimal genelToplam = toplamAidatTutar + toplamEkTutar;
 
-                    // --- 2. BORÇ DÜŞME ---
-                    dairesorgu.Borc -= genelToplam;
+                    // --- KISMİ ÖDEME MODU TESPİTİ ---
+                    // odenecekTutar girildiyse ve seçilen toplamdan AZ ise kısmi moddayız.
+                    // Boş / 0 / >= genelToplam → tam tahsilat (mevcut davranış).
+                    decimal odenen;
+                    bool kismiMod = TutarParse(odenecekTutar, out odenen) && odenen > 0 && odenen < genelToplam;
 
-                    // --- 3. MAKBUZ NO BELİRLEME ---
+                    // --- 2. MAKBUZ NO BELİRLEME ---
                     var sonmakbuz = db.Makbuzs.OrderByDescending(x => x.MakbuzID).FirstOrDefault(x => x.BinaID == BinaID && x.Durum == "A");
                     int yenino = (sonmakbuz != null) ? (sonmakbuz.MakbuzNo ?? 0) + 1 : 1;
 
-                    // --- 4. MAKBUZ OLUŞTUR ---
-                    Makbuz yeni = new Makbuz
-                    {
-                        MakbuzNo = yenino,
-                        BinaID = BinaID,
-                        DaireID = daireID,
-                        MabuzTutar = genelToplam,
-                        MakbuzTarihi = DateTime.Now,
-                        Durum = "A",
-                        OnayliMi = false
-                    };
-
-                    db.Makbuzs.Add(yeni);
-                    db.SaveChanges();
-
-                    // --- 5. SATIRLARI HAZIRLA ---
                     List<MakbuzSatir> eklenecekSatirlar = new List<MakbuzSatir>();
+                    decimal makbuzTutari;
 
-                    foreach (var a in aidatListesi)
+                    if (!kismiMod)
                     {
-                        a.Durum = "P"; // Aidatı Pasife çekiyoruz (ÖDENDİ)
-                        eklenecekSatirlar.Add(new MakbuzSatir
+                        // ===================== TAM TAHSİLAT (mevcut davranış) =====================
+                        makbuzTutari = genelToplam;
+                        dairesorgu.Borc -= genelToplam;
+
+                        Makbuz yeni = new Makbuz
                         {
-                            MakbuzID = yeni.MakbuzID,
-                            AyAdi = a.AidatAy,
-                            YilAdi = a.AidatYil,
-                            Tutar = a.AidatTutar,
-                            DaireID = daireID,
+                            MakbuzNo = yenino,
                             BinaID = BinaID,
-                            Durum = "A",
-                            EkMiAidatMi = "A"
-                        });
-                    }
-
-                    foreach (var e in ekListesi)
-                    {
-                        e.Durum = "P"; // Eki Pasife çekiyoruz (ÖDENDİ)
-                        eklenecekSatirlar.Add(new MakbuzSatir
-                        {
-                            MakbuzID = yeni.MakbuzID,
-                            AyAdi = e.EkAy,
-                            YilAdi = e.EkYil,
-                            Tutar = e.EkTutar,
                             DaireID = daireID,
-                            BinaID = BinaID,
+                            MabuzTutar = makbuzTutari,
+                            MakbuzTarihi = DateTime.Now,
                             Durum = "A",
-                            EkMiAidatMi = "E"
-                        });
-                    }
-
-                    if (eklenecekSatirlar.Any())
-                    {
-                        db.MakbuzSatirs.AddRange(eklenecekSatirlar);
+                            OnayliMi = false
+                        };
+                        db.Makbuzs.Add(yeni);
                         db.SaveChanges();
-                    }
 
-                    tran.Commit(); // İşlemi onayla
-                    TempData["Basarili"] = "Makbuz başarıyla oluşturuldu.";
+                        foreach (var a in aidatListesi)
+                        {
+                            a.Durum = "P";
+                            eklenecekSatirlar.Add(new MakbuzSatir
+                            {
+                                MakbuzID = yeni.MakbuzID,
+                                AyAdi = a.AidatAy,
+                                YilAdi = a.AidatYil,
+                                Tutar = a.AidatTutar,
+                                DaireID = daireID,
+                                BinaID = BinaID,
+                                Durum = "A",
+                                EkMiAidatMi = "A"
+                            });
+                        }
+
+                        foreach (var e in ekListesi)
+                        {
+                            e.Durum = "P";
+                            eklenecekSatirlar.Add(new MakbuzSatir
+                            {
+                                MakbuzID = yeni.MakbuzID,
+                                AyAdi = e.EkAy,
+                                YilAdi = e.EkYil,
+                                Tutar = e.EkTutar,
+                                DaireID = daireID,
+                                BinaID = BinaID,
+                                Durum = "A",
+                                EkMiAidatMi = "E"
+                            });
+                        }
+
+                        if (eklenecekSatirlar.Any())
+                        {
+                            db.MakbuzSatirs.AddRange(eklenecekSatirlar);
+                            db.SaveChanges();
+                        }
+
+                        tran.Commit();
+                        TempData["Basarili"] = "Makbuz başarıyla oluşturuldu.";
+                    }
+                    else
+                    {
+                        // ===================== KISMİ TAHSİLAT =====================
+                        // Seçilen tüm borç kalemlerini EN ESKİ dönemden en yeniye sıralarız.
+                        // Ödenen tutar eski dönemleri tam kapatır; en son ulaşılan dönem tam
+                        // kapanmazsa o döneme "Ay - Kısmi Ödeme" satırı yazılır, ilgili aidat/ek
+                        // Durum="A" kalır ama tutarı ödenen kadar düşürülür (kalan borç açık kalır).
+                        var kalemler = new List<OdemeKalemi>();
+                        foreach (var a in aidatListesi)
+                            kalemler.Add(new OdemeKalemi { Tip = "A", Aidat = a, Yil = a.AidatYil ?? 0, AyAdi = a.AidatAy, AyKodu = AyKoduBul(a.AidatAy), Tutar = a.AidatTutar ?? 0 });
+                        foreach (var e in ekListesi)
+                            kalemler.Add(new OdemeKalemi { Tip = "E", Ek = e, Yil = e.EkYil ?? 0, AyAdi = e.EkAy, AyKodu = AyKoduBul(e.EkAy), Tutar = e.EkTutar ?? 0 });
+
+                        var sirali = kalemler.OrderBy(k => k.Yil).ThenBy(k => k.AyKodu).ToList();
+
+                        makbuzTutari = odenen; // gerçekte tahsil edilen
+                        dairesorgu.Borc -= odenen;
+
+                        Makbuz yeni = new Makbuz
+                        {
+                            MakbuzNo = yenino,
+                            BinaID = BinaID,
+                            DaireID = daireID,
+                            MabuzTutar = makbuzTutari,
+                            MakbuzTarihi = DateTime.Now,
+                            Durum = "A",
+                            OnayliMi = false
+                        };
+                        db.Makbuzs.Add(yeni);
+                        db.SaveChanges();
+
+                        decimal kalan = odenen;
+                        foreach (var k in sirali)
+                        {
+                            if (kalan <= 0) break; // ödenen tutar bittiyse kalan dönemlere dokunma
+
+                            if (kalan >= k.Tutar)
+                            {
+                                // Dönem tamamen ödendi
+                                if (k.Tip == "A") k.Aidat.Durum = "P"; else k.Ek.Durum = "P";
+                                eklenecekSatirlar.Add(new MakbuzSatir
+                                {
+                                    MakbuzID = yeni.MakbuzID,
+                                    AyAdi = k.AyAdi,
+                                    YilAdi = k.Yil,
+                                    Tutar = k.Tutar,
+                                    DaireID = daireID,
+                                    BinaID = BinaID,
+                                    Durum = "A",
+                                    EkMiAidatMi = k.Tip
+                                });
+                                kalan -= k.Tutar;
+                            }
+                            else
+                            {
+                                // Kısmi ödeme: bu dönem açık kalır, tutarı düşürülür; makbuza "Kısmi Ödeme" yazılır
+                                decimal kismiTutar = kalan;
+                                if (k.Tip == "A") k.Aidat.AidatTutar = k.Tutar - kismiTutar;
+                                else k.Ek.EkTutar = k.Tutar - kismiTutar;
+
+                                eklenecekSatirlar.Add(new MakbuzSatir
+                                {
+                                    MakbuzID = yeni.MakbuzID,
+                                    AyAdi = k.AyAdi + " - Kısmi Ödeme",
+                                    YilAdi = k.Yil,
+                                    Tutar = kismiTutar,
+                                    DaireID = daireID,
+                                    BinaID = BinaID,
+                                    Durum = "A",
+                                    EkMiAidatMi = k.Tip
+                                });
+                                kalan = 0;
+                            }
+                        }
+
+                        if (eklenecekSatirlar.Any())
+                        {
+                            db.MakbuzSatirs.AddRange(eklenecekSatirlar);
+                            db.SaveChanges();
+                        }
+
+                        tran.Commit();
+                        TempData["Basarili"] = "Kısmi tahsilat makbuzu oluşturuldu. (" + odenen.ToString("N2", new System.Globalization.CultureInfo("tr-TR")) + " TL)";
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -383,6 +475,40 @@ namespace ApartmanAidatTakip.Controllers
             }
 
             return RedirectToAction("Index", "TopluMakbuz");
+        }
+
+        // Ay adını (olası "Mayıs - 2" / "Mayıs-2" / "Mayıs - Kısmi Ödeme" eklerine rağmen) ay koduna çevirir.
+        // Eşleşme yoksa 0 döner (sıralamada en başa gelir). Kısmi ödemede eski->yeni sıralama için kullanılır.
+        private int AyKoduBul(string ay)
+        {
+            if (string.IsNullOrEmpty(ay)) return 0;
+            string[] aylar = { "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık" };
+            for (int i = 0; i < aylar.Length; i++)
+            {
+                if (ay.StartsWith(aylar[i])) return i + 1;
+            }
+            return 0;
+        }
+
+        // "700" / "1.500" / "1.250,50" gibi girişleri decimal'e çevirir (binlik nokta ayracı temizlenir).
+        private bool TutarParse(string s, out decimal deger)
+        {
+            deger = 0;
+            if (string.IsNullOrWhiteSpace(s)) return false;
+            s = s.Replace(".", "").Replace(" ", "").Trim();
+            return decimal.TryParse(s.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out deger);
+        }
+
+        // Kısmi ödeme sıralaması için geçici borç kalemi (aidat/ek birleşik, salt-okunur yardımcı).
+        private class OdemeKalemi
+        {
+            public string Tip;       // "A" = Aidat, "E" = Ek
+            public Aidat Aidat;
+            public Ek Ek;
+            public int Yil;
+            public string AyAdi;
+            public int AyKodu;
+            public decimal Tutar;
         }
 
     }
