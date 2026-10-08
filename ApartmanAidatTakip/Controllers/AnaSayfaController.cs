@@ -1262,6 +1262,232 @@ namespace ApartmanAidatTakip.Controllers
         }
 
 
+        // ======================================================================
+        // TOPLU GEÇMİŞE DÖNÜK BORÇLANDIRMA
+        // Seçilen ay/yıl için, seçili (checkbox'u işaretli) her daireye ayrı tutar
+        // ve ayrı tür (Aidat / Demirbaş) ile borç yazar. Dönem (Kasa) oluşturmaz;
+        // bireysel DaireBorclandir gibi çalışır ama birden çok daireyi tek seferde
+        // ve geçmiş aylara da işleyebilir. Gelecek ay engellenir, geçmiş serbesttir.
+        // ======================================================================
+        public ActionResult TopluGecmisBorclandir()
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+
+            ViewBag.Daireler = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
+            Session["Aktif"] = "TopluGecmisBorclandir";
+            Sabit();
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult TopluGecmisBorclandir(string AidatAy, int AidatYil, int[] DaireNolar, string[] Tutarlar, string[] Turler)
+        {
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+
+            Session["Aktif"] = "TopluGecmisBorclandir";
+
+            using (var transaction = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    int yeniAyKodu = AyKoduBul(AidatAy);
+                    if (yeniAyKodu == 0)
+                    {
+                        TempData["Hata"] = "Geçersiz ay seçimi.";
+                        ViewBag.Daireler = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
+                        Sabit();
+                        return View();
+                    }
+
+                    // Gelecek dönem engeli (geçmiş serbest, bu özelliğin amacı geçmişe dönük borçlandırmadır)
+                    int buAy = DateTime.Now.Month;
+                    int buYil = DateTime.Now.Year;
+                    if (AidatYil > buYil || (AidatYil == buYil && yeniAyKodu > buAy))
+                    {
+                        TempData["Hata"] = "Vakti gelmemiş (gelecek) bir döneme borçlandırma yapamazsınız.";
+                        ViewBag.Daireler = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
+                        Sabit();
+                        return View();
+                    }
+
+                    if (DaireNolar == null || DaireNolar.Length == 0)
+                    {
+                        TempData["Hata"] = "Borçlandırılacak daire seçmediniz.";
+                        ViewBag.Daireler = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
+                        Sabit();
+                        return View();
+                    }
+
+                    var daireler = db.Dairelers.Where(x => x.BinaID == BinaID).ToList();
+
+                    // MÜKERRER YÖNETİMİ (sıralı ek numara):
+                    // Bu ay/yıl için (ödenmiş/ödenmemiş fark etmeksizin) daha önce HERHANGİ bir kayıt
+                    // (aidat veya ek) varsa, bütün parti tek tip olacak şekilde ay adına sıralı bir
+                    // numara eklenir (ör. "Mayıs - 2"). Böylece geçmişe dönük ekleme ile asıl dönem
+                    // birbirine karışmaz ve iki ayrı "Mayıs 2026" mükerrer gibi görünmez.
+                    // Numara, mevcut en büyük numaranın bir fazlasıdır; hiç kayıt yoksa düz ay adı kullanılır.
+                    string baseAy = AidatAy;
+                    string ekOnek = baseAy + " - "; // "Mayıs - "
+
+                    var mevcutAidatAylar = db.Aidats.AsNoTracking()
+                        .Where(x => x.BinaID == BinaID && x.AidatYil == AidatYil
+                                    && (x.AidatAy == baseAy || x.AidatAy.StartsWith(ekOnek)))
+                        .Select(x => x.AidatAy).ToList();
+                    var mevcutEkAylar = db.Eks.AsNoTracking()
+                        .Where(x => x.BinaID == BinaID && x.EkYil == AidatYil
+                                    && (x.EkAy == baseAy || x.EkAy.StartsWith(ekOnek)))
+                        .Select(x => x.EkAy).ToList();
+
+                    var tumEtiketler = mevcutAidatAylar.Concat(mevcutEkAylar).ToList();
+
+                    // Mevcut en büyük sıra numarasını bul (düz "Mayıs" = 1 sayılır).
+                    int mevcutMaxNo = 0;
+                    foreach (var et in tumEtiketler)
+                    {
+                        if (et == baseAy)
+                        {
+                            if (mevcutMaxNo < 1) mevcutMaxNo = 1;
+                        }
+                        else if (et.StartsWith(ekOnek))
+                        {
+                            int no;
+                            if (int.TryParse(et.Substring(ekOnek.Length).Trim(), out no) && no > mevcutMaxNo)
+                                mevcutMaxNo = no;
+                        }
+                    }
+
+                    // Hiç kayıt yoksa düz ay adı; varsa bir sonraki numara ile etiketli ay.
+                    string efektifAy = (mevcutMaxNo == 0) ? baseAy : (ekOnek + (mevcutMaxNo + 1));
+                    bool etiketlendi = (mevcutMaxNo > 0);
+
+                    int eklenenSayisi = 0;
+                    int atlananSayisi = 0;
+
+                    for (int i = 0; i < DaireNolar.Length; i++)
+                    {
+                        int daireNo = DaireNolar[i];
+                        string turHam = (Turler != null && i < Turler.Length) ? Turler[i] : "aidat";
+                        decimal tutar = TutarParse((Tutarlar != null && i < Tutarlar.Length) ? Tutarlar[i] : null);
+
+                        if (tutar <= 0)
+                        {
+                            atlananSayisi++;
+                            continue; // tutar girilmemiş daire atlanır
+                        }
+
+                        var daire = daireler.FirstOrDefault(x => x.DaireNo == daireNo);
+                        if (daire == null) { atlananSayisi++; continue; }
+
+                        bool demirbasMi = (turHam == "demirbas" || turHam == "2");
+
+                        if (demirbasMi)
+                        {
+                            db.Eks.Add(new Ek()
+                            {
+                                EkAy = efektifAy,
+                                EkYil = AidatYil,
+                                EkTutar = tutar,
+                                DaireNo = daireNo,
+                                BinaID = BinaID,
+                                Durum = "A",
+                            });
+                        }
+                        else
+                        {
+                            db.Aidats.Add(new Aidat()
+                            {
+                                AidatAy = efektifAy,
+                                AidatYil = AidatYil,
+                                AidatTutar = tutar,
+                                DaireNo = daireNo,
+                                BinaID = BinaID,
+                                Durum = "A",
+                                ZamEklendiMi = "H",
+                            });
+                        }
+
+                        daire.Borc += tutar;
+                        eklenenSayisi++;
+                    }
+
+                    if (eklenenSayisi == 0)
+                    {
+                        transaction.Rollback();
+                        TempData["Hata"] = "Hiçbir daire borçlandırılmadı. (Hiçbir daireye tutar girilmemiş olabilir.)";
+                        ViewBag.Daireler = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
+                        Sabit();
+                        return View();
+                    }
+
+                    // Tüm aidat/ek eklemeleri ve borç güncellemeleri tek SaveChanges ile
+                    db.Hareketlers.Add(new Hareketler()
+                    {
+                        BinaID = BinaID,
+                        KullaniciID = KullaniciID,
+                        OlayAciklama = efektifAy + " - " + AidatYil + " dönemi için " + eklenenSayisi + " daire toplu (geçmişe dönük) borçlandırılmıştır.",
+                        Tarih = DateTime.Now,
+                        Tur = "Ekleme",
+                    });
+
+                    db.SaveChanges();
+                    transaction.Commit();
+
+                    TempData["Basarili"] = eklenenSayisi + " daire \"" + efektifAy + " " + AidatYil + "\" dönemi için borçlandırıldı." +
+                        (etiketlendi ? " Bu dönem daha önce mevcut olduğundan geçmiş borçlanma \"" + efektifAy + "\" olarak işaretlendi." : "") +
+                        (atlananSayisi > 0 ? " (" + atlananSayisi + " daire tutar girilmediği için atlandı.)" : "");
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    TempData["Hata"] = "Bir hata oluştu! İşlemler geri alındı. Detay: " + ex.Message;
+                }
+            }
+
+            ViewBag.Daireler = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
+            Sabit();
+            return View();
+        }
+
+        // Ay adını ay koduna çevirir (0 = geçersiz). Yardımcı.
+        private int AyKoduBul(string ay)
+        {
+            switch (ay)
+            {
+                case "Ocak": return 1;
+                case "Şubat": return 2;
+                case "Mart": return 3;
+                case "Nisan": return 4;
+                case "Mayıs": return 5;
+                case "Haziran": return 6;
+                case "Temmuz": return 7;
+                case "Ağustos": return 8;
+                case "Eylül": return 9;
+                case "Ekim": return 10;
+                case "Kasım": return 11;
+                case "Aralık": return 12;
+                default: return 0;
+            }
+        }
+
+        // "1.500" / "1.250,50" / "1500" gibi girişleri decimal'e çevirir (binlik nokta ayracı temizlenir).
+        private decimal TutarParse(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return 0;
+            s = s.Replace(".", "").Replace(" ", "").Trim();
+            decimal d;
+            if (decimal.TryParse(s.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out d))
+                return d;
+            return 0;
+        }
+
+
         public ActionResult DonemEkle()
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)

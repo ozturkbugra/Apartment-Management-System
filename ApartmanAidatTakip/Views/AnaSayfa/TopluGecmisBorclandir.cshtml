@@ -1,0 +1,442 @@
+﻿@{
+    ViewBag.Title = "Toplu Geçmişe Dönük Borçlandır";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        --success-grad: linear-gradient(135deg, #059669 0%, #34d399 100%);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
+
+    .action-header {
+        background: #fff;
+        padding: 20px 25px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 25px;
+    }
+
+    .panel-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 25px 30px;
+        margin-bottom: 25px;
+    }
+
+    .form-label-custom {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #dee2e6;
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+    .toplu-box {
+        background: #f8f9ff;
+        border: 1px dashed #c7d2fe;
+        border-radius: 14px;
+        padding: 20px;
+    }
+
+    .btn-apply {
+        background: var(--primary-grad);
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+        .btn-apply:hover {
+            color: #fff;
+            opacity: .92;
+        }
+
+    .daire-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .daire-table thead th {
+            background: #f8f9fa;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 700;
+            padding: 12px 14px;
+            border-bottom: 2px solid #eef0f3;
+        }
+
+        .daire-table tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f3f5;
+            vertical-align: middle;
+        }
+
+        .daire-table tbody tr:hover {
+            background: #fafbff;
+        }
+
+    .daire-no-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 42px;
+        height: 32px;
+        background: #eef2ff;
+        color: #4f46e5;
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 0 8px;
+    }
+
+    .row-tutar {
+        max-width: 160px;
+        text-align: right;
+        font-weight: 600;
+    }
+
+    .row-tur {
+        max-width: 150px;
+    }
+
+    .big-check {
+        width: 1.3em;
+        height: 1.3em;
+        cursor: pointer;
+    }
+
+    .btn-submit-primary {
+        background: var(--success-grad);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+    }
+
+        .btn-submit-primary:hover {
+            color: #fff;
+            transform: scale(1.02);
+            transition: all .2s;
+        }
+
+        .btn-submit-primary:disabled {
+            opacity: .6;
+            transform: none;
+        }
+
+    .sticky-footer-bar {
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 -6px 20px rgba(0,0,0,0.06);
+        padding: 18px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+        z-index: 5;
+    }
+
+    /* ===================== DARK MODE (ayrı katman) ===================== */
+    html.dark-mode .panel-card,
+    html.dark-mode .sticky-footer-bar {
+        background: var(--dm-surface) !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35) !important;
+    }
+
+    html.dark-mode .panel-card hr {
+        border-color: var(--dm-border) !important;
+        opacity: 1;
+    }
+
+    html.dark-mode .toplu-box {
+        background: var(--dm-surface-2) !important;
+        border-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .daire-table thead th {
+        background: var(--dm-surface-2) !important;
+        color: var(--dm-muted) !important;
+        border-bottom-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .daire-table tbody td {
+        color: var(--dm-text) !important;
+        border-bottom-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .daire-table tbody tr:hover {
+        background: rgba(109,139,255,0.08) !important;
+    }
+
+    html.dark-mode .daire-no-badge {
+        background: rgba(109,139,255,0.15) !important;
+        color: var(--dm-primary) !important;
+    }
+
+    html.dark-mode .form-control,
+    html.dark-mode .form-select,
+    html.dark-mode .row-tutar-input,
+    html.dark-mode .row-tur-input {
+        background: var(--dm-surface-2) !important;
+        border-color: var(--dm-border) !important;
+        color: var(--dm-text) !important;
+    }
+
+    html.dark-mode .input-group-text {
+        background: var(--dm-surface) !important;
+        border-color: var(--dm-border) !important;
+        color: var(--dm-muted) !important;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="action-header">
+        <h3 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar2-range text-primary me-2"></i>Toplu Geçmişe Dönük Borçlandır</h3>
+        <span class="text-muted small">Seçtiğiniz ay/yıl için birden fazla daireyi tek seferde, her dairenin tutarını ayrı ayrı girerek borçlandırın.</span>
+    </div>
+
+    <form id="topluForm" action="/AnaSayfa/TopluGecmisBorclandir" method="post">
+
+        <!-- ÜST PANEL: Dönem + Toplu doldurma -->
+        <div class="panel-card">
+            <div class="row g-4 align-items-end">
+                <div class="col-md-3 col-6">
+                    <label class="form-label-custom">Yıl</label>
+                    <input type="text" maxlength="4" name="AidatYil" class="form-control" value="@DateTime.Now.ToString("yyyy")" />
+                </div>
+                <div class="col-md-3 col-6">
+                    <label class="form-label-custom">Ay</label>
+                    <select class="form-select" name="AidatAy">
+                        @{ var buAy = DateTime.Now.ToString("MMMM", new System.Globalization.CultureInfo("tr-TR")); }
+                        @foreach (var ay in new[] { "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık" })
+                        {
+                            if (ay == buAy)
+                            {
+                                <option value="@ay" selected>@ay</option>
+                            }
+                            else
+                            {
+                                <option value="@ay">@ay</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <div class="toplu-box">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12">
+                        <span class="fw-bold text-primary"><i class="bi bi-magic me-1"></i>Toplu Doldur</span>
+                        <span class="text-muted small ms-2">Girdiğiniz değerler aşağıdaki <b>seçili</b> tüm dairelere uygulanır. Sonrasında tek tek değiştirebilirsiniz.</span>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <label class="form-label-custom">Tutar (hepsine)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₺</span>
+                            <input type="text" id="topluTutar" class="form-control fw-bold" placeholder="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label class="form-label-custom">Tür (hepsine)</label>
+                        <select id="topluTur" class="form-select">
+                            <option value="aidat">Aidat</option>
+                            <option value="demirbas">Demirbaş</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-12">
+                        <button type="button" class="btn-apply w-100" id="topluUygulaBtn">
+                            <i class="bi bi-arrow-down-circle me-1"></i> Seçililere Uygula
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAİRE LİSTESİ -->
+        <div class="panel-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="daire-table">
+                    <thead>
+                        <tr>
+                            <th style="width:50px;text-align:center;">
+                                <input type="checkbox" class="big-check" id="selectAll" checked />
+                            </th>
+                            <th style="width:90px;">Daire</th>
+                            <th>Ad Soyad</th>
+                            <th style="width:180px;text-align:right;">Tutar</th>
+                            <th style="width:160px;">Tür</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in ViewBag.Daireler)
+                        {
+                            <tr class="daire-row">
+                                <td style="text-align:center;">
+                                    <input type="checkbox" class="big-check row-check" checked />
+                                    <input type="hidden" class="row-daireno" value="@item.DaireNo" />
+                                </td>
+                                <td><span class="daire-no-badge">@item.DaireNo</span></td>
+                                <td>@item.AdSoyad</td>
+                                <td style="text-align:right;">
+                                    <div class="input-group row-tutar ms-auto">
+                                        <span class="input-group-text">₺</span>
+                                        <input type="text" class="form-control text-end row-tutar-input" placeholder="0" onkeydown="preventDotAndComma(event)" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="form-select row-tur row-tur-input">
+                                        <option value="aidat">Aidat</option>
+                                        <option value="demirbas">Demirbaş</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="sticky-footer-bar">
+            <div class="text-muted small">
+                <i class="bi bi-info-circle me-1"></i>
+                Sadece <b>işaretli</b> ve tutarı <b>0'dan büyük</b> olan daireler borçlandırılır. Seçilen dönem daha önce eklenmişse, karışmaması için bu borçlar otomatik olarak <b>"Mayıs - 2"</b> gibi sıralı bir etiketle (geçmiş borçlanma) kaydedilir.
+            </div>
+            <button type="submit" class="btn-submit-primary" id="submitBtn">
+                <i class="bi bi-check2-circle me-2"></i> Borçlandır
+            </button>
+        </div>
+
+        <!-- Sunucuya gidecek gizli alanlar JS ile doldurulur -->
+        <div id="hiddenContainer"></div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function preventDotAndComma(e) {
+        // Rakam, backspace/delete, ok tuşları, tab serbest; nokta/virgül engellenir
+        var k = e.key;
+        if (k === '.' || k === ',') { e.preventDefault(); }
+    }
+
+    $(document).ready(function () {
+
+        // Tümünü seç / kaldır
+        $('#selectAll').on('change', function () {
+            $('.row-check').prop('checked', this.checked);
+        });
+
+        // Bir satır işareti değişince selectAll durumunu güncelle
+        $(document).on('change', '.row-check', function () {
+            $('#selectAll').prop('checked', $('.row-check:checked').length === $('.row-check').length);
+        });
+
+        // Toplu doldur: seçili satırlara tutar + tür yaz
+        $('#topluUygulaBtn').on('click', function () {
+            var tutar = $('#topluTutar').val().replace(/[.,\s]/g, '');
+            var tur = $('#topluTur').val();
+            $('.daire-row').each(function () {
+                var $row = $(this);
+                if ($row.find('.row-check').is(':checked')) {
+                    if (tutar !== '') { $row.find('.row-tutar-input').val(tutar); }
+                    $row.find('.row-tur-input').val(tur);
+                }
+            });
+        });
+
+        // Submit: gizli alanları oluştur + onay
+        $('#topluForm').on('submit', function (e) {
+            e.preventDefault();
+
+            var $cont = $('#hiddenContainer').empty();
+            var sayac = 0;
+
+            $('.daire-row').each(function () {
+                var $row = $(this);
+                if (!$row.find('.row-check').is(':checked')) return;
+
+                var tutar = ($row.find('.row-tutar-input').val() || '').replace(/[.,\s]/g, '');
+                if (tutar === '' || parseFloat(tutar) <= 0) return;
+
+                var daireNo = $row.find('.row-daireno').val();
+                var tur = $row.find('.row-tur-input').val();
+
+                $cont.append('<input type="hidden" name="DaireNolar" value="' + daireNo + '" />');
+                $cont.append('<input type="hidden" name="Tutarlar" value="' + tutar + '" />');
+                $cont.append('<input type="hidden" name="Turler" value="' + tur + '" />');
+                sayac++;
+            });
+
+            if (sayac === 0) {
+                Swal.fire({ icon: 'warning', title: 'Uyarı', text: 'Borçlandırılacak (işaretli ve tutarı girilmiş) daire bulunamadı.', confirmButtonColor: '#4f46e5' });
+                return;
+            }
+
+            var ay = $('select[name="AidatAy"]').val();
+            var yil = $('input[name="AidatYil"]').val();
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Onaylıyor musunuz?',
+                html: '<b>' + ay + ' ' + yil + '</b> dönemi için <b>' + sayac + '</b> daire borçlandırılacak.',
+                showCancelButton: true,
+                confirmButtonText: 'Evet, Borçlandır',
+                cancelButtonText: 'İptal',
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#6c757d'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    $('#submitBtn').prop('disabled', true).html('<i class="bi bi-hourglass-split me-2"></i> İşleniyor...');
+                    e.target.submit();
+                }
+            });
+        });
+
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+            Swal.fire({ icon: 'error', title: 'HATA!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))', confirmButtonColor: '#d33' });
+            </text>
+        }
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+            Swal.fire({ icon: 'success', title: 'Başarılı!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))', confirmButtonColor: '#059669' });
+            </text>
+        }
+    });
+</script>
