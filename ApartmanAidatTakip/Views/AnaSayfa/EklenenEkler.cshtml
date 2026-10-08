@@ -20,7 +20,6 @@
         color: #344767;
     }
 
-    /* Kart Tasarımı */
     .table-card {
         background: #fff;
         border-radius: 16px;
@@ -39,7 +38,47 @@
         background: #fff;
     }
 
-    /* Tablo Tasarımı */
+    .list-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 25px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .list-toolbar .form-control, .list-toolbar .form-select {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+    .search-box {
+        min-width: 240px;
+        max-width: 320px;
+        flex: 1;
+    }
+
+    .btn-bulk-delete {
+        background: #dc2626;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 18px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: none;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-bulk-delete:hover {
+            background: #b91c1c;
+            color: #fff;
+        }
+
     .modern-table thead th {
         background-color: #f8f9fa;
         color: #64748b;
@@ -61,7 +100,16 @@
         background-color: #f8fafc;
     }
 
-    /* Özel Rozetler */
+    .modern-table tbody tr.row-selected {
+        background-color: #fffbeb !important;
+    }
+
+    .row-check, #selectAll {
+        width: 1.25em;
+        height: 1.25em;
+        cursor: pointer;
+    }
+
     .badge-period-extra {
         background: var(--warning-soft);
         color: var(--warning-text);
@@ -80,7 +128,6 @@
         margin-right: 5px;
     }
 
-    /* Butonlar */
     .btn-icon {
         width: 32px;
         height: 32px;
@@ -111,6 +158,66 @@
             background: #dc2626;
             color: white;
         }
+
+    .list-footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 25px;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .pagination-custom {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+        .pagination-custom button {
+            min-width: 36px;
+            height: 36px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+        }
+
+            .pagination-custom button.active {
+                background: #d97706;
+                border-color: #d97706;
+                color: #fff;
+            }
+
+            .pagination-custom button:disabled {
+                opacity: .4;
+                cursor: default;
+            }
+
+    .no-result-row td {
+        text-align: center;
+        color: #94a3b8;
+        padding: 30px;
+    }
+
+    /* ===================== DARK MODE (ayrı katman) ===================== */
+    html.dark-mode .table-card { background: var(--dm-surface) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.35) !important; }
+    html.dark-mode .card-header-plain,
+    html.dark-mode .list-toolbar,
+    html.dark-mode .list-footer { background: var(--dm-surface) !important; border-color: var(--dm-border) !important; }
+    html.dark-mode .list-toolbar .form-control,
+    html.dark-mode .list-toolbar .form-select { background: var(--dm-surface-2) !important; border-color: var(--dm-border) !important; color: var(--dm-text) !important; }
+    html.dark-mode .modern-table thead th { background: var(--dm-surface-2) !important; color: var(--dm-muted) !important; }
+    html.dark-mode .modern-table tbody td { color: var(--dm-text) !important; border-bottom-color: var(--dm-border) !important; }
+    html.dark-mode .modern-table tbody tr:hover { background: rgba(217,119,6,0.08) !important; }
+    html.dark-mode .modern-table tbody tr.row-selected { background: rgba(217,119,6,0.16) !important; }
+    html.dark-mode .daire-badge { background: var(--dm-surface-2) !important; color: var(--dm-text) !important; }
+    html.dark-mode .badge-period-extra { background: rgba(217,119,6,0.15) !important; color: #fbbf24 !important; }
+    html.dark-mode .pagination-custom button { background: var(--dm-surface-2) !important; border-color: var(--dm-border) !important; color: var(--dm-text) !important; }
+    html.dark-mode .pagination-custom button.active { background: #d97706 !important; border-color: #d97706 !important; color: #fff !important; }
 </style>
 
 <div class="container-fluid py-4">
@@ -128,10 +235,28 @@
             <span class="badge bg-warning bg-opacity-10 text-warning" style="color:#d97706 !important;">@ViewBag.Ekler.Count Kayıt</span>
         </div>
 
+        <div class="list-toolbar">
+            <input type="text" id="searchInput" class="form-control search-box" placeholder="🔍 Daire no, ad soyad veya dönem ara...">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn-bulk-delete" id="bulkDeleteBtn">
+                    <i class="bi bi-trash"></i> Seçilenleri Sil (<span id="selCount">0</span>)
+                </button>
+                <span class="text-muted small">Sayfa başına</span>
+                <select id="perPageSelect" class="form-select" style="width:auto;">
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100" selected>100</option>
+                    <option value="250">250</option>
+                    <option value="999999">Tümü</option>
+                </select>
+            </div>
+        </div>
+
         <div class="table-responsive">
-            <table class="table modern-table mb-0 datatable">
+            <table class="table modern-table mb-0" id="dataTable">
                 <thead>
                     <tr>
+                        <th scope="col" style="width:48px;text-align:center;"><input type="checkbox" id="selectAll"></th>
                         <th scope="col">DAİRE BİLGİSİ</th>
                         <th scope="col">Dönem</th>
                         <th scope="col">Tutar</th>
@@ -141,7 +266,10 @@
                 <tbody>
                     @foreach (var item in ViewBag.Ekler)
                     {
-                        <tr>
+                        <tr data-search="@(("" + item.DaireNo + " " + item.AdSoyad + " " + item.EkAy + " " + item.EkYil).ToLower())">
+                            <td style="text-align:center;">
+                                <input type="checkbox" class="row-check" value="@item.EkID">
+                            </td>
                             <td>
                                 <span class="daire-badge">No: @item.DaireNo</span>
                                 <span class="fw-bold text-dark">@item.AdSoyad</span>
@@ -165,15 +293,24 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="list-footer">
+            <span class="text-muted small" id="pageInfo"></span>
+            <div class="pagination-custom" id="pagination"></div>
+        </div>
     </div>
 </div>
+
+<!-- Toplu silme için gizli form -->
+<form id="bulkDeleteForm" action="/AnaSayfa/EkTopluSil" method="post" style="display:none;">
+    <div id="bulkIdsContainer"></div>
+</form>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     function confirmDeleteExtra(event, id) {
         event.preventDefault();
-
         Swal.fire({
             title: 'Kayıt Silinsin mi?',
             text: "Bu demirbaş kaydını silmek istediğinize emin misiniz?",
@@ -190,19 +327,153 @@
         });
     }
 
-    $(document).ready(function() {
-        @if (TempData["Hata"] != null)
-        {
-            <text>
-                Swal.fire({ icon: 'error', title: 'HATA!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))' });
-            </text>
+    $(document).ready(function () {
+        var allRows = Array.prototype.slice.call(document.querySelectorAll('#dataTable tbody tr'));
+        var filtered = allRows.slice();
+        var perPage = 100;
+        var currentPage = 1;
+        var lastClickedIndex = null;
+
+        var $tbody = $('#dataTable tbody');
+        var noResultRow = $('<tr class="no-result-row"><td colspan="5">Kayıt bulunamadı.</td></tr>')[0];
+
+        function updateSelCount() {
+            var count = document.querySelectorAll('#dataTable tbody .row-check:checked').length;
+            $('#selCount').text(count);
+            $('#bulkDeleteBtn').css('display', count > 0 ? 'inline-flex' : 'none');
+            document.querySelectorAll('#dataTable tbody tr').forEach(function (tr) {
+                var cb = tr.querySelector('.row-check');
+                if (cb) tr.classList.toggle('row-selected', cb.checked);
+            });
+            var vis = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
+            var visChecked = vis.filter(function (r) { var c = r.querySelector('.row-check'); return c && c.checked; });
+            var sa = document.getElementById('selectAll');
+            sa.checked = vis.length > 0 && visChecked.length === vis.length;
+            sa.indeterminate = visChecked.length > 0 && visChecked.length < vis.length;
         }
 
+        function render() {
+            if (noResultRow.parentNode) noResultRow.parentNode.removeChild(noResultRow);
+            allRows.forEach(function (r) { r.style.display = 'none'; });
+
+            if (filtered.length === 0) {
+                $tbody.append(noResultRow);
+                $('#pagination').empty();
+                $('#pageInfo').text('0 kayıt');
+                updateSelCount();
+                return;
+            }
+
+            var totalPages = Math.ceil(filtered.length / perPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            var start = (currentPage - 1) * perPage;
+            var end = Math.min(start + perPage, filtered.length);
+            for (var i = start; i < end; i++) { filtered[i].style.display = ''; }
+
+            $('#pageInfo').text((start + 1) + '-' + end + ' / ' + filtered.length + ' kayıt');
+
+            var $pag = $('#pagination').empty();
+            if (totalPages > 1) {
+                $pag.append(makeBtn('«', currentPage === 1, function () { currentPage--; render(); }));
+                var startP = Math.max(1, currentPage - 2);
+                var endP = Math.min(totalPages, startP + 4);
+                startP = Math.max(1, endP - 4);
+                for (var p = startP; p <= endP; p++) {
+                    (function (pg) {
+                        var b = makeBtn(pg, false, function () { currentPage = pg; render(); });
+                        if (pg === currentPage) b.className = 'active';
+                        $pag.append(b);
+                    })(p);
+                }
+                $pag.append(makeBtn('»', currentPage === totalPages, function () { currentPage++; render(); }));
+            }
+
+            updateSelCount();
+        }
+
+        function makeBtn(label, disabled, onClick) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = label;
+            b.disabled = disabled;
+            b.addEventListener('click', onClick);
+            return b;
+        }
+
+        $('#searchInput').on('input', function () {
+            var q = this.value.toLowerCase().trim();
+            filtered = q === '' ? allRows.slice() : allRows.filter(function (r) {
+                return (r.getAttribute('data-search') || '').indexOf(q) !== -1;
+            });
+            currentPage = 1;
+            lastClickedIndex = null;
+            render();
+        });
+
+        $('#perPageSelect').on('change', function () {
+            perPage = parseInt(this.value, 10);
+            currentPage = 1;
+            render();
+        });
+
+        $tbody.on('click', '.row-check', function (e) {
+            var idxInFiltered = filtered.indexOf(this.closest('tr'));
+            if (e.shiftKey && lastClickedIndex !== null && idxInFiltered !== -1) {
+                var lo = Math.min(lastClickedIndex, idxInFiltered);
+                var hi = Math.max(lastClickedIndex, idxInFiltered);
+                var state = this.checked;
+                for (var i = lo; i <= hi; i++) {
+                    var c = filtered[i].querySelector('.row-check');
+                    if (c) c.checked = state;
+                }
+            }
+            lastClickedIndex = idxInFiltered;
+            updateSelCount();
+        });
+
+        $('#selectAll').on('change', function () {
+            var vis = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
+            var st = this.checked;
+            vis.forEach(function (r) { var c = r.querySelector('.row-check'); if (c) c.checked = st; });
+            updateSelCount();
+        });
+
+        $('#bulkDeleteBtn').on('click', function () {
+            var ids = Array.prototype.slice.call(document.querySelectorAll('#dataTable tbody .row-check:checked'))
+                .map(function (c) { return c.value; });
+            if (ids.length === 0) return;
+
+            Swal.fire({
+                title: ids.length + ' kayıt silinsin mi?',
+                html: 'Seçilen demirbaş kayıtları silinecek.<br><span class="text-muted small">Makbuzu olan kayıtlar otomatik atlanır.</span>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Evet, Sil',
+                cancelButtonText: 'İptal'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    var $c = $('#bulkIdsContainer').empty();
+                    ids.forEach(function (id) {
+                        $c.append('<input type="hidden" name="ids" value="' + id + '">');
+                    });
+                    document.getElementById('bulkDeleteForm').submit();
+                }
+            });
+        });
+
+        render();
+
+        @if (TempData["Hata"] != null)
+        {
+            <text>Swal.fire({ icon: 'error', title: 'HATA!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))' });</text>
+        }
         @if (TempData["Basarili"] != null)
         {
-            <text>
-                Swal.fire({ icon: 'success', title: 'Başarılı!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))', confirmButtonColor: '#059669' });
-            </text>
+            <text>Swal.fire({ icon: 'success', title: 'Başarılı!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))', confirmButtonColor: '#059669' });</text>
         }
     });
 </script>

@@ -2332,6 +2332,102 @@ namespace ApartmanAidatTakip.Controllers
             return RedirectToAction("EklenenAidatlar", "AnaSayfa");
         }
 
+        // Toplu aidat silme: seçili AidatID'leri soft-delete eder (Durum="S").
+        // Makbuzu olan aidatlar atlanır. Etkilenen dairelerin borcu yeniden hesaplanır.
+        [HttpPost]
+        public ActionResult AidatTopluSil(int[] ids)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+
+            if (ids == null || ids.Length == 0)
+            {
+                TempData["Hata"] = "Silinecek kayıt seçmediniz.";
+                return RedirectToAction("EklenenAidatlar", "AnaSayfa");
+            }
+
+            using (var transaction = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    var aidatlar = db.Aidats.Where(x => x.BinaID == BinaID && x.Durum == "A" && ids.Contains(x.AidatID)).ToList();
+
+                    // Daire No -> DaireID eşlemesi
+                    var daireMap = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID)
+                        .ToDictionary(x => x.DaireNo, x => x.DaireID);
+
+                    // Makbuz satırı olan (Ay+Yıl+DaireID) kombinasyonları (tek sorgu)
+                    var makbuzSet = new HashSet<string>(
+                        db.MakbuzSatirs.AsNoTracking().Where(x => x.BinaID == BinaID && x.Durum == "A")
+                            .Select(x => x.AyAdi + "|" + x.YilAdi + "|" + x.DaireID).ToList());
+
+                    int silinen = 0, atlanan = 0;
+                    var etkilenenDaireNolar = new HashSet<int?>();
+
+                    foreach (var a in aidatlar)
+                    {
+                        int? daireID = (a.DaireNo != null && daireMap.ContainsKey(a.DaireNo)) ? daireMap[a.DaireNo] : (int?)null;
+                        string anahtar = a.AidatAy + "|" + a.AidatYil + "|" + daireID;
+
+                        if (daireID == null || makbuzSet.Contains(anahtar))
+                        {
+                            atlanan++;
+                            continue; // makbuzu olan atlanır
+                        }
+
+                        a.Durum = "S";
+                        etkilenenDaireNolar.Add(a.DaireNo);
+                        silinen++;
+                    }
+
+                    if (silinen > 0)
+                    {
+                        db.SaveChanges(); // durum değişiklikleri DB'ye yansısın ki borç hesabı doğru olsun
+
+                        foreach (var dno in etkilenenDaireNolar)
+                        {
+                            var daire = db.Dairelers.FirstOrDefault(x => x.BinaID == BinaID && x.DaireNo == dno);
+                            if (daire == null) continue;
+                            var dairetoplam = db.Aidats.Where(x => x.BinaID == BinaID && x.DaireNo == dno && x.Durum == "A").Sum(x => (decimal?)x.AidatTutar) ?? 0;
+                            var ektoplam = db.Eks.Where(x => x.BinaID == BinaID && x.DaireNo == dno && x.Durum == "A").Sum(x => (decimal?)x.EkTutar) ?? 0;
+                            daire.Borc = dairetoplam + ektoplam;
+                        }
+
+                        db.Hareketlers.Add(new Hareketler()
+                        {
+                            BinaID = BinaID,
+                            KullaniciID = KullaniciID,
+                            OlayAciklama = silinen + " aidat kaydı toplu olarak silinmiştir.",
+                            Tarih = DateTime.Now,
+                            Tur = "Silme",
+                        });
+
+                        db.SaveChanges();
+                    }
+
+                    transaction.Commit();
+
+                    if (silinen > 0)
+                        TempData["Basarili"] = silinen + " aidat kaydı silindi." + (atlanan > 0 ? " (" + atlanan + " kayıt makbuzu olduğu için atlandı.)" : "");
+                    else
+                        TempData["Hata"] = atlanan > 0 ? "Seçilen kayıtların tamamının makbuzu olduğu için hiçbiri silinmedi." : "Silinecek uygun kayıt bulunamadı.";
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    TempData["Hata"] = "Bir Hata Oluştu! İşlemler geri alındı.";
+                }
+            }
+
+            return RedirectToAction("EklenenAidatlar", "AnaSayfa");
+        }
+
         public ActionResult EklenenEkler()
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
@@ -2479,6 +2575,100 @@ namespace ApartmanAidatTakip.Controllers
             {
                 TempData["Hata"] = "Bir Hata Oluştu!";
 
+            }
+
+            return RedirectToAction("EklenenEkler", "AnaSayfa");
+        }
+
+        // Toplu ek/demirbaş silme: seçili EkID'leri soft-delete eder (Durum="S").
+        // Makbuzu olan ekler atlanır. Etkilenen dairelerin borcu yeniden hesaplanır.
+        [HttpPost]
+        public ActionResult EkTopluSil(int[] ids)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+
+            if (ids == null || ids.Length == 0)
+            {
+                TempData["Hata"] = "Silinecek kayıt seçmediniz.";
+                return RedirectToAction("EklenenEkler", "AnaSayfa");
+            }
+
+            using (var transaction = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    var ekler = db.Eks.Where(x => x.BinaID == BinaID && x.Durum == "A" && ids.Contains(x.EkID)).ToList();
+
+                    var daireMap = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID)
+                        .ToDictionary(x => x.DaireNo, x => x.DaireID);
+
+                    var makbuzSet = new HashSet<string>(
+                        db.MakbuzSatirs.AsNoTracking().Where(x => x.BinaID == BinaID && x.Durum == "A")
+                            .Select(x => x.AyAdi + "|" + x.YilAdi + "|" + x.DaireID).ToList());
+
+                    int silinen = 0, atlanan = 0;
+                    var etkilenenDaireNolar = new HashSet<int?>();
+
+                    foreach (var e in ekler)
+                    {
+                        int? daireID = (e.DaireNo != null && daireMap.ContainsKey(e.DaireNo)) ? daireMap[e.DaireNo] : (int?)null;
+                        string anahtar = e.EkAy + "|" + e.EkYil + "|" + daireID;
+
+                        if (daireID == null || makbuzSet.Contains(anahtar))
+                        {
+                            atlanan++;
+                            continue;
+                        }
+
+                        e.Durum = "S";
+                        etkilenenDaireNolar.Add(e.DaireNo);
+                        silinen++;
+                    }
+
+                    if (silinen > 0)
+                    {
+                        db.SaveChanges();
+
+                        foreach (var dno in etkilenenDaireNolar)
+                        {
+                            var daire = db.Dairelers.FirstOrDefault(x => x.BinaID == BinaID && x.DaireNo == dno);
+                            if (daire == null) continue;
+                            var dairetoplam = db.Aidats.Where(x => x.BinaID == BinaID && x.DaireNo == dno && x.Durum == "A").Sum(x => (decimal?)x.AidatTutar) ?? 0;
+                            var ektoplam = db.Eks.Where(x => x.BinaID == BinaID && x.DaireNo == dno && x.Durum == "A").Sum(x => (decimal?)x.EkTutar) ?? 0;
+                            daire.Borc = dairetoplam + ektoplam;
+                        }
+
+                        db.Hareketlers.Add(new Hareketler()
+                        {
+                            BinaID = BinaID,
+                            KullaniciID = KullaniciID,
+                            OlayAciklama = silinen + " ek/demirbaş kaydı toplu olarak silinmiştir.",
+                            Tarih = DateTime.Now,
+                            Tur = "Silme",
+                        });
+
+                        db.SaveChanges();
+                    }
+
+                    transaction.Commit();
+
+                    if (silinen > 0)
+                        TempData["Basarili"] = silinen + " demirbaş kaydı silindi." + (atlanan > 0 ? " (" + atlanan + " kayıt makbuzu olduğu için atlandı.)" : "");
+                    else
+                        TempData["Hata"] = atlanan > 0 ? "Seçilen kayıtların tamamının makbuzu olduğu için hiçbiri silinmedi." : "Silinecek uygun kayıt bulunamadı.";
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    TempData["Hata"] = "Bir Hata Oluştu! İşlemler geri alındı.";
+                }
             }
 
             return RedirectToAction("EklenenEkler", "AnaSayfa");

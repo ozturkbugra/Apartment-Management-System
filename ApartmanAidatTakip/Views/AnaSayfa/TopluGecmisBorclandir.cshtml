@@ -360,6 +360,20 @@
             $('.row-check').prop('checked', this.checked);
         });
 
+        // Shift ile aralık seçme
+        var rowChecks = Array.prototype.slice.call(document.querySelectorAll('.row-check'));
+        var lastClickedIndex = null;
+        $(document).on('click', '.row-check', function (e) {
+            var idx = rowChecks.indexOf(this);
+            if (e.shiftKey && lastClickedIndex !== null && idx !== -1) {
+                var lo = Math.min(lastClickedIndex, idx);
+                var hi = Math.max(lastClickedIndex, idx);
+                var state = this.checked;
+                for (var i = lo; i <= hi; i++) { rowChecks[i].checked = state; }
+            }
+            lastClickedIndex = idx;
+        });
+
         // Bir satır işareti değişince selectAll durumunu güncelle
         $(document).on('change', '.row-check', function () {
             $('#selectAll').prop('checked', $('.row-check:checked').length === $('.row-check').length);
