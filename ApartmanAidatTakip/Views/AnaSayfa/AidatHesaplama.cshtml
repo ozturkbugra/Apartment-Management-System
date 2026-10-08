@@ -1,0 +1,497 @@
+﻿@using ApartmanAidatTakip.Models
+@{
+    ViewBag.Title = "Aidat Hesaplama";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var gruplar = ViewBag.Gruplar as List<AidatHesaplamaGrup> ?? new List<AidatHesaplamaGrup>();
+    var yillar = ViewBag.Yillar as List<int> ?? new List<int>();
+
+    int seciliYil = (int)ViewBag.Yil;
+    int oncekiYil = (int)ViewBag.OncekiYil;
+    int daireSayisi = (int)ViewBag.DaireSayisi;
+    int aySayisi = (int)ViewBag.AySayisi;
+    bool demirbasDahil = (bool)ViewBag.DemirbasDahil;
+
+    decimal aidatGider = (decimal)ViewBag.AidatGider;
+    decimal demirbasGider = (decimal)ViewBag.DemirbasGider;
+    decimal toplamGider = (decimal)ViewBag.ToplamGider;
+    decimal toplananAidat = (decimal)ViewBag.ToplananAidat;
+    decimal toplananDemirbas = (decimal)ViewBag.ToplananDemirbas;
+
+    decimal oncekiAidatGider = (decimal)ViewBag.OncekiAidatGider;
+    decimal oncekiToplamGider = (decimal)ViewBag.OncekiToplamGider;
+    decimal oncekiToplananAidat = (decimal)ViewBag.OncekiToplananAidat;
+    bool oncekiVarMi = (bool)ViewBag.OncekiVarMi;
+    decimal otoArtis = (decimal)ViewBag.OtoArtis;
+
+    var aylikThis = ViewBag.AylikThis as decimal[] ?? new decimal[13];
+    var aylikPrev = ViewBag.AylikPrev as decimal[] ?? new decimal[13];
+    int ayThis = (int)ViewBag.AyThis;
+    int ayPrev = (int)ViewBag.AyPrev;
+    int ortakAy = (int)ViewBag.OrtakAy;
+    bool aylarEsit = (bool)ViewBag.AylarEsit;
+    decimal avgThis = (decimal)ViewBag.AvgThis;
+    decimal avgPrev = (decimal)ViewBag.AvgPrev;
+
+    string[] ayAdlari = { "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık" };
+
+    decimal mevcutAidat = (decimal)ViewBag.MevcutAidat;
+    string mevcutAidatDonem = (string)ViewBag.MevcutAidatDonem ?? "";
+
+    System.Func<decimal, string> P = (d) => d.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"));
+    System.Func<decimal, string> INV = (d) => d.ToString(System.Globalization.CultureInfo.InvariantCulture);
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    body { font-family: 'Poppins', sans-serif; }
+
+    .ah-head {
+        background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        color: #fff;
+        border-radius: 18px;
+        padding: 26px 30px;
+        margin-bottom: 22px;
+        box-shadow: 0 10px 30px rgba(79,70,229,.25);
+    }
+    .ah-head h2 { font-weight: 700; margin: 0; font-size: 1.5rem; }
+    .ah-head p { margin: 6px 0 0; opacity: .9; font-size: .92rem; }
+
+    .ah-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0,0,0,.06);
+        padding: 22px 24px;
+        margin-bottom: 22px;
+    }
+    .ah-card h5 { font-weight: 700; color: #344767; margin-bottom: 18px; font-size: 1.05rem; }
+    .ah-card h5 i { color: #4f46e5; margin-right: 6px; }
+
+    .ah-stat { border-radius: 14px; padding: 18px; color: #fff; height: 100%; }
+    .ah-stat .lbl { font-size: .82rem; opacity: .9; }
+    .ah-stat .val { font-size: 1.5rem; font-weight: 700; margin-top: 4px; line-height: 1.1; }
+    .ah-stat .sub { font-size: .76rem; opacity: .85; margin-top: 4px; }
+    .ah-blue   { background: linear-gradient(135deg,#4f46e5,#818cf8); }
+    .ah-green  { background: linear-gradient(135deg,#10b981,#34d399); }
+    .ah-orange { background: linear-gradient(135deg,#f59e0b,#fbbf24); }
+    .ah-red    { background: linear-gradient(135deg,#ef4444,#f87171); }
+    .ah-purple { background: linear-gradient(135deg,#8b5cf6,#a78bfa); }
+    .ah-gray   { background: linear-gradient(135deg,#64748b,#94a3b8); }
+
+    .ah-table { width: 100%; border-collapse: collapse; }
+    .ah-table th, .ah-table td { padding: 10px 12px; border-bottom: 1px solid #eef0f4; }
+    .ah-table th { text-align: left; color: #8392ab; font-size: .78rem; text-transform: uppercase; letter-spacing: .4px; }
+    .ah-table td.num { text-align: right; font-weight: 600; color: #344767; }
+    .ah-table tr.demirbas-row td { background: #fff7ed; }
+    .ah-bar { height: 6px; border-radius: 4px; background: #4f46e5; }
+    .ah-bar.dem { background: #f59e0b; }
+
+    .ah-badge { font-size: .72rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+    .ah-badge-dem { background: #ffedd5; color: #c2410c; }
+
+    .ah-chip-up   { color: #ef4444; font-weight: 700; }
+    .ah-chip-down { color: #10b981; font-weight: 700; }
+
+    .ah-result {
+        background: linear-gradient(135deg,#0f172a,#1e293b);
+        color: #fff; border-radius: 16px; padding: 26px; text-align: center;
+    }
+    .ah-result .big { font-size: 2.4rem; font-weight: 700; margin: 6px 0; }
+    .ah-result .cap { opacity: .8; font-size: .9rem; }
+
+    .ah-switch-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+    /* ---------- KARANLIK TEMA ---------- */
+    html.dark-mode .ah-card { background: #1e2530; box-shadow: none; border: 1px solid #2b3545; }
+    html.dark-mode .ah-card h5 { color: #e9ecef; }
+    html.dark-mode .ah-table th { color: #8b97a8; }
+    html.dark-mode .ah-table td { border-color: #2b3545; }
+    html.dark-mode .ah-table td.num { color: #e9ecef; }
+    html.dark-mode .ah-table tr.demirbas-row td { background: #2a2418; }
+    html.dark-mode .form-select, html.dark-mode .form-control { background:#141a22; color:#e9ecef; border-color:#2b3545; }
+</style>
+
+<div class="container-fluid py-3">
+
+    <div class="ah-head d-flex flex-wrap justify-content-between align-items-center">
+        <div>
+            <h2><i class="bi bi-calculator"></i> Aidat Hesaplama &amp; Tahmini Aidat</h2>
+            <p>Bir yılın giderlerini türüne göre gruplayıp toplanan aidatla ve geçmiş yılla kıyaslar; daire başına gereken aylık aidatı hesaplar.</p>
+        </div>
+        <form method="get" action="/AnaSayfa/AidatHesaplama" class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+            <label class="text-white me-1 mb-0">Yıl:</label>
+            <select name="yil" class="form-select" style="width:auto" onchange="this.form.submit()">
+                @foreach (var y in yillar)
+                {
+                    <option value="@y" @(y == seciliYil ? "selected" : "")>@y</option>
+                }
+            </select>
+            @if (demirbasDahil)
+            {
+                <input type="hidden" name="demirbasDahil" value="true" />
+            }
+        </form>
+    </div>
+
+    @if (daireSayisi == 0)
+    {
+        <div class="alert alert-warning">Bu binada kayıtlı daire bulunmadığından daire başına hesap yapılamıyor. Önce <a href="/AnaSayfa/Sakinler">daire ekleyin</a>.</div>
+    }
+
+    <!-- ÖZET KUTULARI -->
+    <div class="row g-3 mb-1">
+        <div class="col-md-3 col-6">
+            <div class="ah-stat ah-red">
+                <div class="lbl"><i class="bi bi-dash-circle"></i> Toplam Gider (@seciliYil)</div>
+                <div class="val">@P(toplamGider) ₺</div>
+                <div class="sub">Demirbaş dahil tüm giderler</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="ah-stat ah-orange">
+                <div class="lbl"><i class="bi bi-layers"></i> Demirbaş Gideri</div>
+                <div class="val">@P(demirbasGider) ₺</div>
+                <div class="sub">Aidattan ayrı tutulur</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="ah-stat ah-blue">
+                <div class="lbl"><i class="bi bi-cash-stack"></i> İşletme Gideri</div>
+                <div class="val">@P(aidatGider) ₺</div>
+                <div class="sub">Demirbaş hariç (aidat ile karşılanan)</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="ah-stat ah-green">
+                <div class="lbl"><i class="bi bi-wallet2"></i> Toplanan Gelir</div>
+                <div class="val">@P(toplananAidat + toplananDemirbas) ₺</div>
+                <div class="sub">(Aidat: @P(toplananAidat) ₺ · Demirbaş: @P(toplananDemirbas) ₺)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- GİDER DAĞILIMI -->
+        <div class="col-lg-7">
+            <div class="ah-card">
+                <h5><i class="bi bi-pie-chart"></i> @seciliYil Yılı Gider Dağılımı (Türe Göre)</h5>
+                @if (!gruplar.Any())
+                {
+                    <p class="text-muted mb-0">Bu yıl için gider kaydı bulunamadı.</p>
+                }
+                else
+                {
+                    <table class="ah-table">
+                        <thead>
+                            <tr><th>Gider Türü</th><th style="width:40%">Pay</th><th style="text-align:right">Tutar</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var g in gruplar)
+                            {
+                                var pay = toplamGider > 0 ? (double)(g.Tutar / toplamGider) * 100 : 0;
+                                <tr class="@(g.Demirbas ? "demirbas-row" : "")">
+                                    <td>
+                                        @g.Ad
+                                        @if (g.Demirbas)
+                                        {
+                                            <span class="ah-badge ah-badge-dem ms-1">Demirbaş</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="ah-bar @(g.Demirbas ? "dem" : "")" style="width:@(pay.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></div>
+                                        <small class="text-muted">%@pay.ToString("0.#", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))</small>
+                                    </td>
+                                    <td class="num">@P(g.Tutar) ₺</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" style="font-weight:700">TOPLAM</td>
+                                <td class="num" style="font-size:1.05rem">@P(toplamGider) ₺</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+            </div>
+
+            <!-- GEÇMİŞ YIL KIYASI -->
+            <div class="ah-card">
+                <h5><i class="bi bi-graph-up-arrow"></i> Geçmiş Yıl Kıyaslaması (@oncekiYil → @seciliYil)</h5>
+                @if (!oncekiVarMi)
+                {
+                    <p class="text-muted mb-0">@oncekiYil yılına ait kıyaslanacak veri bulunamadı.</p>
+                }
+                else
+                {
+                    <table class="ah-table">
+                        <thead>
+                            <tr><th></th><th style="text-align:right">@oncekiYil</th><th style="text-align:right">@seciliYil</th><th style="text-align:right">Değişim</th></tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                System.Func<decimal, decimal, string> yuzde = (eski, yeni) =>
+                                {
+                                    if (eski <= 0) return "—";
+                                    var d = ((yeni - eski) / eski) * 100;
+                                    return (d >= 0 ? "+" : "") + d.ToString("0.#", System.Globalization.CultureInfo.GetCultureInfo("tr-TR")) + "%";
+                                };
+                                System.Func<decimal, decimal, string> cls = (eski, yeni) => (yeni >= eski ? "ah-chip-up" : "ah-chip-down");
+                            }
+                            <tr>
+                                <td>İşletme Gideri (demirbaş hariç)</td>
+                                <td class="num">@P(oncekiAidatGider) ₺<br /><small class="text-muted">@ayPrev ay</small></td>
+                                <td class="num">@P(aidatGider) ₺<br /><small class="text-muted">@ayThis ay</small></td>
+                                <td class="num @cls(oncekiAidatGider, aidatGider)">@yuzde(oncekiAidatGider, aidatGider)</td>
+                            </tr>
+                            <tr style="">
+                                <td><strong>Aylık Ortalama İşletme Gideri</strong><br /><small class="text-muted">(adil kıyas)</small></td>
+                                <td class="num">@P(avgPrev) ₺</td>
+                                <td class="num">@P(avgThis) ₺</td>
+                                <td class="num @cls(avgPrev, avgThis)">@yuzde(avgPrev, avgThis)</td>
+                            </tr>
+                            <tr>
+                                <td>Toplam Gider</td>
+                                <td class="num">@P(oncekiToplamGider) ₺</td>
+                                <td class="num">@P(toplamGider) ₺</td>
+                                <td class="num @cls(oncekiToplamGider, toplamGider)">@yuzde(oncekiToplamGider, toplamGider)</td>
+                            </tr>
+                            <tr>
+                                <td>Toplanan Aidat</td>
+                                <td class="num">@P(oncekiToplananAidat) ₺</td>
+                                <td class="num">@P(toplananAidat) ₺</td>
+                                <td class="num @cls(oncekiToplananAidat, toplananAidat)">@yuzde(oncekiToplananAidat, toplananAidat)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="text-muted mt-2 mb-1" style="font-size:.82rem">
+                        <i class="bi bi-info-circle"></i> Aylık ortalama işletme gideri geçen yıla göre
+                        <strong class="@(otoArtis >= 0 ? "ah-chip-up" : "ah-chip-down")">@(otoArtis >= 0 ? "+" : "")@P(otoArtis)%</strong>
+                        değişmiş. Bu oran (ham toplam değil, aylık ortalama farkı) aşağıda tahmini aidat için otomatik önerilir.
+                    </p>
+                    if (!aylarEsit)
+                    {
+                        <div class="alert alert-warning py-2 px-3 mb-0" style="font-size:.82rem">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Yıllar <strong>aynı sayıda ay</strong> içermiyor (@seciliYil: <strong>@ayThis ay</strong>, @oncekiYil: <strong>@ayPrev ay</strong>).
+                            Ham toplamlar yanıltıcı olacağından kıyas <strong>aylık ortalama</strong> üzerinden yapıldı; ortak referans <strong>@ortakAy ay</strong>.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success py-2 px-3 mb-0" style="font-size:.82rem">
+                            <i class="bi bi-check-circle"></i> Her iki yıl da <strong>@ayThis ay</strong> veri içeriyor — kıyas birebir, sıkıntı yok.
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- AY BAZINDA DÖKÜM -->
+            <div class="ah-card">
+                <h5><i class="bi bi-calendar3"></i> Ay Bazında İşletme Gideri (@oncekiYil vs @seciliYil)</h5>
+                <table class="ah-table">
+                    <thead>
+                        <tr>
+                            <th>Ay</th>
+                            <th style="text-align:right">@oncekiYil</th>
+                            <th style="text-align:right">@seciliYil</th>
+                            <th style="text-align:right">Değişim</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int ay = 1; ay <= 12; ay++)
+                        {
+                            decimal p = aylikPrev[ay];
+                            decimal t = aylikThis[ay];
+                            bool pYok = p == 0;
+                            bool tYok = t == 0;
+                            string degisim;
+                            string dcls = "";
+                            if (pYok && tYok) { degisim = "—"; }
+                            else if (pYok) { degisim = "yeni"; dcls = "ah-chip-up"; }
+                            else if (tYok) { degisim = "veri yok"; dcls = "text-muted"; }
+                            else
+                            {
+                                var d = ((t - p) / p) * 100;
+                                degisim = (d >= 0 ? "+" : "") + d.ToString("0.#", System.Globalization.CultureInfo.GetCultureInfo("tr-TR")) + "%";
+                                dcls = (t >= p ? "ah-chip-up" : "ah-chip-down");
+                            }
+                            <tr>
+                                <td>@ayAdlari[ay]</td>
+                                <td class="num">@(pYok ? "—" : P(p) + " ₺")</td>
+                                <td class="num">@(tYok ? "—" : P(t) + " ₺")</td>
+                                <td class="num @dcls">@degisim</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td><strong>Aylık Ortalama</strong></td>
+                            <td class="num">@P(avgPrev) ₺</td>
+                            <td class="num">@P(avgThis) ₺</td>
+                            <td class="num @(otoArtis >= 0 ? "ah-chip-up" : "ah-chip-down")">@(otoArtis >= 0 ? "+" : "")@P(otoArtis)%</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <small class="text-muted"><i class="bi bi-info-circle"></i> "veri yok" = o yıl o ayda gider girilmemiş (ortalamaya ve aktif ay sayısına dahil edilmez). Demirbaş giderleri bu dökümde yer almaz.</small>
+            </div>
+        </div>
+
+        <!-- TAHMİNİ AİDAT HESAPLAYICI -->
+        <div class="col-lg-5">
+            <div class="ah-card">
+                <h5><i class="bi bi-sliders"></i> Tahmini Aidat Belirleme</h5>
+
+                <div class="ah-switch-wrap mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="chkDemirbas" @(demirbasDahil ? "checked" : "") style="cursor:pointer">
+                        <label class="form-check-label" for="chkDemirbas" style="cursor:pointer">Demirbaş giderini de aidata dahil et</label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label mb-1" style="font-size:.85rem;font-weight:600">Artış / Enflasyon Oranı (%)</label>
+                    <div class="input-group">
+                        <input type="number" step="0.1" class="form-control" id="txtOran" value="@INV(otoArtis)">
+                        <button type="button" class="btn btn-outline-secondary" id="btnOto" title="Geçen yıla göre otomatik gider artışını uygula">
+                            <i class="bi bi-magic"></i> Oto (@P(otoArtis)%)
+                        </button>
+                    </div>
+                    <small class="text-muted">Gelecek dönem için beklenen artış. Otomatik oran geçmiş gider artışından gelir; elle de girebilirsiniz.</small>
+                </div>
+
+                <div class="ah-result mb-3">
+                    <div class="cap">Zamlı Tahmini Aylık Aidat (daire başına)</div>
+                    <div class="big"><span id="outTahmini">0</span> ₺</div>
+                    <div class="cap">
+                        Mevcut aidat <strong id="outMevcut">@P(mevcutAidat)</strong> ₺
+                        @if (!string.IsNullOrEmpty(mevcutAidatDonem))
+                        {
+                            <text>(@mevcutAidatDonem)</text>
+                        }
+                        üzerine <strong><span id="outOran">0</span>%</strong> zam
+                    </div>
+                </div>
+
+                <table class="ah-table">
+                    <tbody>
+                        <tr>
+                            <td>Mevcut aidat (tablodaki en sık tutar)</td>
+                            <td class="num"><span id="outMevcut2">@P(mevcutAidat)</span> ₺</td>
+                        </tr>
+                        <tr>
+                            <td>Hesaba giren yıllık gider</td>
+                            <td class="num"><span id="outYillik">0</span> ₺</td>
+                        </tr>
+                        <tr>
+                            <td>Giderleri karşılamak için gereken (daire/ay)</td>
+                            <td class="num"><span id="outGereken2">0</span> ₺</td>
+                        </tr>
+                        <tr>
+                            <td>Ort. fiilen toplanan (daire/ay)</td>
+                            <td class="num"><span id="outToplanan">0</span> ₺</td>
+                        </tr>
+                        <tr>
+                            <td>Zamlı aidatın gideri karşılama oranı</td>
+                            <td class="num"><span id="outKarsilama">—</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                @if (mevcutAidat <= 0)
+                {
+                    <div class="alert alert-info py-2 px-3 mt-3 mb-0" style="font-size:.82rem">
+                        <i class="bi bi-info-circle"></i> Henüz belirlenmiş aidat kaydı bulunamadı; zam tabanı olarak
+                        giderlere göre <strong>gereken</strong> tutar kullanıldı. Dönem açıp aidat girince burası
+                        otomatik olarak tablodaki en sık aidata göre hesaplanır.
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted mt-2" style="font-size:.8rem">
+                        <i class="bi bi-info-circle"></i> Zam, fiilen toplanan gelire değil, tablodaki belirlenmiş
+                        (en sık) aidata uygulanır — herkes düzenli ödemediğinden toplanan gelir taban alınmaz.
+                    </div>
+                }
+
+                <div id="uyari" class="alert alert-warning mt-3 mb-0" style="display:none;font-size:.85rem"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var AIDAT_GIDER = parseFloat('@INV(aidatGider)');     // demirbaş hariç yıllık
+        var DEMIRBAS_GIDER = parseFloat('@INV(demirbasGider)'); // demirbaş yıllık
+        var AY = parseInt('@aySayisi', 10) || 12;
+        var DAIRE = parseInt('@daireSayisi', 10) || 0;
+        var TOPLANAN = parseFloat('@INV(toplananAidat)');       // yıllık toplanan aidat
+        var DEMIRBAS_GELIR = parseFloat('@INV(toplananDemirbas)'); // yıllık toplanan demirbaş geliri
+        var MEVCUT = parseFloat('@INV(mevcutAidat)');           // tablodaki en sık aidat (zam tabanı)
+
+        var fmt = function (n) {
+            if (!isFinite(n)) n = 0;
+            return n.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        };
+
+        var chk = document.getElementById('chkDemirbas');
+        var oran = document.getElementById('txtOran');
+        var btnOto = document.getElementById('btnOto');
+        var uyari = document.getElementById('uyari');
+
+        function hesapla() {
+            var yillikGider = AIDAT_GIDER + (chk.checked ? DEMIRBAS_GIDER : 0);
+            var aylikGider = AY > 0 ? yillikGider / AY : 0;
+            var gereken = DAIRE > 0 ? aylikGider / DAIRE : 0; // giderleri karşılamak için gereken
+
+            var r = parseFloat((oran.value || '0').replace(',', '.'));
+            if (isNaN(r)) r = 0;
+
+            // Zam, FİİLEN BELİRLENEN aidat (tablodaki en sık tutar) üzerine yapılır.
+            // Toplanan gelir herkes düzenli ödemediği için taban alınmaz.
+            // Mevcut aidat kaydı yoksa gidere göre gerekene düşülür.
+            var taban = MEVCUT > 0 ? MEVCUT : gereken;
+            var tahmini = taban * (1 + r / 100);
+
+            // Bilgi amaçlı: fiilen ortalama toplanan (daire/ay)
+            var yillikToplanan = TOPLANAN + (chk.checked ? DEMIRBAS_GELIR : 0);
+            var ortToplanan = (DAIRE > 0 && AY > 0) ? (yillikToplanan / AY) / DAIRE : 0;
+
+            // Zamlı aidatın gideri karşılama oranı
+            var karsilama = gereken > 0 ? (tahmini / gereken) * 100 : 0;
+
+            document.getElementById('outMevcut').textContent = fmt(MEVCUT);
+            document.getElementById('outMevcut2').textContent = fmt(MEVCUT);
+            document.getElementById('outOran').textContent = (r % 1 === 0 ? r : r.toFixed(1));
+            document.getElementById('outYillik').textContent = fmt(yillikGider);
+            document.getElementById('outGereken2').textContent = fmt(gereken);
+            document.getElementById('outToplanan').textContent = fmt(ortToplanan);
+            document.getElementById('outTahmini').textContent = fmt(tahmini);
+
+            var kEl = document.getElementById('outKarsilama');
+            if (gereken > 0) {
+                kEl.textContent = '%' + karsilama.toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+                kEl.style.color = karsilama >= 100 ? '#10b981' : '#ef4444';
+            } else {
+                kEl.textContent = '—';
+                kEl.style.color = '';
+            }
+
+            if (DAIRE > 0 && gereken > 0 && tahmini < gereken) {
+                var acik = (gereken - tahmini);
+                uyari.style.display = 'block';
+                uyari.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Bu zamlı aidat gideri karşılamıyor. ' +
+                    'Daire başına aylık <strong>' + fmt(acik) + ' ₺</strong> açık kalır; oranı artırın.';
+            } else {
+                uyari.style.display = 'none';
+            }
+        }
+
+        chk.addEventListener('change', hesapla);
+        oran.addEventListener('input', hesapla);
+        btnOto.addEventListener('click', function () { oran.value = '@INV(otoArtis)'; hesapla(); });
+        hesapla();
+    })();
+</script>

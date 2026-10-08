@@ -440,15 +440,47 @@ namespace ApartmanAidatTakip.Controllers
                         int? daireno = dairesec.DaireNo;
                         string ekmiaidatmi = item.EkMiAidatMi;
 
+                        // KISMİ ÖDEME satırı mı? ("<Ay> - Kısmi Ödeme") — asıl kayıt hâlâ "A" olup tutarı
+                        // düşürülmüştü; iptalde geri eklenir. Normal satırlarda ise "P" olan kayıt "A" yapılır.
+                        bool kismiMi = !string.IsNullOrEmpty(ayadi) && ayadi.EndsWith(" - Kısmi Ödeme");
+                        string ayAsil = kismiMi ? ayadi.Replace(" - Kısmi Ödeme", "") : ayadi;
+
                         if (ekmiaidatmi == "A")
                         {
-                            var aidatsec = db.Aidats.Where(x => x.DaireNo == daireno && x.AidatAy == ayadi && x.AidatYil == yiladi && x.BinaID == BinaID && x.Durum == "P").FirstOrDefault();
-                            if (aidatsec != null) aidatsec.Durum = "A";
+                            if (kismiMi)
+                            {
+                                // Asıl aidat kaydı (tutarı düşürülmüş, hâlâ "A"); kısmi tutarı geri ekle
+                                var aidatsec = db.Aidats.Where(x => x.DaireNo == daireno && x.AidatAy == ayAsil && x.AidatYil == yiladi && x.BinaID == BinaID && x.Durum == "A").FirstOrDefault()
+                                             ?? db.Aidats.Where(x => x.DaireNo == daireno && x.AidatAy == ayAsil && x.AidatYil == yiladi && x.BinaID == BinaID && x.Durum == "P").FirstOrDefault();
+                                if (aidatsec != null)
+                                {
+                                    aidatsec.AidatTutar = (aidatsec.AidatTutar ?? 0) + (item.Tutar ?? 0);
+                                    aidatsec.Durum = "A";
+                                }
+                            }
+                            else
+                            {
+                                var aidatsec = db.Aidats.Where(x => x.DaireNo == daireno && x.AidatAy == ayadi && x.AidatYil == yiladi && x.BinaID == BinaID && x.Durum == "P").FirstOrDefault();
+                                if (aidatsec != null) aidatsec.Durum = "A";
+                            }
                         }
                         if (ekmiaidatmi == "E")
                         {
-                            var eksec = db.Eks.Where(x => x.DaireNo == daireno && x.EkAy == ayadi && x.EkYil == yiladi && x.BinaID == BinaID && x.Durum == "P").FirstOrDefault();
-                            if (eksec != null) eksec.Durum = "A";
+                            if (kismiMi)
+                            {
+                                var eksec = db.Eks.Where(x => x.DaireNo == daireno && x.EkAy == ayAsil && x.EkYil == yiladi && x.BinaID == BinaID && x.Durum == "A").FirstOrDefault()
+                                          ?? db.Eks.Where(x => x.DaireNo == daireno && x.EkAy == ayAsil && x.EkYil == yiladi && x.BinaID == BinaID && x.Durum == "P").FirstOrDefault();
+                                if (eksec != null)
+                                {
+                                    eksec.EkTutar = (eksec.EkTutar ?? 0) + (item.Tutar ?? 0);
+                                    eksec.Durum = "A";
+                                }
+                            }
+                            else
+                            {
+                                var eksec = db.Eks.Where(x => x.DaireNo == daireno && x.EkAy == ayadi && x.EkYil == yiladi && x.BinaID == BinaID && x.Durum == "P").FirstOrDefault();
+                                if (eksec != null) eksec.Durum = "A";
+                            }
                         }
 
                         db.SaveChanges();

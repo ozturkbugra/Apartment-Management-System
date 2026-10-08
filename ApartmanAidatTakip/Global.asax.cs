@@ -16,6 +16,9 @@ namespace ApartmanAidatTakip
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            // Zorunlu başlangıç verilerini (gider türleri) oluştur
+            ApartmanAidatTakip.Helpers.VeriBaslangic.Calistir();
         }
     }
 }

@@ -55,6 +55,23 @@
         var toggle = document.getElementById('favToggle');
         if (!toggle) return;
 
+        // Favori sayısını gösteren rozet (butonun köşesinde)
+        toggle.style.position = 'relative';
+        var rozet = document.createElement('span');
+        rozet.className = 'fav-count-badge';
+        rozet.setAttribute('aria-hidden', 'true');
+        toggle.appendChild(rozet);
+
+        function rozetGuncelle() {
+            var adet = oku().length;
+            if (adet > 0) {
+                rozet.textContent = adet > 99 ? '99+' : String(adet);
+                rozet.style.display = 'flex';
+            } else {
+                rozet.style.display = 'none';
+            }
+        }
+
         // Paneli oluştur
         var panel = document.createElement('div');
         panel.className = 'fav-panel';
@@ -100,6 +117,7 @@
             var list = oku();
             liste.innerHTML = '';
             bosMesaj.style.display = list.length ? 'none' : 'block';
+            rozetGuncelle();
 
             list.forEach(function (item, idx) {
                 var li = document.createElement('li');
@@ -221,6 +239,14 @@
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') { kapat(); }
         });
+
+        // Başka bir sekmede favoriler değişirse rozeti senkronla
+        window.addEventListener('storage', function (e) {
+            if (e.key === STORAGE_KEY) { rozetGuncelle(); }
+        });
+
+        // Açılışta rozeti bir kez çiz
+        rozetGuncelle();
     }
 
     if (document.readyState === 'loading') {

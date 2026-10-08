@@ -4298,5 +4298,227 @@ namespace ApartmanAidatTakip.Controllers
             }
             return RedirectToAction("PesinOdemeler", "AnaSayfa");
         }
+
+        // ============================================================
+        //  AİDAT HESAPLAMA / TAHMİNİ AİDAT BELİRLEME
+        //  Bir yılın giderlerini gider türüne göre gruplayıp (demirbaş ayrı),
+        //  toplanan aidat geliriyle ve geçmiş yılla kıyaslar; daire başına
+        //  gereken aylık aidatı ve enflasyon/artış oranıyla tahmini aidatı hesaplar.
+        // ============================================================
+
+        // Bir yıl için toplanan aidat ve demirbaş gelirini hesaplar
+        // (makbuz satırları + tahsilatlar) — DetayliGelirGider ile aynı mantık.
+        private void AidatGelirHesapla(int BinaID, int yil, out decimal toplananAidat, out decimal toplananDemirbas)
+        {
+            var tahsilatlar = db.Tahsilats.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.TahsilatTarih.Value.Year == yil && x.Durum == "A")
+                .Select(x => new { x.DemirbasMi, x.TahsilatTutar })
+                .ToList();
+            decimal tahAidat = tahsilatlar.Where(x => x.DemirbasMi == false).Sum(x => x.TahsilatTutar) ?? 0;
+            decimal tahDemirbas = tahsilatlar.Where(x => x.DemirbasMi == true).Sum(x => x.TahsilatTutar) ?? 0;
+
+            var makbuzIdleri = db.Makbuzs.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.MakbuzTarihi.Value.Year == yil && x.Durum == "A")
+                .Select(x => x.MakbuzID)
+                .ToList();
+
+            decimal makbuzAidat = 0;
+            decimal makbuzDemirbas = 0;
+            if (makbuzIdleri.Any())
+            {
+                var satirlar = db.MakbuzSatirs.AsNoTracking()
+                    .Where(x => makbuzIdleri.Contains(x.MakbuzID ?? 0) && x.Durum == "A")
+                    .Select(x => new { x.EkMiAidatMi, x.Tutar })
+                    .ToList();
+                makbuzAidat = satirlar.Where(x => x.EkMiAidatMi == "A").Sum(x => x.Tutar) ?? 0;
+                makbuzDemirbas = satirlar.Where(x => x.EkMiAidatMi == "E").Sum(x => x.Tutar) ?? 0;
+            }
+
+            toplananAidat = tahAidat + makbuzAidat;
+            toplananDemirbas = tahDemirbas + makbuzDemirbas;
+        }
+
+        // Bir gider türü adının "demirbaş" grubuna girip girmediğini belirler.
+        private static bool DemirbasMi(string turAdi)
+        {
+            if (string.IsNullOrWhiteSpace(turAdi)) return false;
+            string ad = turAdi.Trim().ToLowerInvariant().Replace("ş", "s").Replace("i̇", "i");
+            return ad.Contains("demirba");
+        }
+
+        public ActionResult AidatHesaplama(int? yil, bool demirbasDahil = false)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            Session["Aktif"] = "AidatHesaplama";
+            Sabit();
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+
+            // Seçilebilir yıllar: giderlerin geçtiği yıllar + içinde bulunduğumuz yıl
+            var giderYillari = db.Giders.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih != null)
+                .Select(x => x.GiderTarih.Value.Year)
+                .Distinct()
+                .ToList();
+            if (!giderYillari.Contains(DateTime.Now.Year))
+                giderYillari.Add(DateTime.Now.Year);
+            giderYillari = giderYillari.OrderByDescending(x => x).ToList();
+
+            int seciliYil = yil ?? DateTime.Now.Year;
+
+            ViewBag.Yillar = giderYillari;
+            ViewBag.Yil = seciliYil;
+            ViewBag.DemirbasDahil = demirbasDahil;
+
+            // Aktif daire sayısı (daire başına bölmek için)
+            int daireSayisi = db.Dairelers.AsNoTracking().Count(x => x.BinaID == BinaID);
+            ViewBag.DaireSayisi = daireSayisi;
+
+            // Kıyasta adil olmak için: içinde bulunduğumuz yıl kısmi ise geçen ay sayısı,
+            // tam geçmiş yıllar için 12 ay.
+            int aySayisi = (seciliYil == DateTime.Now.Year) ? DateTime.Now.Month : 12;
+            ViewBag.AySayisi = aySayisi;
+
+            // --- Seçili yılın giderleri, türe göre gruplanmış ---
+            var giderler = (from g in db.Giders.AsNoTracking()
+                            join t in db.GiderTurus on g.GiderTuruID equals t.GiderTuruID
+                            where g.BinaID == BinaID && g.Durum == "A" && g.GiderTarih.Value.Year == seciliYil
+                            select new { t.GiderTuruID, t.GiderTuruAdi, g.GiderTutar }).ToList();
+
+            var gruplar = giderler
+                .GroupBy(x => new { x.GiderTuruID, x.GiderTuruAdi })
+                .Select(x => new Models.AidatHesaplamaGrup
+                {
+                    Ad = x.Key.GiderTuruAdi,
+                    Tutar = x.Sum(y => y.GiderTutar ?? 0),
+                    // Demirbaş gideri aidata girmez: yerleşik tür (ID 6) veya adı "demirbaş" olan türler
+                    Demirbas = x.Key.GiderTuruID == 6 || DemirbasMi(x.Key.GiderTuruAdi)
+                })
+                .OrderByDescending(x => x.Tutar)
+                .ToList();
+
+            ViewBag.Gruplar = gruplar;
+
+            decimal demirbasGider = gruplar.Where(x => x.Demirbas).Sum(x => x.Tutar);
+            decimal aidatGider = gruplar.Where(x => !x.Demirbas).Sum(x => x.Tutar);
+            decimal toplamGider = demirbasGider + aidatGider;
+
+            ViewBag.DemirbasGider = demirbasGider;
+            ViewBag.AidatGider = aidatGider;
+            ViewBag.ToplamGider = toplamGider;
+
+            // --- Toplanan gelir (seçili yıl) ---
+            decimal toplananAidat, toplananDemirbas;
+            AidatGelirHesapla(BinaID, seciliYil, out toplananAidat, out toplananDemirbas);
+            ViewBag.ToplananAidat = toplananAidat;
+            ViewBag.ToplananDemirbas = toplananDemirbas;
+
+            // --- Geçmiş yıl kıyası ---
+            int oncekiYil = seciliYil - 1;
+            var oncekiGiderler = (from g in db.Giders.AsNoTracking()
+                                  join t in db.GiderTurus on g.GiderTuruID equals t.GiderTuruID
+                                  where g.BinaID == BinaID && g.Durum == "A" && g.GiderTarih.Value.Year == oncekiYil
+                                  select new { t.GiderTuruID, t.GiderTuruAdi, g.GiderTutar }).ToList();
+
+            System.Func<int, string, bool> oncekiDemirbasMi = (id, ad) => id == 6 || DemirbasMi(ad);
+            decimal oncekiDemirbasGider = oncekiGiderler.Where(x => oncekiDemirbasMi(x.GiderTuruID, x.GiderTuruAdi)).Sum(x => x.GiderTutar ?? 0);
+            decimal oncekiAidatGider = oncekiGiderler.Where(x => !oncekiDemirbasMi(x.GiderTuruID, x.GiderTuruAdi)).Sum(x => x.GiderTutar ?? 0);
+            decimal oncekiToplamGider = oncekiDemirbasGider + oncekiAidatGider;
+
+            decimal oncekiToplananAidat, oncekiToplananDemirbas;
+            AidatGelirHesapla(BinaID, oncekiYil, out oncekiToplananAidat, out oncekiToplananDemirbas);
+
+            ViewBag.OncekiYil = oncekiYil;
+            ViewBag.OncekiAidatGider = oncekiAidatGider;
+            ViewBag.OncekiToplamGider = oncekiToplamGider;
+            ViewBag.OncekiToplananAidat = oncekiToplananAidat;
+            ViewBag.OncekiVarMi = oncekiGiderler.Any() || oncekiToplananAidat > 0;
+
+            // --- Ay bazında kırılım (işletme gideri = demirbaş hariç) ---
+            // Hangi tür ID'leri demirbaş sayılır (ID 6 veya adı "demirbaş")
+            var turler = db.GiderTurus.AsNoTracking()
+                .Select(x => new { x.GiderTuruID, x.GiderTuruAdi }).ToList();
+            var demirbasIdSet = new System.Collections.Generic.HashSet<int>(
+                turler.Where(t => t.GiderTuruID == 6 || DemirbasMi(t.GiderTuruAdi)).Select(t => t.GiderTuruID));
+
+            var ayliklar = db.Giders.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih != null
+                    && (x.GiderTarih.Value.Year == seciliYil || x.GiderTarih.Value.Year == oncekiYil))
+                .Select(x => new { Yil = x.GiderTarih.Value.Year, Ay = x.GiderTarih.Value.Month, x.GiderTuruID, x.GiderTutar })
+                .ToList();
+
+            decimal[] aylikThis = new decimal[13]; // 1..12 kullanılır
+            decimal[] aylikPrev = new decimal[13];
+            foreach (var x in ayliklar)
+            {
+                if (x.Ay < 1 || x.Ay > 12) continue;
+                if (demirbasIdSet.Contains(x.GiderTuruID ?? 0)) continue; // demirbaş hariç
+                decimal tut = x.GiderTutar ?? 0;
+                if (x.Yil == seciliYil) aylikThis[x.Ay] += tut;
+                else aylikPrev[x.Ay] += tut;
+            }
+
+            // Aktif ay sayısı = o yıl içinde herhangi bir gideri olan aylar
+            int ayThis = ayliklar.Where(x => x.Yil == seciliYil).Select(x => x.Ay).Distinct().Count();
+            int ayPrev = ayliklar.Where(x => x.Yil == oncekiYil).Select(x => x.Ay).Distinct().Count();
+
+            // Aylık ortalama işletme gideri (adil kıyas tabanı)
+            decimal avgThis = ayThis > 0 ? aidatGider / ayThis : 0;
+            decimal avgPrev = ayPrev > 0 ? oncekiAidatGider / ayPrev : 0;
+
+            ViewBag.AylikThis = aylikThis;
+            ViewBag.AylikPrev = aylikPrev;
+            ViewBag.AyThis = ayThis;
+            ViewBag.AyPrev = ayPrev;
+            ViewBag.OrtakAy = Math.Min(ayThis, ayPrev);
+            ViewBag.AylarEsit = (ayThis == ayPrev);
+            ViewBag.AvgThis = avgThis;
+            ViewBag.AvgPrev = avgPrev;
+
+            // Otomatik artış oranı: aylık ortalama üzerinden (eksik ay kıyası bozmaz)
+            decimal otoArtis = 0;
+            if (avgPrev > 0)
+                otoArtis = Math.Round(((avgThis - avgPrev) / avgPrev) * 100, 1);
+            ViewBag.OtoArtis = otoArtis;
+
+            // --- Mevcut aidat (zam bunun üzerine yapılır) ---
+            // Toplanan gelir herkes düzenli ödemediği için güvenilmez; belirlenen aidatı
+            // referans alırız: en son açılan dönemin Aidat kayıtlarında EN SIK tekrar
+            // eden tutar (mod). DonemEkle'deki öneri mantığının aynısı (ödenen+ödenmeyen).
+            decimal mevcutAidat = 0;
+            string mevcutAidatDonem = "";
+            var sonDonem = db.Kasas.AsNoTracking()
+                .Where(x => x.BinaID == BinaID)
+                .OrderByDescending(x => x.KasaYil).ThenByDescending(x => x.AyKodu)
+                .FirstOrDefault();
+            if (sonDonem != null)
+            {
+                var sonAyAidatlari = db.Aidats.AsNoTracking()
+                    .Where(x => x.BinaID == BinaID && (x.Durum == "A" || x.Durum == "P")
+                                && x.AidatAy == sonDonem.KasaAy && x.AidatYil == sonDonem.KasaYil
+                                && x.AidatTutar != null)
+                    .Select(x => x.AidatTutar)
+                    .ToList();
+
+                if (sonAyAidatlari.Count > 0)
+                {
+                    mevcutAidat = sonAyAidatlari
+                        .GroupBy(x => x)
+                        .OrderByDescending(g => g.Count())
+                        .ThenByDescending(g => g.Key)
+                        .First().Key.Value;
+                    mevcutAidatDonem = sonDonem.KasaAy + " " + sonDonem.KasaYil;
+                }
+            }
+            ViewBag.MevcutAidat = mevcutAidat;
+            ViewBag.MevcutAidatDonem = mevcutAidatDonem;
+
+            return View();
+        }
     }
 }
