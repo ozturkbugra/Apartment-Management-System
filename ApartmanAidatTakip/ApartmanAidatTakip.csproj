@@ -300,6 +300,9 @@
     <Compile Include="Models\AylikPesinOdemeler.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AidatTanim.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PesinOdemelerView.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
@@ -821,6 +824,7 @@
     <Content Include="Views\Raporlar\TureGoreGelirGiderTarihBazli.cshtml" />
     <Content Include="Views\Ayarlar\Index.cshtml" />
     <Content Include="Views\AnaSayfa\AidatHesaplama.cshtml" />
+    <Content Include="Views\AnaSayfa\AidatTanimlama.cshtml" />
     <Content Include="Views\AnaSayfa\DaireOdemeDurumu.cshtml" />
     <Content Include="Views\Raporlar\YillikTureGoreGiderler.cshtml" />
   </ItemGroup>

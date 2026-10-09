@@ -1,0 +1,300 @@
+﻿@{
+    ViewBag.Title = "Aidat Tanımlama";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var yillar = ViewBag.Yillar as List<int> ?? new List<int>();
+    int seciliYil = (int)ViewBag.Yil;
+    var tanimlar = ViewBag.Tanimlar as decimal?[] ?? new decimal?[13];
+    var uygulanan = ViewBag.Uygulanan as decimal?[] ?? new decimal?[13];
+    var acikAylar = ViewBag.AcikAylar as List<int> ?? new List<int>();
+    string sonTanim = (string)ViewBag.SonTanim ?? "";
+
+    string[] ayAdlari = { "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık" };
+    var tr = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+    System.Func<decimal, string> P = (d) => d == Math.Floor(d) ? d.ToString("#,##0", tr) : d.ToString("#,##0.##", tr);
+
+    bool buYilMi = seciliYil == DateTime.Now.Year;
+    bool gecmisYil = seciliYil < DateTime.Now.Year; // geçmiş yıllar salt-okunur
+    int buAy = DateTime.Now.Month;
+    int tanimliSayisi = tanimlar.Count(x => x.HasValue);
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    body { font-family: 'Poppins', sans-serif; }
+
+    .at-head {
+        background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        color: #fff;
+        border-radius: 18px;
+        padding: 26px 30px;
+        margin-bottom: 22px;
+        box-shadow: 0 10px 30px rgba(79,70,229,.25);
+    }
+    .at-head h2 { font-weight: 700; margin: 0; font-size: 1.5rem; }
+    .at-head p { margin: 6px 0 0; opacity: .9; font-size: .92rem; }
+
+    .at-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0,0,0,.06);
+        padding: 22px 24px;
+        margin-bottom: 22px;
+    }
+    .at-card h5 { font-weight: 700; color: #344767; margin-bottom: 16px; font-size: 1.05rem; }
+    .at-card h5 i { color: #4f46e5; margin-right: 6px; }
+
+    .at-month {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px 16px;
+        height: 100%;
+        background: #fff;
+        transition: border-color .15s, box-shadow .15s;
+    }
+    .at-month:focus-within { border-color: #4f46e5; box-shadow: 0 0 0 4px rgba(79,70,229,.1); }
+    .at-month.current { border: 2px solid #4f46e5; }
+    .at-month .ay { font-weight: 700; color: #344767; }
+    .at-month .hint { font-size: .74rem; color: #8392ab; margin-top: 6px; min-height: 1.1em; }
+    .at-month .hint.diff { color: #d97706; }
+    .at-month .input-group-text { background: #f8f9fa; color: #4f46e5; font-weight: 700; }
+    .at-month input { font-weight: 700; }
+    .at-month.locked { background: #f8fafc; }
+    .at-month.locked input[readonly] { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
+    .at-month.locked:focus-within { border-color: #e2e8f0; box-shadow: none; }
+    .at-lock { color: #94a3b8; font-size: .8rem; margin-left: 4px; }
+
+    .at-badge { font-size: .68rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+    .at-badge-open { background: #dcfce7; color: #15803d; }
+    .at-badge-now  { background: #e0e7ff; color: #4338ca; }
+
+    .at-info {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        padding: 12px 15px;
+        border-radius: 8px;
+        font-size: .86rem;
+        color: #1e40af;
+        margin-bottom: 18px;
+    }
+
+    .btn-at-save {
+        background: linear-gradient(135deg, #059669 0%, #34d399 100%);
+        color: #fff; border: none; padding: 13px 30px; border-radius: 12px;
+        font-weight: 600; box-shadow: 0 4px 15px rgba(5,150,105,.3);
+    }
+    .btn-at-save:hover { color: #fff; transform: translateY(-1px); }
+
+    /* ---------- KARANLIK TEMA ---------- */
+    html.dark-mode .at-card { background: #1e2530; box-shadow: none; border: 1px solid #2b3545; }
+    html.dark-mode .at-card h5 { color: #e9ecef; }
+    html.dark-mode .at-month { background: #1a212b; border-color: #2b3545; }
+    html.dark-mode .at-month.current { border-color: #818cf8; }
+    html.dark-mode .at-month .ay { color: #e9ecef; }
+    html.dark-mode .at-month.locked { background: #171d26; }
+    html.dark-mode .at-month.locked input[readonly] { background: #11161d !important; color: #8b97a8 !important; }
+    html.dark-mode .at-month.locked:focus-within { border-color: #2b3545; }
+    html.dark-mode .at-month .hint { color: #8b97a8; }
+    html.dark-mode .at-month .hint.diff { color: #fbbf24; }
+    html.dark-mode .at-month .input-group-text { background: #141a22; color: #a5b4fc; border-color: #2b3545; }
+    html.dark-mode .at-info { background: #172036; color: #93c5fd; }
+    html.dark-mode .at-badge-open { background: #14361f; color: #4ade80; }
+    html.dark-mode .at-badge-now { background: #24264d; color: #a5b4fc; }
+    html.dark-mode .form-select, html.dark-mode .form-control { background:#141a22; color:#e9ecef; border-color:#2b3545; }
+</style>
+
+<div class="container-fluid py-3">
+
+    <div class="at-head d-flex flex-wrap justify-content-between align-items-center">
+        <div>
+            <h2><i class="bi bi-calendar2-check"></i> Aidat Tanımlama</h2>
+            <p>Yıl seçip her ayın aidat tutarını belirleyin. Dönem Ekle ve Aidat Hesaplama bu tutarları kullanır.</p>
+        </div>
+        <form method="get" action="/AnaSayfa/AidatTanimlama" class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+            <label class="text-white me-1 mb-0">Yıl:</label>
+            <select name="yil" class="form-select" style="width:auto" onchange="this.form.submit()">
+                @foreach (var y in yillar)
+                {
+                    <option value="@y" @(y == seciliYil ? "selected" : "")>@y</option>
+                }
+            </select>
+        </form>
+    </div>
+
+    <div class="at-card">
+        <div class="at-info">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>Dönem Ekle</strong> bu ayın tanımlı tutarını aidat kutusuna getirir; atlanan ara aylar varsa her biri kendi tanımlı tutarıyla borçlandırılır.
+            <strong>Aidat Hesaplama</strong> zammı içinde bulunulan aya kadar tanımlanan en son tutar üzerine yapar.
+            <strong>Dönemi eklenmiş aylar</strong> ve <strong>geçmiş yıllar</strong> kilitlidir, yalnızca görüntülenir. Boş bırakılan ayın tanımı kaldırılır.
+        </div>
+
+        @if (gecmisYil)
+        {
+            <div class="alert alert-secondary mb-0 py-2" style="font-size:.88rem">
+                <i class="bi bi-lock-fill"></i> <strong>@seciliYil</strong> geçmiş bir yıl; tanımlar yalnızca görüntülenebilir, değiştirilemez.
+            </div>
+        }
+        else
+        {
+        <div class="row g-2 align-items-end mb-2">
+            <div class="col-md-4 col-sm-6">
+                <label class="form-label fw-semibold mb-1" style="font-size:.85rem">Toplu Doldur</label>
+                <div class="input-group">
+                    <span class="input-group-text">₺</span>
+                    <input type="text" id="topluTutar" class="form-control" placeholder="0" value="@sonTanim" oninput="formatThousands(this)" />
+                </div>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-primary" onclick="topluDoldur(false)"><i class="bi bi-arrow-down-circle"></i> Boş aylara uygula</button>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-secondary" onclick="topluDoldur(true)"><i class="bi bi-arrow-repeat"></i> Tüm aylara uygula</button>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-danger" onclick="hepsiniTemizle()"><i class="bi bi-eraser"></i> Temizle</button>
+            </div>
+        </div>
+        <small class="text-muted"><i class="bi bi-lock"></i> Toplu doldurma ve temizleme kilitli ayları etkilemez.</small>
+        }
+    </div>
+
+    <form id="tanimForm" action="/AnaSayfa/AidatTanimKaydet" method="post" onsubmit="return false">
+        <input type="hidden" name="Yil" value="@seciliYil" />
+
+        <div class="at-card">
+            <h5><i class="bi bi-calendar3"></i> @seciliYil Yılı Aylık Aidat Tutarları <small class="text-muted fw-normal" style="font-size:.8rem">(@tanimliSayisi / 12 ay tanımlı)</small></h5>
+
+            <div class="row g-3">
+                @for (int ay = 1; ay <= 12; ay++)
+                {
+                    bool acik = acikAylar.Contains(ay);
+                    bool kilitli = gecmisYil || acik;
+                    bool simdi = buYilMi && ay == buAy;
+                    string deger = tanimlar[ay].HasValue ? P(tanimlar[ay].Value) : "";
+                    bool fark = uygulanan[ay].HasValue && tanimlar[ay].HasValue && uygulanan[ay].Value != tanimlar[ay].Value;
+
+                    <div class="col-xl-3 col-lg-4 col-sm-6">
+                        <div class="at-month @(simdi ? "current" : "") @(kilitli ? "locked" : "")">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="ay">
+                                    @ayAdlari[ay]
+                                    @if (kilitli)
+                                    {
+                                        <i class="bi bi-lock-fill at-lock" title="@(acik ? "Bu ayın dönemi eklendiği için değiştirilemez" : "Geçmiş yıl değiştirilemez")"></i>
+                                    }
+                                </span>
+                                <span>
+                                    @if (simdi)
+                                    {
+                                        <span class="at-badge at-badge-now">Bu ay</span>
+                                    }
+                                    @if (acik)
+                                    {
+                                        <span class="at-badge at-badge-open"><i class="bi bi-check2"></i> Dönem açık</span>
+                                    }
+                                </span>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">₺</span>
+                                @if (kilitli)
+                                {
+                                    <input type="text" name="Tutarlar" class="form-control ay-tutar" placeholder="Tanımsız" value="@deger" readonly tabindex="-1" />
+                                }
+                                else
+                                {
+                                    <input type="text" name="Tutarlar" class="form-control ay-tutar" placeholder="Tanımsız" value="@deger" oninput="formatThousands(this)" />
+                                }
+                            </div>
+                            <div class="hint @(fark ? "diff" : "")">
+                                @if (uygulanan[ay].HasValue)
+                                {
+                                    <span title="Bu ay dairelere fiilen borçlandırılan en sık tutar">
+                                        @if (fark)
+                                        {<i class="bi bi-exclamation-triangle"></i>}
+                                        Uygulanan: @P(uygulanan[ay].Value) ₺
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (!gecmisYil)
+            {
+                <div class="text-end mt-4">
+                    <button type="button" id="btnKaydet" class="btn btn-at-save" onclick="kaydet()">
+                        <i class="bi bi-save me-2"></i> Kaydet
+                    </button>
+                </div>
+            }
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Binlik ayracı: yazıldıkça nokta ekler (1500 -> 1.500). Yalnızca tam sayı.
+    function formatThousands(el) {
+        var digits = (el.value || "").replace(/\D/g, "");
+        if (digits === "") { el.value = ""; return; }
+        el.value = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function topluDoldur(hepsi) {
+        var deger = document.getElementById("topluTutar").value;
+        if (!deger) {
+            Swal.fire({ icon: 'info', title: 'Tutar girin', text: 'Önce toplu doldurulacak tutarı yazın.', confirmButtonColor: '#4f46e5' });
+            return;
+        }
+        // Kilitli (dönemi eklenmiş) aylar atlanır
+        document.querySelectorAll(".ay-tutar:not([readonly])").forEach(function (el) {
+            if (hepsi || !el.value) { el.value = deger; }
+        });
+    }
+
+    function hepsiniTemizle() {
+        document.querySelectorAll(".ay-tutar:not([readonly])").forEach(function (el) { el.value = ""; });
+    }
+
+    function kaydet() {
+        Swal.fire({
+            title: '@seciliYil aidat tanımları kaydedilsin mi?',
+            text: "Boş bırakılan ayların tanımı kaldırılır. Dönemi eklenmiş (kilitli) aylar değişmez.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Evet, Kaydet',
+            cancelButtonText: 'İptal'
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+            // Çift gönderim koruması
+            var btn = document.getElementById("btnKaydet");
+            if (btn.disabled) return;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Kaydediliyor...';
+            // Binlik noktalarını temizleyip ham sayı gönder
+            document.querySelectorAll(".ay-tutar").forEach(function (el) { el.value = (el.value || "").replace(/\./g, ""); });
+            document.getElementById("tanimForm").submit();
+        });
+    }
+
+    $(document).ready(function () {
+        @if (TempData["Hata"] != null)
+        {
+            <text>
+            Swal.fire({ icon: 'error', title: 'HATA!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Hata"].ToString()))', confirmButtonColor: '#d33' });
+            </text>
+        }
+        @if (TempData["Basarili"] != null)
+        {
+            <text>
+            Swal.fire({ icon: 'success', title: 'Başarılı!', text: '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["Basarili"].ToString()))', confirmButtonColor: '#059669' });
+            </text>
+        }
+    });
+</script>

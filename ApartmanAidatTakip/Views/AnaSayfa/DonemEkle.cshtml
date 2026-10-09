@@ -114,6 +114,7 @@
                 <i class="bi bi-info-circle-fill fs-5"></i>
                 <div>
                     Bu işlem, seçilen dönem için <strong>tüm dairelere</strong> belirlediğiniz tutarlarda borç ekleyecektir.
+                    Atlanan ara aylar varsa, o ayların <strong>Aidat Tanımlama</strong>'daki tutarı kullanılır (tanım yoksa girdiğiniz tutar).
                 </div>
             </div>
 
@@ -158,6 +159,14 @@
                             <span class="input-group-text text-primary bg-primary bg-opacity-10 border-primary border-opacity-25 fw-bold">₺</span>
                             <input type="text" id="AidatTutar" name="AidatTutar" class="form-control fw-bold text-dark" placeholder="0" value="@(ViewBag.OnerilenAidat)" oninput="formatThousands(this)" />
                         </div>
+                        @if ((string)ViewBag.OneriKaynak == "tanim")
+                        {
+                            <small class="text-success d-block mt-1"><i class="bi bi-check2-circle"></i> Bu ay için <a href="/AnaSayfa/AidatTanimlama">Aidat Tanımlama</a>'daki tutar getirildi.</small>
+                        }
+                        else if ((string)ViewBag.OneriKaynak == "mod")
+                        {
+                            <small class="text-muted d-block mt-1"><i class="bi bi-info-circle"></i> Bu ay için aidat tanımı yok; son dönemin en sık tutarı önerildi. <a href="/AnaSayfa/AidatTanimlama">Tanımla</a></small>
+                        }
                     </div>
                     <div class="col-md-6">
                         <label class="form-label-custom text-warning" style="color:#d97706 !important;">Demirbaş Tutarı</label>

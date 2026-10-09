@@ -37,6 +37,7 @@
 
     decimal mevcutAidat = (decimal)ViewBag.MevcutAidat;
     string mevcutAidatDonem = (string)ViewBag.MevcutAidatDonem ?? "";
+    bool mevcutTanimdan = (string)ViewBag.MevcutAidatKaynak == "tanim";
 
     System.Func<decimal, string> P = (d) => d.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"));
     System.Func<decimal, string> INV = (d) => d.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -377,7 +378,7 @@
                 <table class="ah-table">
                     <tbody>
                         <tr>
-                            <td>Mevcut aidat (tablodaki en sık tutar)</td>
+                            <td>Mevcut aidat (@(mevcutTanimdan ? "Aidat Tanımlama" : "tablodaki en sık tutar"))</td>
                             <td class="num"><span id="outMevcut2">@P(mevcutAidat)</span> ₺</td>
                         </tr>
                         <tr>
@@ -403,8 +404,15 @@
                 {
                     <div class="alert alert-info py-2 px-3 mt-3 mb-0" style="font-size:.82rem">
                         <i class="bi bi-info-circle"></i> Henüz belirlenmiş aidat kaydı bulunamadı; zam tabanı olarak
-                        giderlere göre <strong>gereken</strong> tutar kullanıldı. Dönem açıp aidat girince burası
-                        otomatik olarak tablodaki en sık aidata göre hesaplanır.
+                        giderlere göre <strong>gereken</strong> tutar kullanıldı. <a href="/AnaSayfa/AidatTanimlama">Aidat Tanımlama</a>
+                        ekranından aylık aidat girince burası otomatik olarak o tutara göre hesaplanır.
+                    </div>
+                }
+                else if (mevcutTanimdan)
+                {
+                    <div class="text-muted mt-2" style="font-size:.8rem">
+                        <i class="bi bi-info-circle"></i> Zam, fiilen toplanan gelire değil, <a href="/AnaSayfa/AidatTanimlama">Aidat Tanımlama</a>
+                        ekranında bu aya kadar tanımlanan en son aidata uygulanır.
                     </div>
                 }
                 else

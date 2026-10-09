@@ -1504,6 +1504,15 @@ namespace ApartmanAidatTakip.Controllers
             HttpCookie onericookie = Request.Cookies["KullaniciBilgileri"];
             int oneriBinaID = Convert.ToInt32(onericookie.Values["BinaID"]);
 
+            // Öncelik: Aidat Tanımlama'da bu ay için girilmiş tutar. Yoksa son dönemin modu.
+            var buAyTanim = AidatTanimBul(oneriBinaID, DateTime.Now.Year, DateTime.Now.Month);
+            if (buAyTanim.HasValue)
+            {
+                ViewBag.OnerilenAidat = TutarYaz(buAyTanim.Value);
+                ViewBag.OneriKaynak = "tanim";
+                return View();
+            }
+
             var sonDonem = db.Kasas.AsNoTracking()
                 .Where(x => x.BinaID == oneriBinaID)
                 .OrderByDescending(x => x.KasaYil).ThenByDescending(x => x.AyKodu)
@@ -1526,15 +1535,29 @@ namespace ApartmanAidatTakip.Controllers
                         .ThenByDescending(g => g.Key)
                         .First().Key.Value;
 
-                    // Binlik ayracı nokta, ondalık yoksa gösterme (ör. 1.500 veya 1.250,50)
-                    ViewBag.OnerilenAidat = (modTutar == Math.Floor(modTutar))
-                        ? modTutar.ToString("#,##0", new System.Globalization.CultureInfo("tr-TR"))
-                        : modTutar.ToString("#,##0.##", new System.Globalization.CultureInfo("tr-TR"));
+                    ViewBag.OnerilenAidat = TutarYaz(modTutar);
+                    ViewBag.OneriKaynak = "mod";
                 }
             }
 
             return View();
 
+        }
+
+        // Binlik ayracı nokta, ondalık yoksa gösterme (ör. 1.500 veya 1.250,50)
+        private static string TutarYaz(decimal tutar)
+        {
+            var tr = new System.Globalization.CultureInfo("tr-TR");
+            return (tutar == Math.Floor(tutar)) ? tutar.ToString("#,##0", tr) : tutar.ToString("#,##0.##", tr);
+        }
+
+        // Aidat Tanımlama (AidatTanim) tablosundan ilgili bina/yıl/ay için tanımlı aidat; yoksa null.
+        private decimal? AidatTanimBul(int BinaID, int yil, int ay)
+        {
+            return db.AidatTanims.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.AidatYil == yil && x.AidatAy == ay)
+                .Select(x => (decimal?)x.Tutar)
+                .FirstOrDefault();
         }
 
 
@@ -1660,11 +1683,33 @@ namespace ApartmanAidatTakip.Controllers
                         // Aylık peşin ödeyen daire başına kesilecek makbuz satırlarını biriktiriyoruz (DaireID -> (ayAdi, yil, tutar)).
                         var pesinMakbuzKalemleri = new Dictionary<int, List<Tuple<string, int, decimal>>>();
 
+                        // AİDAT TANIMLARI (AidatTanim): ara aylar kendi tanımlı tutarıyla borçlandırılır
+                        // (tanım yoksa girilen tutar). Hedef ayda girilen tutar esastır. Kullanılan tutar
+                        // tanım tablosuna da yazılır (yoksa eklenir, farklıysa güncellenir).
+                        var aidatTanimlari = db.AidatTanims
+                                                .Where(x => x.BinaID == BinaID && ilgiliYillar.Contains(x.AidatYil))
+                                                .ToList();
+                        var kullanilanTutarlar = new List<decimal>();
+
                         foreach (var ayTuple in borclanacakAylar)
                         {
                             int dYil = ayTuple.Item1;
                             int dAyKodu = ayTuple.Item2;
                             string dAyAdi = new DateTime(dYil, dAyKodu, 1).ToString("MMMM", trKultur);
+
+                            bool hedefAyMi = (dYil == aidat.AidatYil && dAyKodu == yeniAyKodu);
+                            var ayTanim = aidatTanimlari.FirstOrDefault(t => t.AidatYil == dYil && t.AidatAy == dAyKodu);
+                            decimal ayTutar = (!hedefAyMi && ayTanim != null) ? ayTanim.Tutar : aidat.AidatTutar.Value;
+                            kullanilanTutarlar.Add(ayTutar);
+
+                            if (ayTanim == null)
+                            {
+                                db.AidatTanims.Add(new AidatTanim { BinaID = BinaID, AidatYil = dYil, AidatAy = dAyKodu, Tutar = ayTutar });
+                            }
+                            else if (ayTanim.Tutar != ayTutar)
+                            {
+                                ayTanim.Tutar = ayTutar;
+                            }
 
                             // O ayın Kasa (devir) satırını oluştur. Devir zinciri için her ay kendi içinde kaydeder.
                             DonemKasaOlustur(dYil, dAyKodu, BinaID, acilisbakiyesieklendimi);
@@ -1690,7 +1735,7 @@ namespace ApartmanAidatTakip.Controllers
                                 {
                                     AidatAy = dAyAdi,
                                     AidatYil = dYil,
-                                    AidatTutar = aidat.AidatTutar,
+                                    AidatTutar = ayTutar,
                                     DaireNo = item.DaireNo,
                                     BinaID = BinaID,
                                     ZamEklendiMi = "H",
@@ -1705,12 +1750,12 @@ namespace ApartmanAidatTakip.Controllers
                                     // Borç artmaz; bu ay için makbuz satırı biriktir.
                                     if (!pesinMakbuzKalemleri.ContainsKey(item.DaireID))
                                         pesinMakbuzKalemleri[item.DaireID] = new List<Tuple<string, int, decimal>>();
-                                    pesinMakbuzKalemleri[item.DaireID].Add(Tuple.Create(dAyAdi, dYil, (decimal)aidat.AidatTutar));
+                                    pesinMakbuzKalemleri[item.DaireID].Add(Tuple.Create(dAyAdi, dYil, ayTutar));
                                 }
                                 else
                                 {
                                     // Daire borcunu artır
-                                    item.Borc += aidat.AidatTutar;
+                                    item.Borc += ayTutar;
                                 }
                             }
                         }
@@ -1767,9 +1812,11 @@ namespace ApartmanAidatTakip.Controllers
                         var son = borclanacakAylar.Last();
                         string ilkAyAdi = new DateTime(ilk.Item1, ilk.Item2, 1).ToString("MMMM", trKultur);
                         string sonAyAdi = new DateTime(son.Item1, son.Item2, 1).ToString("MMMM", trKultur);
+                        bool tekTutar = kullanilanTutarlar.Distinct().Count() == 1;
                         string olayAciklama = borclanacakAylar.Count == 1
                             ? aidat.AidatTutar + " TL tutarında " + sonAyAdi + " - " + son.Item1 + " Dönemi Eklenmiştir."
-                            : aidat.AidatTutar + " TL tutarında " + ilkAyAdi + " " + ilk.Item1 + " - " + sonAyAdi + " " + son.Item1 + " arası " + borclanacakAylar.Count + " dönem eklenmiştir.";
+                            : (tekTutar ? aidat.AidatTutar + " TL tutarında " : "Aidat tanımlarındaki aylık tutarlarla (" + aidat.AidatTutar + " TL hedef ay) ")
+                              + ilkAyAdi + " " + ilk.Item1 + " - " + sonAyAdi + " " + son.Item1 + " arası " + borclanacakAylar.Count + " dönem eklenmiştir.";
 
                         Hareketler hareketler = new Hareketler()
                         {
@@ -4490,13 +4537,28 @@ namespace ApartmanAidatTakip.Controllers
             // Toplanan gelir herkes düzenli ödemediği için güvenilmez; belirlenen aidatı
             // referans alırız: en son açılan dönemin Aidat kayıtlarında EN SIK tekrar
             // eden tutar (mod). DonemEkle'deki öneri mantığının aynısı (ödenen+ödenmeyen).
+            // Öncelik: Aidat Tanımlama (AidatTanim) tablosunda içinde bulunulan aya kadar
+            // tanımlanmış EN SON ayın tutarı. Tanım yoksa eski mod mantığına düşülür.
             decimal mevcutAidat = 0;
             string mevcutAidatDonem = "";
-            var sonDonem = db.Kasas.AsNoTracking()
-                .Where(x => x.BinaID == BinaID)
-                .OrderByDescending(x => x.KasaYil).ThenByDescending(x => x.AyKodu)
+            string mevcutAidatKaynak = "";
+            // Seçili yıl içinde aranır: bu yıl ise içinde bulunulan aya kadar, diğer yıllarda yılın son tanımlı ayı.
+            int sonAy = (seciliYil == DateTime.Now.Year) ? DateTime.Now.Month : 12;
+            var sonTanim = db.AidatTanims.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.AidatYil == seciliYil && x.AidatAy <= sonAy)
+                .OrderByDescending(x => x.AidatAy)
                 .FirstOrDefault();
-            if (sonDonem != null)
+            var sonDonem = sonTanim != null ? null : db.Kasas.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.KasaYil == seciliYil)
+                .OrderByDescending(x => x.AyKodu)
+                .FirstOrDefault();
+            if (sonTanim != null)
+            {
+                mevcutAidat = sonTanim.Tutar;
+                mevcutAidatDonem = new DateTime(sonTanim.AidatYil, sonTanim.AidatAy, 1).ToString("MMMM", new System.Globalization.CultureInfo("tr-TR")) + " " + sonTanim.AidatYil;
+                mevcutAidatKaynak = "tanim";
+            }
+            else if (sonDonem != null)
             {
                 var sonAyAidatlari = db.Aidats.AsNoTracking()
                     .Where(x => x.BinaID == BinaID && (x.Durum == "A" || x.Durum == "P")
@@ -4513,12 +4575,172 @@ namespace ApartmanAidatTakip.Controllers
                         .ThenByDescending(g => g.Key)
                         .First().Key.Value;
                     mevcutAidatDonem = sonDonem.KasaAy + " " + sonDonem.KasaYil;
+                    mevcutAidatKaynak = "mod";
                 }
             }
             ViewBag.MevcutAidat = mevcutAidat;
             ViewBag.MevcutAidatDonem = mevcutAidatDonem;
+            ViewBag.MevcutAidatKaynak = mevcutAidatKaynak;
 
             return View();
+        }
+
+        // ============================================================
+        //  AİDAT TANIMLAMA — AidatTanim tablosu (bina + yıl + ay → tutar)
+        //  Yıl seçilir, 12 ayın aidatı girilip kaydedilir/güncellenir.
+        //  DonemEkle önerisi/ara ay borçlandırması ve Aidat Hesaplama'daki
+        //  "mevcut aidat" buradan beslenir. Açılmış dönemlerin Aidat
+        //  kayıtlarını DEĞİŞTİRMEZ; yalnızca tanımdır.
+        // ============================================================
+
+        public ActionResult AidatTanimlama(int? yil)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            Session["Aktif"] = "AidatTanimlama";
+            Sabit();
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int buYil = DateTime.Now.Year;
+            int seciliYil = (yil.HasValue && yil.Value >= 2000 && yil.Value <= 2100) ? yil.Value : buYil;
+
+            // Seçilebilir yıllar: tanımı olan yıllar + dönem açılmış yıllar + bu yıl ve gelecek yıl
+            var yillar = db.AidatTanims.AsNoTracking().Where(x => x.BinaID == BinaID).Select(x => x.AidatYil).Distinct().ToList();
+            yillar.AddRange(db.Kasas.AsNoTracking().Where(x => x.BinaID == BinaID && x.KasaYil != null).Select(x => x.KasaYil.Value).Distinct().ToList());
+            yillar.Add(buYil);
+            yillar.Add(buYil + 1);
+            yillar.Add(seciliYil);
+            ViewBag.Yillar = yillar.Distinct().OrderByDescending(x => x).ToList();
+            ViewBag.Yil = seciliYil;
+
+            // Seçili yılın tanımları (index 1..12)
+            var tanimlar = new decimal?[13];
+            foreach (var t in db.AidatTanims.AsNoTracking().Where(x => x.BinaID == BinaID && x.AidatYil == seciliYil).ToList())
+            {
+                if (t.AidatAy >= 1 && t.AidatAy <= 12) tanimlar[t.AidatAy] = t.Tutar;
+            }
+            ViewBag.Tanimlar = tanimlar;
+
+            // Bilgi amaçlı: o ay fiilen borçlandırılan en sık tutar (silinmiş ve "Mayıs - 2" partileri hariç)
+            var uygulanan = new decimal?[13];
+            var yilAidatlari = db.Aidats.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.AidatYil == seciliYil && (x.Durum == "A" || x.Durum == "P") && x.AidatTutar > 0)
+                .Select(x => new { x.AidatAy, x.AidatTutar })
+                .ToList();
+            foreach (var g in yilAidatlari.GroupBy(x => AyKoduBul((x.AidatAy ?? "").Trim())).Where(g => g.Key > 0))
+            {
+                uygulanan[g.Key] = g.GroupBy(x => x.AidatTutar)
+                    .OrderByDescending(x => x.Count()).ThenByDescending(x => x.Key)
+                    .First().Key;
+            }
+            ViewBag.Uygulanan = uygulanan;
+
+            // Dönemi açılmış aylar
+            var acikAylar = db.Kasas.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.KasaYil == seciliYil && x.AyKodu != null)
+                .Select(x => x.AyKodu.Value)
+                .ToList();
+            ViewBag.AcikAylar = acikAylar;
+
+            // "Tüm aylara uygula" kutusu için öneri: en son tanımlanan tutar
+            var sonTanim = db.AidatTanims.AsNoTracking()
+                .Where(x => x.BinaID == BinaID)
+                .OrderByDescending(x => x.AidatYil).ThenByDescending(x => x.AidatAy)
+                .Select(x => (decimal?)x.Tutar)
+                .FirstOrDefault();
+            ViewBag.SonTanim = sonTanim.HasValue ? TutarYaz(sonTanim.Value) : "";
+
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult AidatTanimKaydet(int Yil, string[] Tutarlar)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int KullaniciID = Convert.ToInt32(userCookie.Values["KullaniciID"]);
+
+            if (Yil < 2000 || Yil > 2100 || Tutarlar == null || Tutarlar.Length != 12)
+            {
+                TempData["Hata"] = "Geçersiz istek.";
+                return RedirectToAction("AidatTanimlama", new { yil = Yil });
+            }
+
+            // Geçmiş yıllar yalnızca görüntülenir, değiştirilemez.
+            if (Yil < DateTime.Now.Year)
+            {
+                TempData["Hata"] = "Geçmiş yılların aidat tanımları değiştirilemez.";
+                return RedirectToAction("AidatTanimlama", new { yil = Yil });
+            }
+
+            try
+            {
+                var mevcutlar = db.AidatTanims.Where(x => x.BinaID == BinaID && x.AidatYil == Yil).ToList();
+                int eklenen = 0, guncellenen = 0, silinen = 0;
+
+                // Dönemi açılmış aylar kilitli: gönderilen değer yok sayılır, tanıma dokunulmaz.
+                var acikAylar = new HashSet<int>(db.Kasas.AsNoTracking()
+                    .Where(x => x.BinaID == BinaID && x.KasaYil == Yil && x.AyKodu != null)
+                    .Select(x => x.AyKodu.Value)
+                    .ToList());
+
+                for (int ay = 1; ay <= 12; ay++)
+                {
+                    if (acikAylar.Contains(ay)) continue;
+
+                    decimal tutar = TutarParse(Tutarlar[ay - 1]);
+                    var kayit = mevcutlar.FirstOrDefault(x => x.AidatAy == ay);
+
+                    if (tutar <= 0)
+                    {
+                        // Boş bırakılan ayın tanımı kaldırılır
+                        if (kayit != null) { db.AidatTanims.Remove(kayit); silinen++; }
+                    }
+                    else if (kayit == null)
+                    {
+                        db.AidatTanims.Add(new AidatTanim { BinaID = BinaID, AidatYil = Yil, AidatAy = ay, Tutar = tutar });
+                        eklenen++;
+                    }
+                    else if (kayit.Tutar != tutar)
+                    {
+                        kayit.Tutar = tutar;
+                        guncellenen++;
+                    }
+                }
+
+                if (eklenen + guncellenen + silinen == 0)
+                {
+                    TempData["Basarili"] = "Değişiklik yok; " + Yil + " aidat tanımları zaten güncel.";
+                    return RedirectToAction("AidatTanimlama", new { yil = Yil });
+                }
+
+                db.Hareketlers.Add(new Hareketler
+                {
+                    BinaID = BinaID,
+                    KullaniciID = KullaniciID,
+                    OlayAciklama = Yil + " yılı aidat tanımları güncellendi (" + eklenen + " eklendi, " + guncellenen + " güncellendi, " + silinen + " kaldırıldı).",
+                    Tarih = DateTime.Now,
+                    Tur = "Güncelleme",
+                });
+
+                db.SaveChanges();
+                TempData["Basarili"] = Yil + " yılı aidat tanımları kaydedildi. (" + eklenen + " eklendi, " + guncellenen + " güncellendi, " + silinen + " kaldırıldı)";
+            }
+            catch (Exception ex)
+            {
+                TempData["Hata"] = "Bir hata oluştu! Detay: " + ex.Message;
+            }
+
+            return RedirectToAction("AidatTanimlama", new { yil = Yil });
         }
     }
 }

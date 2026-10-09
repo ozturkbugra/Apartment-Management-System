@@ -74,6 +74,73 @@ namespace ApartmanAidatTakip.Helpers
                 // Başlangıç verisi oluşturulamazsa uygulamanın açılışını engelleme.
                 // (Bağlantı/izin sorunları başlatmayı düşürmemeli.)
             }
+
+            AidatTanimHazirla();
+        }
+
+        /// <summary>
+        /// AidatTanim (aylık aidat tanımı) tablosu yoksa oluşturur; tablo BOŞSA geçmiş
+        /// Aidat kayıtlarından her bina + yıl + ay için EN SIK tekrar eden tutarı (mod;
+        /// eşitlikte büyük tutar) aktarır. Doluysa dokunmaz. (AidatTanim_tablo.sql ile aynı.)
+        /// </summary>
+        private static void AidatTanimHazirla()
+        {
+            try
+            {
+                using (var db = new AptVTEntities())
+                {
+                    if (!db.Database.Exists())
+                        return;
+
+                    // 1) Tablo yoksa oluştur (+ bina/yıl/ay tekil indeks)
+                    db.Database.ExecuteSqlCommand(@"
+IF OBJECT_ID('dbo.AidatTanim', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.AidatTanim (
+        ID int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        BinaID int NOT NULL,
+        AidatYil int NOT NULL,
+        AidatAy int NOT NULL,
+        Tutar decimal(18,2) NOT NULL
+    );
+    CREATE UNIQUE INDEX UX_AidatTanim_Bina_Yil_Ay ON dbo.AidatTanim (BinaID, AidatYil, AidatAy);
+END");
+
+                    // 2) Tablo BOŞSA geçmiş aidatlardan doldur (silinmiş ve 'Mayıs - 2' gibi ek partiler hariç)
+                    db.Database.ExecuteSqlCommand(@"
+IF NOT EXISTS (SELECT 1 FROM dbo.AidatTanim)
+BEGIN
+    ;WITH Kayitlar AS (
+        SELECT BinaID, AidatYil, AidatTutar,
+               CASE LTRIM(RTRIM(AidatAy))
+                    WHEN N'Ocak' THEN 1 WHEN N'Şubat' THEN 2 WHEN N'Mart' THEN 3
+                    WHEN N'Nisan' THEN 4 WHEN N'Mayıs' THEN 5 WHEN N'Haziran' THEN 6
+                    WHEN N'Temmuz' THEN 7 WHEN N'Ağustos' THEN 8 WHEN N'Eylül' THEN 9
+                    WHEN N'Ekim' THEN 10 WHEN N'Kasım' THEN 11 WHEN N'Aralık' THEN 12
+               END AS Ay
+        FROM dbo.Aidat
+        WHERE Durum IN (N'A', N'P') AND AidatTutar > 0
+          AND BinaID IS NOT NULL AND AidatYil IS NOT NULL
+    ), Sayim AS (
+        SELECT BinaID, AidatYil, Ay, AidatTutar,
+               ROW_NUMBER() OVER (PARTITION BY BinaID, AidatYil, Ay
+                                  ORDER BY COUNT(*) DESC, AidatTutar DESC) AS Sira
+        FROM Kayitlar
+        WHERE Ay IS NOT NULL
+        GROUP BY BinaID, AidatYil, Ay, AidatTutar
+    )
+    INSERT INTO dbo.AidatTanim (BinaID, AidatYil, AidatAy, Tutar)
+    SELECT BinaID, AidatYil, Ay, AidatTutar
+    FROM Sayim
+    WHERE Sira = 1
+    ORDER BY BinaID, AidatYil, Ay;
+END");
+                }
+            }
+            catch
+            {
+                // Açılışı engelleme (bağlantı/izin sorunları başlatmayı düşürmemeli).
+            }
         }
     }
 }

@@ -397,12 +397,13 @@
                 <a class="nav-link collapsed" id="link-yonetim" data-bs-target="#yonetim-nav" data-bs-toggle="collapse" href="#">
                     <i class="bi bi-building-gear color-purple"></i><span>Yönetim İşlemleri</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <ul id="yonetim-nav" class="nav-content collapse @(aktif == "AcilisBakiye" || aktif == "Sakinler" || aktif == "DaireBorclandir" || aktif == "TopluGecmisBorclandir" || aktif == "PesinOdemeler" || aktif == "DonemEkle" || aktif == "DonemIptal" || aktif == "AidatHesaplama" ? "show" : "")">
+                <ul id="yonetim-nav" class="nav-content collapse @(aktif == "AcilisBakiye" || aktif == "Sakinler" || aktif == "DaireBorclandir" || aktif == "TopluGecmisBorclandir" || aktif == "PesinOdemeler" || aktif == "DonemEkle" || aktif == "DonemIptal" || aktif == "AidatHesaplama" || aktif == "AidatTanimlama" ? "show" : "")">
                     <li><a href="/AnaSayfa/AcilisBakiye" class="@(aktif == "AcilisBakiye" ? "active" : "")"><i class="bi bi-safe2"></i><span>Açılış Bakiyesi</span></a></li>
                     <li><a href="/AnaSayfa/Sakinler" class="@(aktif == "Sakinler" ? "active" : "")"><i class="bi bi-people"></i><span>Daire Sakinleri</span></a></li>
                     <li><a href="/AnaSayfa/DaireBorclandir" class="@(aktif == "DaireBorclandir" ? "active" : "")"><i class="bi bi-cash-stack"></i><span>Daire Borçlandır</span></a></li>
                     <li><a href="/AnaSayfa/TopluGecmisBorclandir" class="@(aktif == "TopluGecmisBorclandir" ? "active" : "")"><i class="bi bi-calendar2-range"></i><span>Toplu Geçmiş Borçlandır</span></a></li>
                     <li><a href="/AnaSayfa/PesinOdemeler" class="@(aktif == "PesinOdemeler" ? "active" : "")"><i class="bi bi-wallet2"></i><span>Peşin Ödemeler</span></a></li>
+                    <li><a href="/AnaSayfa/AidatTanimlama" class="@(aktif == "AidatTanimlama" ? "active" : "")"><i class="bi bi-calendar2-check"></i><span>Aidat Tanımlama</span></a></li>
                     <li><a href="/AnaSayfa/AidatHesaplama" class="@(aktif == "AidatHesaplama" ? "active" : "")"><i class="bi bi-calculator"></i><span>Aidat Hesaplama</span></a></li>
                     <li><a href="/AnaSayfa/DonemEkle" class="@(aktif == "DonemEkle" ? "active" : "")"><i class="bi bi-calendar-plus"></i><span>Dönem Ekle</span></a></li>
                     <li><a href="/AnaSayfa/DonemIptal" class="@(aktif == "DonemIptal" ? "active" : "")"><i class="bi bi-calendar-x"></i><span>Dönem İptal</span></a></li>
