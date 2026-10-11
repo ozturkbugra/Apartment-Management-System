@@ -1,4 +1,4 @@
-﻿# CLAUDE.md — ApartmanAidatTakip (Apartman/Site Aidat Takip Sistemi)
+# CLAUDE.md — ApartmanAidatTakip (Apartman/Site Aidat Takip Sistemi)
 
 Bu dosya projenin mimarisini, veri tabanı yapısını, iş akışını ve dosya tasarımını tek yerde toplar. Amaç: aynı yerlere tekrar tekrar bakmadan geliştirmeye devam edebilmek. Tüm domain terimleri **Türkçe**'dir.
 
@@ -210,7 +210,19 @@ Bunlar merkezi değildir — ihtiyaç duyan her controller'a kopyalanmıştır. 
 ## 8. Konvansiyonlar
 
 - **Çift gönderim koruması:** Kayıt oluşturan formlarda submit butonu kilitlenerek çift kayıt önlenir.
-- **Dark mode:** Ayrı katman olarak eklenir; mevcut light tasarım asla değiştirilmez.
+- **Dark mode & Frontend Tasarım Kuralları:** Ayrı katman (`html.dark-mode`) olarak eklenir; mevcut light tasarım (`#f6f9ff` zemin, `#fff` kartlar, `#444` metin) asla bozulmaz.
+  - **Karanlık Mod CSS Değişkenleri (`darkmode.css`):**
+    - `--dm-bg: #12151c` (sayfa zemini)
+    - `--dm-surface: #1b1f2a` (kart, modal, panel, dropdown yüzeyleri)
+    - `--dm-surface-2: #232838` (input, hover, tablo `th`, buton zeminleri)
+    - `--dm-border: #2c3242` (kenarlıklar, ayraç çizgileri)
+    - `--dm-text: #e4e6eb` (ana metin, başlıklar)
+    - `--dm-muted: #9aa3b2` (soluk metin, label, placeholder)
+    - `--dm-primary: #6d8bff` (vurgu rengi, linkler, aktif sekmeler)
+  - **YASAKLI Sınıflar:** `bg-dark`, `bg-black`, `bg-light`, `bg-white`, `bg-dark-light`, `bg-secondary-light`, `table-dark`, `table-light`. Aydınlık modda siyah lekeler oluşturur, karanlık modda ise `#212529` sabit rengiyle temanın `--dm-surface` paletini bozar veya parlamaya (flashbang) yol açar. Yeni sayfalarda ASLA kullanılmaz.
+  - **YASAKLI Kalıplar:** Satır içi (inline) `style="background: ...; color: ...;"` verilmez (`darkmode.css` ezemez, karanlık modda patlar).
+  - **Metin Renkleri:** Sabit `text-dark`/`text-black` (koyu modda koyu zeminde görünmez olur) veya genel alanda sabit `text-white`/`text-light` (açık modda beyaz zeminde görünmez olur) kullanılmaz.
+  - **Standart Yöntem:** Kartlar için `.card` veya `.table-card`, formlar için `.form-control` / `.form-select`, tablolar için `.table` / `.modern-table` kullanılır. Özel stiller için view içine `<style>` açılıp önce standart aydınlık stil yazılır, ardından `html.dark-mode .sinif { background: var(--dm-surface) !important; color: var(--dm-text) !important; border-color: var(--dm-border) !important; }` katmanı eklenir. Rozetlerde `badge bg-primary bg-opacity-10 text-primary` gibi opak sınıflar tercih edilir.
 - **Favori sayfalar (`favorites.js`/`favorites.css`):** `#favToggle` butonu + localStorage (`favoriSayfalar`) tabanlı; panel tamamen JS ile üretilir. Butonun sağ üst köşesinde **favori sayısı rozeti** (`.fav-count-badge`) vardır; ekleme/silme, sayfa açılışı ve `storage` olayında güncellenir, 0'da gizlenir, 99+ kırpılır.
 - Route: tek default route, varsayılan controller `AnaSayfa`, action `Index`.
 - Çok kiracılı (multi-tenant) izolasyon tamamen `BinaID` filtresine dayanır — yeni sorgu yazarken BinaID filtresini atlamayın.
