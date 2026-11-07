@@ -240,7 +240,15 @@
             <div class="row align-items-end g-3">
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label-custom">Yıl</label>
-                    <input type="text" maxlength="4" name="yil" class="form-control form-control-modern" value="@ViewBag.Yil" required />
+                    <select name="yil" class="form-select form-select-modern" required>
+                        @if (ViewBag.Yillar != null)
+                        {
+                            foreach (var y in (List<int>)ViewBag.Yillar)
+                            {
+                                <option value="@y" @(ViewBag.Yil != null && y == Convert.ToInt32(ViewBag.Yil) ? "selected" : "")>@y</option>
+                            }
+                        }
+                    </select>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label-custom">Ay</label>

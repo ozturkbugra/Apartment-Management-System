@@ -151,7 +151,15 @@
             <div class="row align-items-end g-3">
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label-custom"><i class="bi bi-calendar me-1"></i> YIL</label>
-                    <input type="number" name="Yil" class="form-control form-control-modern" value="@ViewBag.Yil" min="2000" max="2100" />
+                    <select name="Yil" class="form-select form-select-modern" onchange="this.form.submit()">
+                        @if (ViewBag.Yillar != null)
+                        {
+                            foreach (var y in (List<int>)ViewBag.Yillar)
+                            {
+                                <option value="@y" @(ViewBag.Yil != null && y == Convert.ToInt32(ViewBag.Yil) ? "selected" : "")>@y</option>
+                            }
+                        }
+                    </select>
                 </div>
                 
                 <div class="col-lg-3 col-md-6">

@@ -59,6 +59,49 @@ namespace ApartmanAidatTakip.Controllers
 
         }
 
+        private List<int> RaporYillariGetir(int BinaID)
+        {
+            var giderYillari = db.Giders.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih != null)
+                .Select(x => x.GiderTarih.Value.Year)
+                .Distinct()
+                .ToList();
+
+            var makbuzYillari = db.Makbuzs.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi != null)
+                .Select(x => x.MakbuzTarihi.Value.Year)
+                .Distinct()
+                .ToList();
+
+            var tahsilatYillari = db.Tahsilats.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.TahsilatTarih != null)
+                .Select(x => x.TahsilatTarih.Value.Year)
+                .Distinct()
+                .ToList();
+
+            var kasaYillari = db.Kasas.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.KasaYil != null)
+                .Select(x => x.KasaYil.Value)
+                .Distinct()
+                .ToList();
+
+            var yillar = giderYillari
+                .Concat(makbuzYillari)
+                .Concat(tahsilatYillari)
+                .Concat(kasaYillari)
+                .Distinct()
+                .OrderByDescending(x => x)
+                .ToList();
+
+            if (!yillar.Contains(DateTime.Now.Year))
+            {
+                yillar.Insert(0, DateTime.Now.Year);
+                yillar = yillar.OrderByDescending(x => x).ToList();
+            }
+
+            return yillar;
+        }
+
         public ActionResult GelirGider(DateTime? ilk, DateTime? son)
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
@@ -444,7 +487,21 @@ namespace ApartmanAidatTakip.Controllers
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
 
+            var yillar = RaporYillariGetir(BinaID);
+            ViewBag.Yillar = yillar;
             ViewBag.Yillik = yillik;
+
+            int seciliYil = yil ?? (yillar.Contains(DateTime.Now.Year) ? DateTime.Now.Year : yillar.FirstOrDefault());
+            int seciliAy = ay ?? DateTime.Now.Month;
+
+            ViewBag.Yil = seciliYil;
+            ViewBag.Ay = seciliAy;
+
+            if (yil == null && !yillik)
+            {
+                yil = seciliYil;
+                ay = seciliAy;
+            }
 
             if (yil != null && (ay != null || yillik))
             {
@@ -1562,26 +1619,22 @@ namespace ApartmanAidatTakip.Controllers
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
             
-            ViewBag.Yil = Yil;
+            var yillar = RaporYillariGetir(BinaID);
+            ViewBag.Yillar = yillar;
+            int seciliYil = Yil ?? (yillar.Contains(DateTime.Now.Year) ? DateTime.Now.Year : yillar.FirstOrDefault());
+            ViewBag.Yil = seciliYil;
             
-            if (Yil != null)
-            {
-                var giderler = db.GiderViews
-                    .Where(x => x.BinaID == BinaID && x.GiderTarih.Value.Year == Yil && x.Durum == "A")
-                    .OrderBy(x => x.GiderTuruID)
-                    .ThenBy(x => x.GiderTarih)
-                    .ToList();
-                
-                var giderTurleri = db.GiderTurus.OrderBy(x => x.GiderTuruAdi).ToList();
-                
-                ViewBag.Giderler = giderler;
-                ViewBag.GiderTurleri = giderTurleri;
-                ViewBag.ToplamGider = giderler.Sum(x => x.GiderTutar) ?? 0;
-            }
-            else
-            {
-                ViewBag.Yil = DateTime.Now.Year;
-            }
+            var giderler = db.GiderViews
+                .Where(x => x.BinaID == BinaID && x.GiderTarih.Value.Year == seciliYil && x.Durum == "A")
+                .OrderBy(x => x.GiderTuruID)
+                .ThenBy(x => x.GiderTarih)
+                .ToList();
+            
+            var giderTurleri = db.GiderTurus.OrderBy(x => x.GiderTuruAdi).ToList();
+            
+            ViewBag.Giderler = giderler;
+            ViewBag.GiderTurleri = giderTurleri;
+            ViewBag.ToplamGider = giderler.Sum(x => x.GiderTutar) ?? 0;
             
             return View();
         }
