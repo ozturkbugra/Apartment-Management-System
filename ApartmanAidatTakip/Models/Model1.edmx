@@ -104,6 +104,7 @@
           <Property Name="GiderTarih" Type="date" />
           <Property Name="BinaID" Type="int" />
           <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+          <Property Name="SabitGiderID" Type="int" />
         </EntityType>
         <EntityType Name="SabitGider">
           <Key>
@@ -115,6 +116,7 @@
           <Property Name="GiderTutar" Type="decimal" Precision="18" Scale="2" />
           <Property Name="BinaID" Type="int" />
           <Property Name="Durum" Type="nvarchar" MaxLength="1" />
+          <Property Name="SonOdemeGunu" Type="int" />
         </EntityType>
         <EntityType Name="GiderTuru">
           <Key>
@@ -658,6 +660,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <Property Name="BinaID" Type="Int32" />
           <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
           <Property Name="GiderNo" Type="Int32" />
+          <Property Name="SabitGiderID" Type="Int32" />
         </EntityType>
         <EntityType Name="SabitGider">
           <Key>
@@ -669,6 +672,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
           <Property Name="GiderTutar" Type="Decimal" Precision="18" Scale="2" />
           <Property Name="BinaID" Type="Int32" />
           <Property Name="Durum" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="SonOdemeGunu" Type="Int32" />
         </EntityType>
         <EntityType Name="GiderTuru">
           <Key>
@@ -1101,6 +1105,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
                 <ScalarProperty Name="GiderTarih" ColumnName="GiderTarih" />
                 <ScalarProperty Name="BinaID" ColumnName="BinaID" />
                 <ScalarProperty Name="Durum" ColumnName="Durum" />
+                <ScalarProperty Name="SabitGiderID" ColumnName="SabitGiderID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -1113,6 +1118,7 @@ warning 6002: The table/view 'aptmhs25122025.dbo.TahsilatView' does not have a p
                 <ScalarProperty Name="GiderTutar" ColumnName="GiderTutar" />
                 <ScalarProperty Name="BinaID" ColumnName="BinaID" />
                 <ScalarProperty Name="Durum" ColumnName="Durum" />
+                <ScalarProperty Name="SonOdemeGunu" ColumnName="SonOdemeGunu" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

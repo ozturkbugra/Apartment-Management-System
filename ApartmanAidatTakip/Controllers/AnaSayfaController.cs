@@ -1,4 +1,4 @@
-﻿using ApartmanAidatTakip.Helpers;
+using ApartmanAidatTakip.Helpers;
 using ApartmanAidatTakip.Models;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
@@ -2737,20 +2737,136 @@ namespace ApartmanAidatTakip.Controllers
             int yil = DateTime.Now.Year;
             ViewBag.Giderler = db.GiderViews.Where(x => x.BinaID == BinaID && x.Durum == "A" && x.GiderTarih.Value.Month == ay && x.GiderTarih.Value.Year == yil).OrderByDescending(x => x.GiderID).ToList();
             ViewBag.SilinenGiderler = db.GiderViews.Where(x => x.BinaID == BinaID && x.Durum == "P").OrderByDescending(x => x.GiderID).ToList();
-            // Sabit (tekrar eden) gider şablonları
-            ViewBag.SabitGiderler = (from s in db.SabitGiders.AsNoTracking()
-                                     join t in db.GiderTurus on s.GiderTuruID equals t.GiderTuruID into tg
-                                     from t in tg.DefaultIfEmpty()
-                                     where s.BinaID == BinaID && s.Durum == "A"
-                                     orderby s.SabitGiderID descending
-                                     select new SabitGiderListe
-                                     {
-                                         SabitGiderID = s.SabitGiderID,
-                                         GiderAciklama = s.GiderAciklama,
-                                         GiderTuruID = s.GiderTuruID,
-                                         GiderTuruAdi = t.GiderTuruAdi,
-                                         GiderTutar = s.GiderTutar
-                                     }).ToList();
+            
+            // Sabit (tekrar eden) gider şablonları & aylık ödeme/vade durumu
+            var buAyGiderler = db.Giders.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Durum == "A"
+                       && x.GiderTarih.HasValue
+                       && x.GiderTarih.Value.Month == ay
+                       && x.GiderTarih.Value.Year == yil)
+                .OrderBy(x => x.GiderTarih)
+                .ToList();
+
+            var hamSabitler = (from s in db.SabitGiders.AsNoTracking()
+                               join t in db.GiderTurus on s.GiderTuruID equals t.GiderTuruID into tg
+                               from t in tg.DefaultIfEmpty()
+                               where s.BinaID == BinaID && s.Durum == "A"
+                               orderby s.SabitGiderID descending
+                               select new
+                               {
+                                   s.SabitGiderID,
+                                   s.GiderAciklama,
+                                   s.GiderTuruID,
+                                   GiderTuruAdi = t.GiderTuruAdi,
+                                   s.GiderTutar,
+                                   s.SonOdemeGunu
+                               }).ToList();
+
+            var sabitListe = new List<SabitGiderListe>();
+            var eslesenGiderIdler = new HashSet<int>();
+            DateTime bugun = DateTime.Today;
+
+            foreach (var s in hamSabitler)
+            {
+                var item = new SabitGiderListe
+                {
+                    SabitGiderID = s.SabitGiderID,
+                    GiderAciklama = s.GiderAciklama,
+                    GiderTuruID = s.GiderTuruID,
+                    GiderTuruAdi = s.GiderTuruAdi,
+                    GiderTutar = s.GiderTutar,
+                    SonOdemeGunu = s.SonOdemeGunu
+                };
+
+                // 1) Eşleşen bu ayki giderleri bul:
+                // Kural 1 (Kesin): SabitGiderID eşitse açıklamaya ASLA bakılmaz, doğrudan ödendi sayılır!
+                var eslesenGiderler = buAyGiderler
+                    .Where(g => !eslesenGiderIdler.Contains(g.GiderID) && g.SabitGiderID.HasValue && g.SabitGiderID.Value == s.SabitGiderID)
+                    .OrderBy(g => g.GiderTarih)
+                    .ThenBy(g => g.GiderID)
+                    .ToList();
+
+                // Kural 2 (Yedek): SabitGiderID ile eşleşme yoksa, açıklaması birebir aynı olanlar kontrol edilir
+                string sNorm = SabitGiderMetinNormalize(s.GiderAciklama);
+                if (eslesenGiderler.Count == 0 && !string.IsNullOrEmpty(sNorm))
+                {
+                    eslesenGiderler = buAyGiderler
+                        .Where(g => !eslesenGiderIdler.Contains(g.GiderID) && !g.SabitGiderID.HasValue && SabitGiderMetinNormalize(g.GiderAciklama) == sNorm)
+                        .OrderBy(g => g.GiderTarih)
+                        .ThenBy(g => g.GiderID)
+                        .ToList();
+                }
+
+                if (eslesenGiderler.Count > 0)
+                {
+                    foreach (var g in eslesenGiderler)
+                    {
+                        eslesenGiderIdler.Add(g.GiderID);
+                    }
+
+                    var sonGider = eslesenGiderler.OrderByDescending(g => g.GiderTarih).ThenByDescending(g => g.GiderID).First();
+
+                    item.OdendiMi = true;
+                    item.OdemeAdedi = eslesenGiderler.Count;
+                    item.OdenenTutar = eslesenGiderler.Sum(g => (decimal?)g.GiderTutar) ?? 0;
+                    item.OdemeTarihi = sonGider.GiderTarih;
+                    item.OdenenGiderID = sonGider.GiderID;
+                    item.OdenenGiderNo = sonGider.GiderNo;
+                }
+                else
+                {
+                    item.OdendiMi = false;
+                    item.OdemeAdedi = 0;
+                }
+
+                // 2) Son Ödeme Tarihi ve Durum Rozeti hesabı
+                int sonGun = s.SonOdemeGunu.HasValue && s.SonOdemeGunu.Value >= 1 && s.SonOdemeGunu.Value <= 31
+                    ? Math.Min(s.SonOdemeGunu.Value, DateTime.DaysInMonth(yil, ay))
+                    : DateTime.DaysInMonth(yil, ay);
+
+                DateTime sonTarih = new DateTime(yil, ay, sonGun);
+                item.SonOdemeTarihi = sonTarih;
+
+                if (item.OdendiMi)
+                {
+                    item.DurumKodu = "odendi";
+                    string tarihStr = item.OdemeTarihi.HasValue ? item.OdemeTarihi.Value.ToString("dd.MM.yyyy") : "";
+                    item.DurumMesaji = item.OdemeAdedi > 1 
+                        ? (item.OdemeAdedi + " kez ödendi (" + tarihStr + ")") 
+                        : ("Ödendi (" + tarihStr + ")");
+                    item.KalanGun = 0;
+                }
+                else
+                {
+                    int fark = (sonTarih.Date - bugun).Days;
+                    item.KalanGun = fark;
+                    if (fark < 0)
+                    {
+                        item.DurumKodu = "gecikti";
+                        item.DurumMesaji = Math.Abs(fark) + " gün gecikti";
+                    }
+                    else if (fark == 0)
+                    {
+                        item.DurumKodu = "bugun";
+                        item.DurumMesaji = "Son gün bugün!";
+                    }
+                    else if (fark <= 5)
+                    {
+                        item.DurumKodu = "yaklasti";
+                        item.DurumMesaji = fark + " gün kaldı";
+                    }
+                    else
+                    {
+                        item.DurumKodu = "bekliyor";
+                        item.DurumMesaji = fark + " gün kaldı";
+                    }
+                }
+
+                sabitListe.Add(item);
+            }
+
+            ViewBag.SabitGiderler = sabitListe;
+            ViewBag.GiderSabitMap = buAyGiderler.Where(x => x.SabitGiderID.HasValue).ToDictionary(x => x.GiderID, x => x.SabitGiderID.Value);
             DonemEklendiMi();
             ViewBag.GiderTuru = db.GiderTurus.OrderBy(x => x.GiderTuruAdi).ToList();
             return View();
@@ -2760,7 +2876,7 @@ namespace ApartmanAidatTakip.Controllers
 
         [HttpPost]
 
-        public ActionResult GiderEkle(Gider gider, string GiderTutar)
+        public ActionResult GiderEkle(Gider gider, string GiderTutar, int? SabitGiderID)
         {
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
@@ -2768,6 +2884,12 @@ namespace ApartmanAidatTakip.Controllers
 
             try
             {
+                // Formdan doğrudan veya parametreden SabitGiderID geldiyse ata
+                if (SabitGiderID.HasValue && SabitGiderID.Value > 0)
+                {
+                    gider.SabitGiderID = SabitGiderID.Value;
+                }
+
                 // --- PARA BİRİMİ ÇEVİRME ---
                 decimal parsedTutar = 0;
                 if (!string.IsNullOrEmpty(GiderTutar))
@@ -2787,6 +2909,21 @@ namespace ApartmanAidatTakip.Controllers
                 gider.BinaID = BinaID;
                 gider.GiderTarih = DateTime.Now.Date;
                 gider.Durum = "A";
+
+                // Eğer formdan doğrudan SabitGiderID gelmemişse, açıklama veya kategoriye göre otomatik eşleştir
+                if (!gider.SabitGiderID.HasValue && !string.IsNullOrWhiteSpace(gider.GiderAciklama))
+                {
+                    string gNorm = SabitGiderMetinNormalize(gider.GiderAciklama);
+                    var adaySabit = db.SabitGiders
+                        .Where(s => s.BinaID == BinaID && s.Durum == "A")
+                        .ToList()
+                        .FirstOrDefault(s => SabitGiderMetinNormalize(s.GiderAciklama) == gNorm);
+
+                    if (adaySabit != null)
+                    {
+                        gider.SabitGiderID = adaySabit.SabitGiderID;
+                    }
+                }
 
                 db.Giders.Add(gider);
                 db.SaveChanges();
@@ -2826,8 +2963,25 @@ namespace ApartmanAidatTakip.Controllers
         // SABİT (TEKRAR EDEN) GİDER ŞABLONLARI
         // ============================================================
 
+        private static string SabitGiderMetinNormalize(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+            text = text.Trim().ToLowerInvariant();
+            text = text.Replace('ı', 'i').Replace('ğ', 'g').Replace('ü', 'u')
+                       .Replace('ş', 's').Replace('ö', 'o').Replace('ç', 'c');
+            var sb = new System.Text.StringBuilder();
+            foreach (char c in text)
+            {
+                if (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c))
+                    sb.Append(c);
+                else
+                    sb.Append(' ');
+            }
+            return string.Join(" ", sb.ToString().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+        }
+
         [HttpPost]
-        public ActionResult SabitGiderEkle(SabitGider sabitGider, string GiderTutar)
+        public ActionResult SabitGiderEkle(SabitGider sabitGider, string GiderTutar, int? SonOdemeGunu)
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
@@ -2846,6 +3000,7 @@ namespace ApartmanAidatTakip.Controllers
                 sabitGider.GiderTutar = parsedTutar;
                 sabitGider.BinaID = BinaID;
                 sabitGider.Durum = "A";
+                sabitGider.SonOdemeGunu = (SonOdemeGunu.HasValue && SonOdemeGunu.Value >= 1 && SonOdemeGunu.Value <= 31) ? SonOdemeGunu : null;
 
                 db.SabitGiders.Add(sabitGider);
                 db.SaveChanges();
@@ -2892,7 +3047,7 @@ namespace ApartmanAidatTakip.Controllers
         }
 
         [HttpPost]
-        public ActionResult SabitGiderGuncelle(SabitGider sabitGider, string GiderTutar)
+        public ActionResult SabitGiderGuncelle(SabitGider sabitGider, string GiderTutar, int? SonOdemeGunu)
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
@@ -2919,6 +3074,7 @@ namespace ApartmanAidatTakip.Controllers
                 mevcut.GiderTuruID = sabitGider.GiderTuruID;
                 mevcut.GiderAciklama = sabitGider.GiderAciklama;
                 mevcut.GiderTutar = parsedTutar;
+                mevcut.SonOdemeGunu = (SonOdemeGunu.HasValue && SonOdemeGunu.Value >= 1 && SonOdemeGunu.Value <= 31) ? SonOdemeGunu : null;
                 db.SaveChanges();
 
                 TempData["Basarili"] = "Sabit Gider Başarıyla Güncellendi";
@@ -2931,8 +3087,16 @@ namespace ApartmanAidatTakip.Controllers
             return RedirectToAction("Giderler", "AnaSayfa");
         }
 
-        // Seçili sabit giderden gerçek bir Gider kaydı oluşturur ve makbuzunu açar.
+        // Seçili sabit giderden gerçek bir Gider kaydı oluşturur ve makbuzunu açar (Hızlı default mod).
         public ActionResult SabitGiderOlustur(int id)
+        {
+            return SabitGiderOde(id, null, null, null, null, true);
+        }
+
+        // Sabit gideri kullanıcının girdiği tutar, açıklama ve tarih ile öder (Gider kaydı açar ve makbuz oluşturur)
+        // Aynı ay içinde 2 veya daha fazla kez de ödenebilir (parçalı veya ikinci fatura vb.).
+        [HttpPost]
+        public ActionResult SabitGiderOde(int? id, int? SabitGiderID, string GiderTutar, string GiderAciklama, string GiderTarih, bool? SabitTutarGuncelle)
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
@@ -2950,7 +3114,8 @@ namespace ApartmanAidatTakip.Controllers
                 return RedirectToAction("Giderler", "AnaSayfa");
             }
 
-            var sabit = db.SabitGiders.AsNoTracking().FirstOrDefault(x => x.SabitGiderID == id && x.BinaID == BinaID && x.Durum == "A");
+            int hedefId = (id.HasValue && id.Value > 0) ? id.Value : ((SabitGiderID.HasValue && SabitGiderID.Value > 0) ? SabitGiderID.Value : 0);
+            var sabit = db.SabitGiders.FirstOrDefault(x => x.SabitGiderID == hedefId && x.BinaID == BinaID && x.Durum == "A");
             if (sabit == null)
             {
                 TempData["Hata"] = "Sabit gider bulunamadı!";
@@ -2959,18 +3124,43 @@ namespace ApartmanAidatTakip.Controllers
 
             try
             {
+                decimal parsedTutar = 0;
+                if (!string.IsNullOrEmpty(GiderTutar))
+                {
+                    parsedTutar = decimal.Parse(GiderTutar, new CultureInfo("tr-TR"));
+                }
+                else
+                {
+                    parsedTutar = sabit.GiderTutar ?? 0;
+                }
+
+                // Kullanıcı sabit giderin kayıtlı tutarını da güncellemek istiyorsa
+                if ((SabitTutarGuncelle ?? true) && parsedTutar > 0 && sabit.GiderTutar != parsedTutar)
+                {
+                    sabit.GiderTutar = parsedTutar;
+                }
+
+                DateTime odemeTarihi = DateTime.Now.Date;
+                if (!string.IsNullOrEmpty(GiderTarih) && DateTime.TryParse(GiderTarih, out DateTime dt))
+                {
+                    odemeTarihi = dt.Date;
+                }
+
+                string aciklama = !string.IsNullOrWhiteSpace(GiderAciklama) ? GiderAciklama.Trim() : sabit.GiderAciklama;
+
                 var songider = db.Giders.Where(x => x.BinaID == BinaID && x.Durum == "A").OrderByDescending(x => x.GiderNo).FirstOrDefault();
                 int songiderno = (songider?.GiderNo ?? 0) + 1;
 
                 Gider gider = new Gider()
                 {
-                    GiderAciklama = sabit.GiderAciklama,
+                    GiderAciklama = aciklama,
                     GiderTuruID = sabit.GiderTuruID,
-                    GiderTutar = sabit.GiderTutar,
+                    GiderTutar = parsedTutar,
                     GiderNo = songiderno,
                     BinaID = BinaID,
-                    GiderTarih = DateTime.Now.Date,
-                    Durum = "A"
+                    GiderTarih = odemeTarihi,
+                    Durum = "A",
+                    SabitGiderID = sabit.SabitGiderID
                 };
 
                 db.Giders.Add(gider);
@@ -2979,7 +3169,7 @@ namespace ApartmanAidatTakip.Controllers
                 {
                     BinaID = BinaID,
                     KullaniciID = KullaniciID,
-                    OlayAciklama = gider.GiderTutar + " Tutarında sabit giderden " + gider.GiderNo + " numaralı gider oluşturuldu.",
+                    OlayAciklama = gider.GiderTutar + " Tutarında sabit giderden (" + sabit.GiderAciklama + ") " + gider.GiderNo + " numaralı gider ödendi.",
                     Tarih = DateTime.Now,
                     Tur = "Ekleme",
                 };
@@ -2988,8 +3178,11 @@ namespace ApartmanAidatTakip.Controllers
 
                 GiderNoDuzenle();
 
-                // Oluşturulan giderin makbuzunu (PDF) aç
-                return RedirectToAction("GiderMakbuz", "AnaSayfa", new { GiderID = gider.GiderID });
+                // Oluşturulan giderin makbuzunu yeni sekmede açmak için TempData'ya ver
+                TempData["YeniGiderMakbuzID"] = gider.GiderID;
+                TempData["Basarili"] = "Sabit Gider Ödemesi Başarıyla Kaydedildi";
+
+                return RedirectToAction("Giderler", "AnaSayfa");
             }
             catch (Exception ex)
             {
@@ -3149,7 +3342,7 @@ namespace ApartmanAidatTakip.Controllers
 
         [HttpPost]
         // DİKKAT: Parametreye 'string GiderTutar' ekledik.
-        public ActionResult GiderGuncelle(Gider gider, string GiderTutar)
+        public ActionResult GiderGuncelle(Gider gider, string GiderTutar, int? SabitGiderID)
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
@@ -3193,6 +3386,8 @@ namespace ApartmanAidatTakip.Controllers
                 // Güncelleme İşlemi
                 mevcutGider.GiderTuruID = gider.GiderTuruID;
                 mevcutGider.GiderAciklama = gider.GiderAciklama;
+                int? seciliSabitId = SabitGiderID.HasValue && SabitGiderID.Value > 0 ? SabitGiderID : (gider.SabitGiderID.HasValue && gider.SabitGiderID.Value > 0 ? gider.SabitGiderID : (int?)null);
+                mevcutGider.SabitGiderID = seciliSabitId;
 
                 // --- 2. ÇEVİRDİĞİMİZ TUTARI ATIYORUZ ---
                 mevcutGider.GiderTutar = parsedTutar;

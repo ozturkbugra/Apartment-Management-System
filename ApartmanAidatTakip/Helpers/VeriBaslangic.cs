@@ -1,4 +1,4 @@
-﻿using ApartmanAidatTakip.Models;
+using ApartmanAidatTakip.Models;
 using System;
 using System.Data.Entity;
 using System.Text;
@@ -76,6 +76,7 @@ namespace ApartmanAidatTakip.Helpers
             }
 
             AidatTanimHazirla();
+            SabitGiderHazirla();
         }
 
         /// <summary>
@@ -140,6 +141,55 @@ END");
             catch
             {
                 // Açılışı engelleme (bağlantı/izin sorunları başlatmayı düşürmemeli).
+            }
+        }
+
+        /// <summary>
+        /// SabitGider tablosu yoksa oluşturur; varsa SonOdemeGunu kolonunun varlığını
+        /// garanti eder (yoksa ekler). Ayrıca Gider tablosunda SabitGiderID kolonunu garanti eder.
+        /// </summary>
+        private static void SabitGiderHazirla()
+        {
+            try
+            {
+                using (var db = new AptVTEntities())
+                {
+                    if (!db.Database.Exists())
+                        return;
+
+                    db.Database.ExecuteSqlCommand(@"
+IF OBJECT_ID('dbo.SabitGider', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.SabitGider (
+        SabitGiderID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        GiderAciklama NVARCHAR(500) NULL,
+        GiderTuruID INT NULL,
+        GiderTutar DECIMAL(18,2) NULL,
+        BinaID INT NULL,
+        Durum NVARCHAR(1) NULL,
+        SonOdemeGunu INT NULL
+    );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('dbo.SabitGider', 'SonOdemeGunu') IS NULL
+    BEGIN
+        ALTER TABLE dbo.SabitGider ADD SonOdemeGunu INT NULL;
+    END
+END
+
+IF OBJECT_ID('dbo.Gider', 'U') IS NOT NULL
+BEGIN
+    IF COL_LENGTH('dbo.Gider', 'SabitGiderID') IS NULL
+    BEGIN
+        ALTER TABLE dbo.Gider ADD SabitGiderID INT NULL;
+    END
+END");
+                }
+            }
+            catch
+            {
+                // Açılışı engelleme
             }
         }
     }
