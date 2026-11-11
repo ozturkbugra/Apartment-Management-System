@@ -4351,10 +4351,16 @@ namespace ApartmanAidatTakip.Controllers
             ViewBag.List = db.PesinOdemelerViews.AsNoTracking().Where(x => x.BinaID == BinaID).ToList();
             ViewBag.Daireler = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID).OrderBy(x => x.DaireNo).ToList();
 
+            int simdikiYil = DateTime.Now.Year;
+            int simdikiAy = DateTime.Now.Month;
+
             // AYLIK peşin ödemeler: daire + yıl bazında grupla, daire bilgisiyle birleştir (salt-okunur DTO).
             var aylikRaw = db.AylikPesinOdemelers.AsNoTracking().Where(x => x.BinaID == BinaID).ToList();
             var daireMap = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID).ToList();
-            var aylikList = aylikRaw
+
+            // AKTİF AYLIK PEŞİN ÖDEMELER (Gelecek yıllar veya cari yılın bu ay ve sonraki ayları)
+            var aktifAylikList = aylikRaw
+                .Where(x => x.Yil > simdikiYil || (x.Yil == simdikiYil && x.Ay >= simdikiAy))
                 .GroupBy(x => new { x.DaireID, x.Yil })
                 .Select(g =>
                 {
@@ -4370,7 +4376,29 @@ namespace ApartmanAidatTakip.Controllers
                 })
                 .OrderBy(x => x.DaireNo)
                 .ToList();
-            ViewBag.AylikList = aylikList;
+
+            // GEÇMİŞ AYLIK PEŞİN ÖDEMELER (Geçmiş yıllar veya cari yılın geçmiş ayları)
+            var gecmisAylikList = aylikRaw
+                .Where(x => x.Yil < simdikiYil || (x.Yil == simdikiYil && x.Ay < simdikiAy))
+                .GroupBy(x => new { x.DaireID, x.Yil })
+                .Select(g =>
+                {
+                    var d = daireMap.FirstOrDefault(dd => dd.DaireID == g.Key.DaireID);
+                    return new AylikPesinOdemeListe
+                    {
+                        DaireID = g.Key.DaireID,
+                        Yil = g.Key.Yil,
+                        DaireNo = d?.DaireNo ?? 0,
+                        AdSoyad = d?.AdSoyad,
+                        Aylar = g.Select(z => z.Ay).OrderBy(z => z).ToList()
+                    };
+                })
+                .OrderByDescending(x => x.Yil)
+                .ThenBy(x => x.DaireNo)
+                .ToList();
+
+            ViewBag.AylikList = aktifAylikList;
+            ViewBag.AylikGecmisList = gecmisAylikList;
             return View();
         }
 
@@ -4439,6 +4467,7 @@ namespace ApartmanAidatTakip.Controllers
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
             int Yil = DateTime.Now.Year;
+            int simdikiAy = DateTime.Now.Month;
 
             if (Aylar == null || Aylar.Length == 0)
             {
@@ -4460,9 +4489,10 @@ namespace ApartmanAidatTakip.Controllers
                 .Select(x => x.Ay)
                 .ToList();
 
+            int eklenenSayisi = 0;
             foreach (var ay in Aylar.Distinct())
             {
-                if (ay < 1 || ay > 12) continue;
+                if (ay < simdikiAy || ay > 12) continue; // Geçen aylar eklenemez
                 if (mevcutAylar.Contains(ay)) continue;
                 db.AylikPesinOdemelers.Add(new AylikPesinOdemeler
                 {
@@ -4471,9 +4501,18 @@ namespace ApartmanAidatTakip.Controllers
                     Ay = ay,
                     BinaID = BinaID,
                 });
+                eklenenSayisi++;
             }
-            db.SaveChanges();
-            TempData["Basarili"] = "Aylık peşin ödeme başarıyla kaydedildi.";
+
+            if (eklenenSayisi > 0)
+            {
+                db.SaveChanges();
+                TempData["Basarili"] = "Aylık peşin ödeme başarıyla kaydedildi.";
+            }
+            else
+            {
+                TempData["Hata"] = "Seçilen aylar zaten kayıtlı veya geçmiş aylardır.";
+            }
             return RedirectToAction("PesinOdemeler", "AnaSayfa");
         }
 
@@ -4486,6 +4525,8 @@ namespace ApartmanAidatTakip.Controllers
             }
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int simdikiYil = DateTime.Now.Year;
+            int simdikiAy = DateTime.Now.Month;
 
             if (Aylar == null || Aylar.Length == 0)
             {
@@ -4493,16 +4534,21 @@ namespace ApartmanAidatTakip.Controllers
                 return RedirectToAction("PesinOdemeler", "AnaSayfa");
             }
 
-            // İlgili daire+yıl grubunun eski kayıtlarını kaldır, yeni seçimi ekle.
-            var eskiler = db.AylikPesinOdemelers
-                .Where(x => x.BinaID == BinaID && x.DaireID == DaireID && x.Yil == Yil)
+            // İlgili daire+yıl grubunun SADECE AKTİF kayıtlarını kaldır, yeni seçimi ekle.
+            // Geçmiş aylar geçmiş kayıt olarak korunur.
+            var aktifEskiler = db.AylikPesinOdemelers
+                .Where(x => x.BinaID == BinaID && x.DaireID == DaireID && x.Yil == Yil
+                       && (Yil > simdikiYil || (Yil == simdikiYil && x.Ay >= simdikiAy)))
                 .ToList();
-            if (eskiler.Any())
-                db.AylikPesinOdemelers.RemoveRange(eskiler);
+            if (aktifEskiler.Any())
+                db.AylikPesinOdemelers.RemoveRange(aktifEskiler);
 
             foreach (var ay in Aylar.Distinct())
             {
                 if (ay < 1 || ay > 12) continue;
+                // Cari yıl ise geçmiş aylar aktif olarak güncellenemez
+                if (Yil == simdikiYil && ay < simdikiAy) continue;
+
                 db.AylikPesinOdemelers.Add(new AylikPesinOdemeler
                 {
                     DaireID = DaireID,
@@ -4524,19 +4570,37 @@ namespace ApartmanAidatTakip.Controllers
             }
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            int simdikiYil = DateTime.Now.Year;
+            int simdikiAy = DateTime.Now.Month;
 
-            var kayitlar = db.AylikPesinOdemelers
-                .Where(x => x.BinaID == BinaID && x.DaireID == DaireID && x.Yil == Yil)
+            // Aktif listeden silindiğinde sadece aktif ayları sil (geçmiş ayları koru)
+            var aktifKayitlar = db.AylikPesinOdemelers
+                .Where(x => x.BinaID == BinaID && x.DaireID == DaireID && x.Yil == Yil
+                       && (Yil > simdikiYil || (Yil == simdikiYil && x.Ay >= simdikiAy)))
                 .ToList();
-            if (kayitlar.Any())
+
+            if (aktifKayitlar.Any())
             {
-                db.AylikPesinOdemelers.RemoveRange(kayitlar);
+                db.AylikPesinOdemelers.RemoveRange(aktifKayitlar);
                 db.SaveChanges();
                 TempData["Basarili"] = "Aylık peşin ödeme kaydı silindi.";
             }
             else
             {
-                TempData["Hata"] = "Kayıt bulunamadı!";
+                // Eğer aktif kayıt bulunamadıysa (veya geçmişten silinmek istenirse)
+                var kayitlar = db.AylikPesinOdemelers
+                    .Where(x => x.BinaID == BinaID && x.DaireID == DaireID && x.Yil == Yil)
+                    .ToList();
+                if (kayitlar.Any())
+                {
+                    db.AylikPesinOdemelers.RemoveRange(kayitlar);
+                    db.SaveChanges();
+                    TempData["Basarili"] = "Aylık peşin ödeme kaydı silindi.";
+                }
+                else
+                {
+                    TempData["Hata"] = "Kayıt bulunamadı!";
+                }
             }
             return RedirectToAction("PesinOdemeler", "AnaSayfa");
         }

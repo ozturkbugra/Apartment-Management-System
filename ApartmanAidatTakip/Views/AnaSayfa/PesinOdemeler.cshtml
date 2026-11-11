@@ -1,7 +1,9 @@
-﻿@{
+@{
     ViewBag.Title = "Peşin Ödemeler";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var ayAdlari = new[] { "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık" };
+    int simdikiAy = DateTime.Now.Month;
+    int simdikiYil = DateTime.Now.Year;
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -110,7 +112,7 @@
     .btn-icon-delete {
         width: 35px;
         height: 35px;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         border-radius: 8px;
@@ -205,10 +207,61 @@
             color: #fff;
             border-color: transparent;
         }
+
+    /* Select2 Modal İyileştirmeleri */
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: 48px !important;
+        padding: 10px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: normal;
+        padding-left: 0;
+        color: #344767;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 46px;
+        right: 12px;
+    }
+
+    .select2-dropdown {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        z-index: 1065 !important;
+    }
+
+    .select2-search--dropdown {
+        padding: 8px 10px;
+    }
+
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        outline: none;
+    }
+
+    .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+        background-color: #059669;
+        color: white;
+    }
 </style>
 
 <div class="container-fluid py-4">
 
+    <!-- ================= YILLIK PEŞİN ÖDEMELER ================= -->
     <div class="page-header">
         <div>
             <h3 class="fw-bold mb-0 text-dark">Peşin Ödemeler</h3>
@@ -219,9 +272,9 @@
         </button>
     </div>
 
-    <div class="card table-card">
+    <div class="card table-card mb-4">
         <div class="card-header bg-white border-0 pt-4 px-4">
-            <h5 class="card-title fw-bold text-dark mb-0"><i class="bi bi-list-check me-2 text-primary"></i>Ödeme Listesi</h5>
+            <h5 class="card-title fw-bold text-dark mb-0"><i class="bi bi-list-check me-2 text-primary"></i>Yıllık Ödeme Listesi</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -264,11 +317,11 @@
         </div>
     </div>
 
-    <!-- ================= AYLIK PEŞİN ÖDEMELER ================= -->
+    <!-- ================= AYLIK PEŞİN ÖDEMELER (AKTİF) ================= -->
     <div class="page-header mt-4">
         <div>
             <h3 class="fw-bold mb-0 text-dark">Aylık Peşin Ödemeler</h3>
-            <span class="text-muted small">Belirli ayları peşin ödeyen daireler (@DateTime.Now.Year)</span>
+            <span class="text-muted small">Aktif peşin ödeme yapan daireler (@simdikiYil)</span>
         </div>
         <button type="button" class="btn-add" data-bs-toggle="modal" data-bs-target="#aylikEkleModal">
             <i class="bi bi-calendar2-range-fill"></i> Aylık Ödeme Ekle
@@ -276,12 +329,15 @@
     </div>
 
     <div class="card table-card">
-        <div class="card-header bg-white border-0 pt-4 px-4">
-            <h5 class="card-title fw-bold text-dark mb-0"><i class="bi bi-calendar3 me-2 text-success"></i>Aylık Ödeme Listesi</h5>
+        <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="card-title fw-bold text-dark mb-0"><i class="bi bi-calendar3 me-2 text-success"></i>Aktif Aylık Ödeme Listesi</h5>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small">
+                <i class="bi bi-check-circle me-1"></i>Aktif Kayıtlar
+            </span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table modern-table mb-0 @(ViewBag.AylikList.Count > 0 ? "datatable" : "")">
+                <table class="table modern-table mb-0 @(ViewBag.AylikList != null && ViewBag.AylikList.Count > 0 ? "datatable" : "")">
                     <thead>
                         <tr>
                             <th scope="col">Daire Bilgisi</th>
@@ -291,34 +347,45 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in ViewBag.AylikList)
+                        @if (ViewBag.AylikList != null && ViewBag.AylikList.Count > 0)
+                        {
+                            foreach (var item in ViewBag.AylikList)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="flat-icon">@item.DaireNo</div>
+                                            <div>
+                                                <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                                <div class="small text-muted">Daire No: @item.DaireNo</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge-year"><i class="bi bi-calendar-check me-1"></i> @item.Yil</span></td>
+                                    <td>
+                                        @foreach (var ay in (List<int>)item.Aylar)
+                                        {
+                                            <span class="badge-month">@ayAdlari[ay]</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn-icon-edit me-1"
+                                                onclick="aylikDuzenle(@item.DaireID, @item.Yil, '@string.Join(",", (List<int>)item.Aylar)', '@item.DaireNo', '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.AdSoyad))')"
+                                                title="Düzenle">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <a href="#" class="btn-icon-delete" onclick="aylikSil(event, @item.DaireID, @item.Yil)" title="Sil">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="flat-icon">@item.DaireNo</div>
-                                        <div>
-                                            <div class="fw-bold text-dark">@item.AdSoyad</div>
-                                            <div class="small text-muted">Daire No: @item.DaireNo</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td><span class="badge-year"><i class="bi bi-calendar-check me-1"></i> @item.Yil</span></td>
-                                <td>
-                                    @foreach (var ay in (List<int>)item.Aylar)
-                                    {
-                                        <span class="badge-month">@ayAdlari[ay]</span>
-                                    }
-                                </td>
-                                <td class="text-end">
-                                    <button type="button" class="btn-icon-edit me-1"
-                                            onclick="aylikDuzenle(@item.DaireID, @item.Yil, '@string.Join(",", (List<int>)item.Aylar)', '@item.DaireNo', '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.AdSoyad))')"
-                                            title="Düzenle">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <a href="#" class="btn-icon-delete" onclick="aylikSil(event, @item.DaireID, @item.Yil)" title="Sil">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox me-1"></i>Aktif aylık peşin ödeme kaydı bulunmamaktadır.
                                 </td>
                             </tr>
                         }
@@ -328,8 +395,80 @@
         </div>
     </div>
 
+    <!-- ================= GEÇMİŞ PEŞİN ÖDEMELER ================= -->
+    <div class="accordion my-4 shadow-sm rounded-4 overflow-hidden" id="accordionGecmisAylik">
+        <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingGecmisAylik">
+                <button class="accordion-button collapsed bg-white text-secondary fw-bold py-3 px-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGecmisAylik" aria-expanded="false" aria-controls="collapseGecmisAylik">
+                    <i class="bi bi-clock-history me-2 text-primary fs-5"></i> Geçmiş Peşin Ödemeler
+                    <span class="badge bg-secondary ms-2 rounded-pill">@(ViewBag.AylikGecmisList != null ? ViewBag.AylikGecmisList.Count : 0)</span>
+                </button>
+            </h2>
+            <div id="collapseGecmisAylik" class="accordion-collapse collapse" aria-labelledby="headingGecmisAylik" data-bs-parent="#accordionGecmisAylik">
+                <div class="accordion-body p-0">
+                    <div class="table-responsive">
+                        <table class="table modern-table mb-0 @(ViewBag.AylikGecmisList != null && ViewBag.AylikGecmisList.Count > 0 ? "datatable" : "")">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Daire Bilgisi</th>
+                                    <th scope="col">Yıl</th>
+                                    <th scope="col">Geçmiş Ödenen Aylar</th>
+                                    <th scope="col">Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.AylikGecmisList != null && ViewBag.AylikGecmisList.Count > 0)
+                                {
+                                    foreach (var item in ViewBag.AylikGecmisList)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flat-icon" style="background:#f1f5f9; color:#64748b;">@item.DaireNo</div>
+                                                    <div>
+                                                        <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                                        <div class="small text-muted">Daire No: @item.DaireNo</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge-year" style="background:#f1f5f9; color:#64748b; border-color:#e2e8f0;">
+                                                    <i class="bi bi-calendar-check me-1"></i> @item.Yil
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @foreach (var ay in (List<int>)item.Aylar)
+                                                {
+                                                    <span class="badge-month" style="background:#f8fafc; color:#64748b; border-color:#e2e8f0;">@ayAdlari[ay]</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-muted border px-2 py-1">
+                                                    <i class="bi bi-check2-circle me-1 text-success"></i>Dönemi Geçti
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted">
+                                            <i class="bi bi-info-circle me-1"></i>Geçmiş peşin ödeme kaydı bulunmamaktadır.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
+<!-- YILLIK PEŞİN ÖDEME EKLE MODAL -->
 <div class="modal fade" id="verticalycentered" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -343,7 +482,8 @@
             <form action="/AnaSayfa/PesinOdemeEkle" method="post" class="p-3">
                 <div class="modal-body">
                     <label class="fw-bold small mb-2 text-muted text-uppercase">Daire Seçimi</label>
-                    <select name="DaireID" class="form-select form-select-lg shadow-none" style="border-color: #e2e8f0; font-size: 1rem;">
+                    <select name="DaireID" id="selectDaireYillik" class="form-select select2-daire" required>
+                        <option value="">-- Daire Ara / Seçiniz --</option>
                         @foreach (var item in ViewBag.Daireler)
                         {
                             <option value="@item.DaireID">Daire @item.DaireNo - @item.AdSoyad</option>
@@ -352,10 +492,10 @@
 
                     <div class="info-year-card">
                         <i class="bi bi-calendar-event me-2"></i>
-                        PEŞİN ÖDENEN YIL : @DateTime.Now.Year
+                        PEŞİN ÖDENEN YIL : @simdikiYil
                     </div>
                     <p class="text-muted small text-center mt-2">
-                        Seçilen daire için @DateTime.Now.Year yılına ait aidat borçları otomatik olarak "Ödendi" durumuna geçecektir.
+                        Seçilen daire için @simdikiYil yılına ait aidat borçları otomatik olarak "Ödendi" durumuna geçecektir.
                     </p>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -380,16 +520,17 @@
             <form id="aylikEkleForm" action="/AnaSayfa/AylikPesinOdemeEkle" method="post" class="p-3" onsubmit="return aylikSubmitKontrol(this);">
                 <div class="modal-body">
                     <label class="fw-bold small mb-2 text-muted text-uppercase">Daire Seçimi</label>
-                    <select name="DaireID" class="form-select form-select-lg shadow-none" style="border-color: #e2e8f0; font-size: 1rem;">
+                    <select name="DaireID" id="selectDaireAylik" class="form-select select2-daire" required>
+                        <option value="">-- Daire Ara / Seçiniz --</option>
                         @foreach (var item in ViewBag.Daireler)
                         {
                             <option value="@item.DaireID">Daire @item.DaireNo - @item.AdSoyad</option>
                         }
                     </select>
 
-                    <label class="fw-bold small mb-2 mt-3 text-muted text-uppercase d-block">Peşin Ödenen Aylar (@DateTime.Now.Year)</label>
+                    <label class="fw-bold small mb-2 mt-3 text-muted text-uppercase d-block">Peşin Ödenen Aylar (@simdikiYil)</label>
                     <div class="ay-grid">
-                        @for (int a = 1; a <= 12; a++)
+                        @for (int a = simdikiAy; a <= 12; a++)
                         {
                             <div class="ay-check">
                                 <input type="checkbox" name="Aylar" value="@a" id="ekle_ay_@a" />
@@ -398,7 +539,7 @@
                         }
                     </div>
                     <p class="text-muted small text-center mt-3 mb-0">
-                        Seçilen aylar, dönem eklenirken borç oluşturmadan otomatik "Ödendi" (makbuzlu) işlenir.
+                        Seçilen aylar, dönem eklenirken borç oluşturmadan otomatik "Ödendi" (makbuzlu) işlenir. Geçmiş aylar listelenmez.
                     </p>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -425,9 +566,9 @@
                 <input type="hidden" name="Yil" id="duzenle_Yil" />
                 <div class="modal-body">
                     <div class="info-year-card mb-3" id="duzenle_baslik"></div>
-                    <label class="fw-bold small mb-2 text-muted text-uppercase d-block">Peşin Ödenen Aylar</label>
+                    <label class="fw-bold small mb-2 text-muted text-uppercase d-block">Peşin Ödenen Aktif Aylar (@simdikiYil)</label>
                     <div class="ay-grid">
-                        @for (int a = 1; a <= 12; a++)
+                        @for (int a = simdikiAy; a <= 12; a++)
                         {
                             <div class="ay-check">
                                 <input type="checkbox" name="Aylar" value="@a" id="duzenle_ay_@a" />
@@ -435,6 +576,9 @@
                             </div>
                         }
                     </div>
+                    <p class="text-muted small text-center mt-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>Geçmiş aylara ait ödemeler geçmiş kayıt olarak korunur; buradan yalnızca aktif aylar güncellenebilir.
+                    </p>
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
@@ -472,6 +616,27 @@
                 });
             </text>
         }
+
+        // Select2 Daire Arama Kutuları
+        $('#verticalycentered').on('shown.bs.modal', function () {
+            if (!$('#selectDaireYillik').hasClass("select2-hidden-accessible")) {
+                $('#selectDaireYillik').select2({
+                    dropdownParent: $('#verticalycentered'),
+                    width: '100%',
+                    placeholder: '-- Daire Ara / Seçiniz --'
+                });
+            }
+        });
+
+        $('#aylikEkleModal').on('shown.bs.modal', function () {
+            if (!$('#selectDaireAylik').hasClass("select2-hidden-accessible")) {
+                $('#selectDaireAylik').select2({
+                    dropdownParent: $('#aylikEkleModal'),
+                    width: '100%',
+                    placeholder: '-- Daire Ara / Seçiniz --'
+                });
+            }
+        });
     });
 
     // Modern Silme Onayı
@@ -552,11 +717,10 @@
         document.getElementById('duzenle_baslik').innerHTML =
             '<i class="bi bi-house-door me-2"></i>Daire ' + daireNo + ' - ' + adSoyad + ' (' + yil + ')';
 
-        // Önce hepsini temizle
-        for (var a = 1; a <= 12; a++) {
-            document.getElementById('duzenle_ay_' + a).checked = false;
-        }
-        // Kayıtlı ayları işaretle
+        // Önce modal içindeki checkbox'ları temizle
+        $('#aylikDuzenleModal input[name="Aylar"]').prop('checked', false);
+
+        // Kayıtlı aktif ayları işaretle
         if (aylarCsv && aylarCsv.length > 0) {
             aylarCsv.split(',').forEach(function (v) {
                 var el = document.getElementById('duzenle_ay_' + parseInt(v, 10));
@@ -573,7 +737,7 @@
         event.preventDefault();
         Swal.fire({
             title: 'Emin misiniz?',
-            text: "Bu dairenin aylık peşin ödeme kaydını silmek istediğinize emin misiniz?",
+            text: "Bu dairenin aktif aylık peşin ödeme kaydını silmek istediğinize emin misiniz?",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
