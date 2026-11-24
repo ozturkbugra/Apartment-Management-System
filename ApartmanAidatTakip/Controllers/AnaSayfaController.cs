@@ -3419,7 +3419,7 @@ namespace ApartmanAidatTakip.Controllers
             return RedirectToAction("Giderler", "AnaSayfa");
         }
 
-        public ActionResult BorcluDairelerPDF()
+        public ActionResult BorcluDairelerPDF(string filtre = "all")
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
@@ -3434,8 +3434,38 @@ namespace ApartmanAidatTakip.Controllers
             string binaAdi = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdi"]);
             string binaAdres = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdres"]);
 
-            var borcluDaireler = db.Dairelers.Where(x => x.BinaID == BinaID && x.Borc > 0).OrderBy(x => x.DaireNo).ToList();
-            var toplamAlacak = borcluDaireler.Sum(x => x.Borc);
+            var daireler = db.Dairelers.Where(x => x.BinaID == BinaID && x.Borc > 0).OrderBy(x => x.DaireNo).ToList();
+            var odenmemisAidatlar = db.Aidats.Where(x => x.BinaID == BinaID && x.Durum == "A").ToList();
+            var aidatMap = odenmemisAidatlar.GroupBy(x => x.DaireNo).ToDictionary(g => g.Key, g => g.Count());
+
+            var sonTanim = db.AidatTanims.Where(x => x.BinaID == BinaID).OrderByDescending(x => x.AidatYil).ThenByDescending(x => x.AidatAy).FirstOrDefault();
+            decimal aylikAidatTutar = sonTanim?.Tutar ?? 0;
+
+            var liste = daireler.Select(d =>
+            {
+                int aySayisi = aidatMap.ContainsKey(d.DaireNo) ? aidatMap[d.DaireNo] : 0;
+                bool coklu = aySayisi > 1 || (aySayisi == 0 && aylikAidatTutar > 0 && (d.Borc ?? 0) >= (aylikAidatTutar * 1.5m));
+                return new
+                {
+                    d.DaireNo,
+                    d.AdSoyad,
+                    d.DaireDurum,
+                    d.Borc,
+                    AySayisi = aySayisi,
+                    Coklu = coklu
+                };
+            }).ToList();
+
+            if (filtre == "coklu")
+            {
+                liste = liste.Where(x => x.Coklu).ToList();
+            }
+            else if (filtre == "tek")
+            {
+                liste = liste.Where(x => !x.Coklu).ToList();
+            }
+
+            var toplamAlacak = liste.Sum(x => x.Borc ?? 0);
 
             MemoryStream workStream = new MemoryStream();
             Document document = new Document(PageSize.A4, 50f, 50f, 20f, 10f);
@@ -3448,7 +3478,7 @@ namespace ApartmanAidatTakip.Controllers
             Font titleFont = new Font(bfArialTurkish, 18, Font.BOLD);
             Font subTitleFont = new Font(bfArialTurkish, 12, Font.NORMAL);
             Font tableFont = new Font(bfArialTurkish, 10, Font.NORMAL);
-            Font baslik = new Font(bfArialTurkish, 12, Font.BOLD);
+            Font baslik = new Font(bfArialTurkish, 11, Font.BOLD);
 
             // Logo ve bina adı
             string logoPath = Server.MapPath("~/Content/Admin/assets/img/binamakbuzlogo.png");
@@ -3479,37 +3509,44 @@ namespace ApartmanAidatTakip.Controllers
             document.Add(headerTable);
 
             // Başlık: Borçlular
-            Paragraph title = new Paragraph("BORÇLULAR", titleFont);
+            string baslikMetin = filtre == "coklu" ? "1 AYDAN FAZLA BORCU OLANLAR (KRİTİK)" : (filtre == "tek" ? "1 AY BORCU OLANLAR (CARİ)" : "BORÇLULAR LİSTESİ");
+            Paragraph title = new Paragraph(baslikMetin, titleFont);
             title.Alignment = Element.ALIGN_CENTER;
+            title.SpacingBefore = 10f;
             document.Add(title);
 
-            // Borçlu daireler tablosu
-            PdfPTable table = new PdfPTable(4);
+            // Borçlu daireler tablosu (5 kolon: Daire No, Ad Soyad, Durum, Geciken Ay, Borç)
+            PdfPTable table = new PdfPTable(5);
             table.WidthPercentage = 100;
-            table.SpacingBefore = 20f;
-            table.SetWidths(new float[] { 15, 40, 15, 15 });
-
-            //table.SetWidths(new float[] { 30, 50, 20 });
+            table.SpacingBefore = 15f;
+            table.SetWidths(new float[] { 12, 38, 15, 15, 20 });
 
             table.AddCell(new PdfPCell(new Phrase("DAİRE NO", baslik)));
             table.AddCell(new PdfPCell(new Phrase("AD SOYAD", baslik)));
             table.AddCell(new PdfPCell(new Phrase("DURUM", baslik)));
+            table.AddCell(new PdfPCell(new Phrase("GECİKEN AY", baslik)));
             table.AddCell(new PdfPCell(new Phrase("BORÇ", baslik)));
 
-            foreach (var daire in borcluDaireler)
+            foreach (var daire in liste)
             {
                 table.AddCell(new PdfPCell(new Phrase(daire.DaireNo.ToString(), tableFont)));
                 table.AddCell(new PdfPCell(new Phrase(daire.AdSoyad, tableFont)));
                 table.AddCell(new PdfPCell(new Phrase(daire.DaireDurum, tableFont)));
+                string ayStr = daire.AySayisi > 0 ? (daire.AySayisi + " Ay") : "-";
+                table.AddCell(new PdfPCell(new Phrase(ayStr, tableFont)));
                 table.AddCell(new PdfPCell(new Phrase(daire.Borc.HasValue ? daire.Borc.Value.ToString("C2") : "0,00 TL", tableFont)));
             }
 
             // Toplam alacak kısmı
-            PdfPCell totalCell = new PdfPCell(new Phrase("TOPLAM ALACAK", baslik));
-            totalCell.Colspan = 3;
-            totalCell.HorizontalAlignment = Element.ALIGN_RIGHT;
-            table.AddCell(totalCell);
-            table.AddCell(new PdfPCell(new Phrase(toplamAlacak.HasValue ? toplamAlacak.Value.ToString("C2") : "0,00 TL", tableFont)));
+            PdfPCell totalTitleCell = new PdfPCell(new Phrase("TOPLAM ALACAK:", baslik));
+            totalTitleCell.Colspan = 4;
+            totalTitleCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+            totalTitleCell.Border = PdfPCell.NO_BORDER;
+            table.AddCell(totalTitleCell);
+
+            PdfPCell totalAmountCell = new PdfPCell(new Phrase(toplamAlacak.ToString("C2"), baslik));
+            totalAmountCell.Border = PdfPCell.NO_BORDER;
+            table.AddCell(totalAmountCell);
 
             document.Add(table);
 
@@ -3523,7 +3560,7 @@ namespace ApartmanAidatTakip.Controllers
             return File(workStream, "application/pdf");
         }
 
-        public ActionResult BorcluDairelerExcel()
+        public ActionResult BorcluDairelerExcel(string filtre = "all")
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
@@ -3535,42 +3572,84 @@ namespace ApartmanAidatTakip.Controllers
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
             string binaAdi = HttpUtility.UrlDecode(userCookie.Values["BinaAdi"]);
 
-            var borcluDaireler = db.Dairelers
+            var daireler = db.Dairelers
                 .Where(x => x.BinaID == BinaID && x.Borc > 0)
                 .OrderBy(x => x.DaireNo)
                 .ToList();
-            var toplamAlacak = borcluDaireler.Sum(x => x.Borc);
+
+            var odenmemisAidatlar = db.Aidats.Where(x => x.BinaID == BinaID && x.Durum == "A").ToList();
+            var aidatMap = odenmemisAidatlar.GroupBy(x => x.DaireNo).ToDictionary(g => g.Key, g => g.ToList());
+
+            var sonTanim = db.AidatTanims.Where(x => x.BinaID == BinaID).OrderByDescending(x => x.AidatYil).ThenByDescending(x => x.AidatAy).FirstOrDefault();
+            decimal aylikAidatTutar = sonTanim?.Tutar ?? 0;
+
+            var liste = daireler.Select(d =>
+            {
+                var aList = aidatMap.ContainsKey(d.DaireNo) ? aidatMap[d.DaireNo] : new List<Aidat>();
+                int aySayisi = aList.Count;
+                bool coklu = aySayisi > 1 || (aySayisi == 0 && aylikAidatTutar > 0 && (d.Borc ?? 0) >= (aylikAidatTutar * 1.5m));
+                return new
+                {
+                    d.DaireNo,
+                    d.AdSoyad,
+                    d.DaireDurum,
+                    d.Borc,
+                    AySayisi = aySayisi,
+                    Aylar = string.Join(", ", aList.Select(a => a.AidatAy + " " + a.AidatYil)),
+                    Coklu = coklu
+                };
+            }).ToList();
+
+            if (filtre == "coklu")
+            {
+                liste = liste.Where(x => x.Coklu).ToList();
+            }
+            else if (filtre == "tek")
+            {
+                liste = liste.Where(x => !x.Coklu).ToList();
+            }
+
+            var toplamAlacak = liste.Sum(x => x.Borc ?? 0);
 
             using (var workbook = new XLWorkbook())
             {
-                var worksheet = workbook.Worksheets.Add("Borçlu Daireler");
+                string sayfaAdi = filtre == "coklu" ? "1 Aydan Fazla Borçlular" : (filtre == "tek" ? "1 Ay Borçlular" : "Borçlu Daireler");
+                var worksheet = workbook.Worksheets.Add(sayfaAdi);
 
                 // Başlık
-                worksheet.Cell(1, 1).Value = $"{binaAdi.ToUpper()} - BORÇLU DAİRELER " + DateTime.Now.ToString("dd/MM/yyyy");
-                worksheet.Range(1, 1, 1, 4).Merge().Style.Font.Bold = true;
+                string baslikYazi = filtre == "coklu" ? "1 AYDAN FAZLA BORCU OLAN DAİRELER" : (filtre == "tek" ? "1 AY BORCU OLAN DAİRELER" : "BORÇLU DAİRELER");
+                worksheet.Cell(1, 1).Value = $"{binaAdi.ToUpper()} - {baslikYazi} " + DateTime.Now.ToString("dd/MM/yyyy");
+                worksheet.Range(1, 1, 1, 6).Merge().Style.Font.Bold = true;
                 worksheet.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
                 // Sütun başlıkları
                 worksheet.Cell(3, 1).Value = "DAİRE NO";
                 worksheet.Cell(3, 2).Value = "AD SOYAD";
                 worksheet.Cell(3, 3).Value = "DURUM";
-                worksheet.Cell(3, 4).Value = "BORÇ";
+                worksheet.Cell(3, 4).Value = "GECİKEN AY";
+                worksheet.Cell(3, 5).Value = "BORÇLU DÖNEMLER";
+                worksheet.Cell(3, 6).Value = "BORÇ";
+
+                worksheet.Range(3, 1, 3, 6).Style.Font.Bold = true;
+                worksheet.Range(3, 1, 3, 6).Style.Fill.BackgroundColor = XLColor.LightGray;
 
                 var row = 4;
-                foreach (var daire in borcluDaireler)
+                foreach (var daire in liste)
                 {
                     worksheet.Cell(row, 1).Value = daire.DaireNo;
                     worksheet.Cell(row, 2).Value = daire.AdSoyad;
                     worksheet.Cell(row, 3).Value = daire.DaireDurum;
-                    worksheet.Cell(row, 4).Value = daire.Borc.HasValue ? daire.Borc.Value.ToString("C2") : "0,00 TL";
+                    worksheet.Cell(row, 4).Value = daire.AySayisi > 0 ? (daire.AySayisi + " Ay") : "-";
+                    worksheet.Cell(row, 5).Value = daire.Aylar;
+                    worksheet.Cell(row, 6).Value = daire.Borc.HasValue ? daire.Borc.Value.ToString("C2") : "0,00 TL";
                     row++;
                 }
 
                 // Toplam alacak
-                worksheet.Cell(row, 3).Value = "TOPLAM ALACAK";
-                worksheet.Cell(row, 3).Style.Font.Bold = true;
-                worksheet.Cell(row, 4).Value = toplamAlacak.HasValue ? toplamAlacak.Value.ToString("C2") : "0,00 TL";
-                worksheet.Cell(row, 4).Style.Font.Bold = true;
+                worksheet.Cell(row, 5).Value = "TOPLAM ALACAK:";
+                worksheet.Cell(row, 5).Style.Font.Bold = true;
+                worksheet.Cell(row, 6).Value = toplamAlacak.ToString("C2");
+                worksheet.Cell(row, 6).Style.Font.Bold = true;
 
                 // Sütun genişliklerini içeriğe göre ayarla
                 worksheet.Columns().AdjustToContents();
@@ -3980,7 +4059,7 @@ namespace ApartmanAidatTakip.Controllers
             return RedirectToAction("Tahsilat", "AnaSayfa");
         }
 
-        public ActionResult BorcluDaireler()
+        public ActionResult BorcluDaireler(string filtre = "all")
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
@@ -3991,7 +4070,80 @@ namespace ApartmanAidatTakip.Controllers
             Sabit();
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
-            ViewBag.BorcluDaireler = db.Dairelers.AsNoTracking().Where(x => x.BinaID == BinaID && x.Borc > 0).OrderBy(x => x.DaireNo).ToList();
+
+            var daireler = db.Dairelers.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Borc > 0)
+                .OrderBy(x => x.DaireNo)
+                .ToList();
+
+            var odenmemisAidatlar = db.Aidats.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Durum == "A")
+                .OrderBy(x => x.AidatYil)
+                .ThenBy(x => x.AidatID)
+                .ToList();
+
+            var odenmemisEkler = db.Eks.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Durum == "A")
+                .OrderBy(x => x.EkYil)
+                .ThenBy(x => x.EkID)
+                .ToList();
+
+            var aidatMap = odenmemisAidatlar.GroupBy(x => x.DaireNo).ToDictionary(g => g.Key, g => g.ToList());
+            var ekMap = odenmemisEkler.GroupBy(x => x.DaireNo).ToDictionary(g => g.Key, g => g.ToList());
+
+            var sonTanim = db.AidatTanims.AsNoTracking()
+                .Where(x => x.BinaID == BinaID)
+                .OrderByDescending(x => x.AidatYil)
+                .ThenByDescending(x => x.AidatAy)
+                .FirstOrDefault();
+            decimal aylikAidatTutar = sonTanim?.Tutar ?? 0;
+
+            var tumListe = new List<BorcluDaireListe>();
+            foreach (var d in daireler)
+            {
+                var aList = aidatMap.ContainsKey(d.DaireNo) ? aidatMap[d.DaireNo] : new List<Aidat>();
+                var eList = ekMap.ContainsKey(d.DaireNo) ? ekMap[d.DaireNo] : new List<Ek>();
+
+                int aySayisi = aList.Count;
+                int ekSayisi = eList.Count;
+                bool coklu = aySayisi > 1 || (aySayisi == 0 && aylikAidatTutar > 0 && (d.Borc ?? 0) >= (aylikAidatTutar * 1.5m));
+
+                tumListe.Add(new BorcluDaireListe
+                {
+                    DaireID = d.DaireID,
+                    DaireNo = d.DaireNo,
+                    AdSoyad = d.AdSoyad,
+                    Telefon = d.Telefon,
+                    TC = d.TC,
+                    DaireDurum = d.DaireDurum,
+                    Borc = d.Borc ?? 0,
+                    GecikenAySayisi = aySayisi,
+                    GecikenEkSayisi = ekSayisi,
+                    BorcluAylar = aList.Select(a => a.AidatAy + " " + a.AidatYil).ToList(),
+                    BorcluEkler = eList.Select(e => e.EkAy + " " + e.EkYil + " (Demirbaş)").ToList(),
+                    CokluBorcluMu = coklu
+                });
+            }
+
+            ViewBag.ToplamBorcluSayisi = tumListe.Count;
+            ViewBag.CokluBorcluSayisi = tumListe.Count(x => x.CokluBorcluMu);
+            ViewBag.TekBorcluSayisi = tumListe.Count(x => !x.CokluBorcluMu);
+            ViewBag.ToplamBorc = tumListe.Sum(x => x.Borc);
+            ViewBag.CokluToplamBorc = tumListe.Where(x => x.CokluBorcluMu).Sum(x => x.Borc);
+            ViewBag.TekToplamBorc = tumListe.Where(x => !x.CokluBorcluMu).Sum(x => x.Borc);
+            ViewBag.Filtre = filtre ?? "all";
+
+            var gosterilenListe = tumListe;
+            if (filtre == "coklu")
+            {
+                gosterilenListe = tumListe.Where(x => x.CokluBorcluMu).ToList();
+            }
+            else if (filtre == "tek")
+            {
+                gosterilenListe = tumListe.Where(x => !x.CokluBorcluMu).ToList();
+            }
+
+            ViewBag.BorcluDaireler = gosterilenListe;
             return View();
         }
 

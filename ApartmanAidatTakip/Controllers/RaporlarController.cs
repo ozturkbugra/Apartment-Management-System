@@ -1,4 +1,5 @@
 ﻿using ApartmanAidatTakip.Models;
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Office2021.DocumentTasks;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
@@ -1201,6 +1202,16 @@ namespace ApartmanAidatTakip.Controllers
 
         }
 
+        private List<GiderView> GetTureGoreGiderlerList(int binaID, DateTime ilk, DateTime son, int giderTuruID)
+        {
+            DateTime baslangic = ilk.Date;
+            DateTime bitis = son.Date.AddDays(1).AddTicks(-1);
+            return db.GiderViews
+                .Where(x => x.GiderTuruID == giderTuruID && x.BinaID == binaID && x.GiderTarih >= baslangic && x.GiderTarih <= bitis && x.Durum == "A")
+                .OrderByDescending(x => x.GiderID)
+                .ToList();
+        }
+
         public ActionResult TureGoreGiderler(DateTime? ilk, DateTime? son, int? GiderTuruID)
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
@@ -1218,19 +1229,10 @@ namespace ApartmanAidatTakip.Controllers
                 ViewBag.tarihdeger1 = ilk.Value.ToString("yyyy-MM-dd");
                 ViewBag.tarihdeger2 = son.Value.ToString("yyyy-MM-dd");
                 ViewBag.giderturudeger = GiderTuruID;
-                if (ilk.HasValue)
-                {
-                    ilk = ilk.Value.Date; // Saat kısmını 00:00:00 yapar
-                }
 
-                // tarih2'nin saatini 23:59:59 olarak ayarla
-                if (son.HasValue)
-                {
-                    son = son.Value.Date.AddDays(1).AddTicks(-1); // Saat kısmını 23:59:59 yapar
-                }
-
-                ViewBag.Gider = db.GiderViews.Where(x => x.GiderTuruID == GiderTuruID && x.BinaID == BinaID && x.GiderTarih >= ilk && x.GiderTarih <= son && x.Durum=="A").OrderByDescending(x=> x.GiderID).ToList();
-                ViewBag.Toplam = db.GiderViews.Where(x => x.GiderTuruID == GiderTuruID && x.BinaID == BinaID && x.GiderTarih >= ilk && x.GiderTarih <= son && x.Durum == "A").Sum(x => (decimal?)x.GiderTutar) ?? 0;
+                var giderler = GetTureGoreGiderlerList(BinaID, ilk.Value, son.Value, GiderTuruID.Value);
+                ViewBag.Gider = giderler;
+                ViewBag.Toplam = giderler.Sum(x => (decimal?)x.GiderTutar) ?? 0;
             }
             else
             {
@@ -1238,6 +1240,159 @@ namespace ApartmanAidatTakip.Controllers
                 ViewBag.tarihdeger2 = DateTime.Now.ToString("yyyy-MM-dd");
             }
             return View();
+        }
+
+        public ActionResult TureGoreGiderlerPDF(DateTime? ilk, DateTime? son, int? GiderTuruID)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null) return RedirectToAction("Login", "AnaSayfa");
+            if (ilk == null || son == null || GiderTuruID == null) return RedirectToAction("TureGoreGiderler");
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            string binaAdi = HttpUtility.UrlDecode(userCookie.Values["BinaAdi"]) ?? "";
+
+            var giderler = GetTureGoreGiderlerList(BinaID, ilk.Value, son.Value, GiderTuruID.Value);
+            decimal toplam = giderler.Sum(x => x.GiderTutar) ?? 0;
+            string giderTuruAdi = db.GiderTurus
+                .Where(x => x.GiderTuruID == GiderTuruID.Value)
+                .Select(x => x.GiderTuruAdi)
+                .FirstOrDefault() ?? "Seçili Kategori";
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4, 25, 25, 25, 25);
+                PdfWriter.GetInstance(document, ms);
+                document.Open();
+
+                string arialFontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
+                BaseFont bf = BaseFont.CreateFont(arialFontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                Font titleFont = new Font(bf, 14, Font.BOLD);
+                Font subTitleFont = new Font(bf, 12, Font.BOLD);
+                Font tableFont = new Font(bf, 9);
+                Font boldTableFont = new Font(bf, 10, Font.BOLD);
+
+                Paragraph dateTimeParagraph = new Paragraph($"ÇIKTI TARİHİ: {DateTime.Now:dd/MM/yyyy HH:mm:ss}", tableFont)
+                {
+                    Alignment = Element.ALIGN_RIGHT
+                };
+                document.Add(dateTimeParagraph);
+
+                document.Add(new Paragraph(binaAdi, titleFont) { Alignment = Element.ALIGN_CENTER });
+                document.Add(new Paragraph($"{giderTuruAdi.ToUpper()} GİDER RAPORU", subTitleFont) { Alignment = Element.ALIGN_CENTER });
+                document.Add(new Paragraph($"{ilk.Value:dd.MM.yyyy} - {son.Value:dd.MM.yyyy}", tableFont) { Alignment = Element.ALIGN_CENTER });
+                document.Add(new Paragraph("\n"));
+
+                PdfPTable table = new PdfPTable(5) { WidthPercentage = 100, HeaderRows = 1 };
+                table.SetWidths(new float[] { 13f, 12f, 20f, 37f, 18f });
+
+                string[] headers = { "Tarih", "Fiş No", "Kategori", "Açıklama", "Tutar" };
+                int[] alignments = { Element.ALIGN_CENTER, Element.ALIGN_CENTER, Element.ALIGN_LEFT, Element.ALIGN_LEFT, Element.ALIGN_RIGHT };
+                for (int idx = 0; idx < headers.Length; idx++)
+                {
+                    table.AddCell(new PdfPCell(new Phrase(headers[idx], boldTableFont))
+                    {
+                        BackgroundColor = BaseColor.LIGHT_GRAY,
+                        HorizontalAlignment = alignments[idx],
+                        Padding = 5
+                    });
+                }
+
+                foreach (var g in giderler)
+                {
+                    table.AddCell(new PdfPCell(new Phrase(g.GiderTarih.HasValue ? g.GiderTarih.Value.ToString("dd.MM.yyyy") : "", tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 4 });
+                    table.AddCell(new PdfPCell(new Phrase($"#{g.GiderNo}", tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 4 });
+                    table.AddCell(new PdfPCell(new Phrase(g.GiderTuruAdi ?? "", tableFont)) { HorizontalAlignment = Element.ALIGN_LEFT, Padding = 4 });
+                    table.AddCell(new PdfPCell(new Phrase(g.GiderAciklama ?? "", tableFont)) { HorizontalAlignment = Element.ALIGN_LEFT, Padding = 4 });
+                    table.AddCell(new PdfPCell(new Phrase($"{(g.GiderTutar ?? 0):N2} TL", tableFont)) { HorizontalAlignment = Element.ALIGN_RIGHT, Padding = 4 });
+                }
+
+                table.AddCell(new PdfPCell(new Phrase("TOPLAM", boldTableFont))
+                {
+                    Colspan = 4,
+                    HorizontalAlignment = Element.ALIGN_RIGHT,
+                    BackgroundColor = new BaseColor(245, 245, 245),
+                    Padding = 5
+                });
+                table.AddCell(new PdfPCell(new Phrase($"{toplam:N2} TL", boldTableFont))
+                {
+                    HorizontalAlignment = Element.ALIGN_RIGHT,
+                    BackgroundColor = new BaseColor(245, 245, 245),
+                    Padding = 5
+                });
+
+                document.Add(table);
+                document.Close();
+
+                byte[] byteInfo = ms.ToArray();
+                Response.AppendHeader("Content-Disposition", $"inline; filename=TureGoreGiderler_{ilk.Value:yyyyMMdd}_{son.Value:yyyyMMdd}.pdf");
+                return File(byteInfo, "application/pdf");
+            }
+        }
+
+        public ActionResult TureGoreGiderlerExcel(DateTime? ilk, DateTime? son, int? GiderTuruID)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null) return RedirectToAction("Login", "AnaSayfa");
+            if (ilk == null || son == null || GiderTuruID == null) return RedirectToAction("TureGoreGiderler");
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            string binaAdi = HttpUtility.UrlDecode(userCookie.Values["BinaAdi"]) ?? "";
+
+            var giderler = GetTureGoreGiderlerList(BinaID, ilk.Value, son.Value, GiderTuruID.Value);
+            decimal toplam = giderler.Sum(x => x.GiderTutar) ?? 0;
+            string giderTuruAdi = db.GiderTurus
+                .Where(x => x.GiderTuruID == GiderTuruID.Value)
+                .Select(x => x.GiderTuruAdi)
+                .FirstOrDefault() ?? "Seçili Kategori";
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Türe Göre Giderler");
+
+                worksheet.Cell(1, 1).Value = $"{binaAdi.ToUpper()} - {giderTuruAdi.ToUpper()} GİDER RAPORU ({ilk.Value:dd.MM.yyyy} - {son.Value:dd.MM.yyyy})";
+                worksheet.Range(1, 1, 1, 5).Merge().Style.Font.Bold = true;
+                worksheet.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheet.Cell(3, 1).Value = "TARİH";
+                worksheet.Cell(3, 2).Value = "FİŞ NO";
+                worksheet.Cell(3, 3).Value = "KATEGORİ";
+                worksheet.Cell(3, 4).Value = "AÇIKLAMA";
+                worksheet.Cell(3, 5).Value = "TUTAR";
+
+                worksheet.Range(3, 1, 3, 5).Style.Font.Bold = true;
+                worksheet.Range(3, 1, 3, 5).Style.Fill.BackgroundColor = XLColor.LightGray;
+
+                int row = 4;
+                foreach (var g in giderler)
+                {
+                    worksheet.Cell(row, 1).Value = g.GiderTarih.HasValue ? g.GiderTarih.Value.ToString("dd.MM.yyyy") : "";
+                    worksheet.Cell(row, 2).Value = g.GiderNo;
+                    worksheet.Cell(row, 3).Value = g.GiderTuruAdi ?? "";
+                    worksheet.Cell(row, 4).Value = g.GiderAciklama ?? "";
+                    worksheet.Cell(row, 5).Value = g.GiderTutar ?? 0m;
+                    worksheet.Cell(row, 5).Style.NumberFormat.Format = "#,##0.00 \"₺\"";
+                    row++;
+                }
+
+                worksheet.Cell(row, 4).Value = "TOPLAM HARCAMA:";
+                worksheet.Cell(row, 4).Style.Font.Bold = true;
+                worksheet.Cell(row, 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Cell(row, 5).Value = toplam;
+                worksheet.Cell(row, 5).Style.Font.Bold = true;
+                worksheet.Cell(row, 5).Style.NumberFormat.Format = "#,##0.00 \"₺\"";
+
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    return File(
+                        stream.ToArray(),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        $"TureGoreGiderler_{ilk.Value:yyyyMMdd}_{son.Value:yyyyMMdd}.xlsx"
+                    );
+                }
+            }
         }
 
         public ActionResult DevirBakiyeleri()

@@ -63,6 +63,10 @@
         border: none;
     }
 
+    .card-header {
+        background: transparent;
+    }
+
     .modern-table thead th {
         background-color: #f8f9fa;
         color: #64748b;
@@ -84,6 +88,10 @@
         background-color: #f8fafc;
     }
 
+    .sakin-adi {
+        color: inherit;
+    }
+
     /* Daire İkonu */
     .flat-icon {
         width: 40px;
@@ -98,6 +106,11 @@
         margin-right: 15px;
     }
 
+    .flat-icon-muted {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
     /* Yıl Rozeti */
     .badge-year {
         background: #ecfdf5;
@@ -106,6 +119,31 @@
         border-radius: 8px;
         font-weight: 600;
         border: 1px solid #d1fae5;
+    }
+
+    .badge-year-muted {
+        background: #f1f5f9;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Ay Rozeti */
+    .badge-month {
+        display: inline-block;
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #dbeafe;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin: 2px 3px 2px 0;
+    }
+
+    .badge-month-muted {
+        background: #f8fafc;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
     }
 
     /* Silme Butonu */
@@ -127,31 +165,6 @@
             color: white;
         }
 
-    /* Modal Tasarımı */
-    .info-year-card {
-        background: #f0fdf4;
-        border: 1px dashed #22c55e;
-        border-radius: 10px;
-        padding: 15px;
-        text-align: center;
-        color: #15803d;
-        font-weight: 600;
-        margin-top: 20px;
-    }
-
-    /* Ay Rozeti */
-    .badge-month {
-        display: inline-block;
-        background: #eff6ff;
-        color: #2563eb;
-        border: 1px solid #dbeafe;
-        padding: 4px 10px;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        margin: 2px 3px 2px 0;
-    }
-
     /* Düzenle Butonu */
     .btn-icon-edit {
         width: 35px;
@@ -169,6 +182,32 @@
         .btn-icon-edit:hover {
             background: #2563eb;
             color: white;
+        }
+
+    /* Modal Tasarımı */
+    .info-year-card {
+        background: #f0fdf4;
+        border: 1px dashed #22c55e;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        color: #15803d;
+        font-weight: 600;
+        margin-top: 20px;
+    }
+
+    .btn-cancel-modal {
+        background: #f1f5f9;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 8px 16px;
+    }
+
+        .btn-cancel-modal:hover {
+            background: #e2e8f0;
+            color: #334155;
         }
 
     /* Ay seçim ızgarası */
@@ -226,7 +265,7 @@
     .select2-container--default .select2-selection--single .select2-selection__rendered {
         line-height: normal;
         padding-left: 0;
-        color: #344767;
+        color: inherit;
     }
 
     .select2-container--default .select2-selection--single .select2-selection__arrow {
@@ -257,6 +296,186 @@
         background-color: #059669;
         color: white;
     }
+
+    /* ===================== DARK MODE (ayrı katman) ===================== */
+    html.dark-mode .page-header,
+    html.dark-mode .table-card,
+    html.dark-mode .accordion-item,
+    html.dark-mode .modal-content {
+        background: var(--dm-surface) !important;
+        border-color: var(--dm-border) !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35) !important;
+    }
+
+    html.dark-mode .page-header h3,
+    html.dark-mode .card-title,
+    html.dark-mode .sakin-adi,
+    html.dark-mode .modal-title {
+        color: var(--dm-text) !important;
+    }
+
+    html.dark-mode .page-header span,
+    html.dark-mode .text-muted {
+        color: var(--dm-muted) !important;
+    }
+
+    html.dark-mode .card-header {
+        background: transparent !important;
+        border-bottom-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .modern-table thead th {
+        background-color: var(--dm-surface-2) !important;
+        color: var(--dm-muted) !important;
+        border-bottom-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .modern-table tbody td {
+        color: var(--dm-text) !important;
+        border-bottom-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .modern-table tbody tr:hover {
+        background-color: var(--dm-surface-2) !important;
+    }
+
+    html.dark-mode .flat-icon {
+        background: rgba(79, 70, 229, 0.2) !important;
+        color: #818cf8 !important;
+    }
+
+    html.dark-mode .flat-icon-muted {
+        background: var(--dm-surface-2) !important;
+        color: var(--dm-muted) !important;
+    }
+
+    html.dark-mode .badge-year {
+        background: rgba(5, 150, 105, 0.2) !important;
+        color: #34d399 !important;
+        border-color: rgba(5, 150, 105, 0.3) !important;
+    }
+
+    html.dark-mode .badge-year-muted {
+        background: var(--dm-surface-2) !important;
+        color: var(--dm-muted) !important;
+        border-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .badge-month {
+        background: rgba(37, 99, 235, 0.2) !important;
+        color: #60a5fa !important;
+        border-color: rgba(37, 99, 235, 0.3) !important;
+    }
+
+    html.dark-mode .badge-month-muted {
+        background: var(--dm-surface-2) !important;
+        color: var(--dm-muted) !important;
+        border-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .btn-icon-delete {
+        background: rgba(239, 68, 68, 0.15) !important;
+        border-color: rgba(239, 68, 68, 0.25) !important;
+        color: #f87171 !important;
+    }
+
+        html.dark-mode .btn-icon-delete:hover {
+            background: #ef4444 !important;
+            color: #ffffff !important;
+        }
+
+    html.dark-mode .btn-icon-edit {
+        background: rgba(37, 99, 235, 0.15) !important;
+        border-color: rgba(37, 99, 235, 0.25) !important;
+        color: #60a5fa !important;
+    }
+
+        html.dark-mode .btn-icon-edit:hover {
+            background: #2563eb !important;
+            color: #ffffff !important;
+        }
+
+    html.dark-mode .info-year-card {
+        background: rgba(5, 150, 105, 0.15) !important;
+        border-color: rgba(5, 150, 105, 0.35) !important;
+        color: #34d399 !important;
+    }
+
+    html.dark-mode .ay-check label {
+        background: var(--dm-surface-2) !important;
+        border-color: var(--dm-border) !important;
+        color: var(--dm-muted) !important;
+    }
+
+        html.dark-mode .ay-check label:hover {
+            color: var(--dm-text) !important;
+            border-color: var(--dm-primary) !important;
+        }
+
+    html.dark-mode .ay-check input:checked + label {
+        background: var(--success-grad) !important;
+        color: #ffffff !important;
+        border-color: transparent !important;
+    }
+
+    html.dark-mode .accordion-button {
+        background: var(--dm-surface) !important;
+        color: var(--dm-text) !important;
+    }
+
+        html.dark-mode .accordion-button:not(.collapsed) {
+            background: var(--dm-surface-2) !important;
+            color: var(--dm-primary) !important;
+        }
+
+        html.dark-mode .accordion-button::after {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+    html.dark-mode .btn-cancel-modal {
+        background: var(--dm-surface-2) !important;
+        border-color: var(--dm-border) !important;
+        color: var(--dm-muted) !important;
+    }
+
+        html.dark-mode .btn-cancel-modal:hover {
+            color: var(--dm-text) !important;
+        }
+
+    /* Select2 Dark Mode */
+    html.dark-mode .select2-container--default .select2-selection--single {
+        background-color: var(--dm-surface-2) !important;
+        border-color: var(--dm-border) !important;
+    }
+
+        html.dark-mode .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: var(--dm-text) !important;
+        }
+
+        html.dark-mode .select2-container--default .select2-selection--single .select2-selection__arrow b {
+            border-color: var(--dm-muted) transparent transparent transparent !important;
+        }
+
+    html.dark-mode .select2-dropdown {
+        background-color: var(--dm-surface) !important;
+        border-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .select2-search--dropdown .select2-search__field {
+        background-color: var(--dm-surface-2) !important;
+        border-color: var(--dm-border) !important;
+        color: var(--dm-text) !important;
+    }
+
+    html.dark-mode .select2-container--default .select2-results__option--selectable {
+        background-color: var(--dm-surface) !important;
+        color: var(--dm-text) !important;
+    }
+
+    html.dark-mode .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+        background-color: #059669 !important;
+        color: #ffffff !important;
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -264,7 +483,7 @@
     <!-- ================= YILLIK PEŞİN ÖDEMELER ================= -->
     <div class="page-header">
         <div>
-            <h3 class="fw-bold mb-0 text-dark">Peşin Ödemeler</h3>
+            <h3 class="fw-bold mb-0">Peşin Ödemeler</h3>
             <span class="text-muted small">Yıllık peşin ödeme yapan dairelerin listesi</span>
         </div>
         <button type="button" class="btn-add" data-bs-toggle="modal" data-bs-target="#verticalycentered">
@@ -273,8 +492,8 @@
     </div>
 
     <div class="card table-card mb-4">
-        <div class="card-header bg-white border-0 pt-4 px-4">
-            <h5 class="card-title fw-bold text-dark mb-0"><i class="bi bi-list-check me-2 text-primary"></i>Yıllık Ödeme Listesi</h5>
+        <div class="card-header border-0 pt-4 px-4">
+            <h5 class="card-title fw-bold mb-0"><i class="bi bi-list-check me-2 text-primary"></i>Yıllık Ödeme Listesi</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -294,7 +513,7 @@
                                     <div class="d-flex align-items-center">
                                         <div class="flat-icon">@item.DaireNo</div>
                                         <div>
-                                            <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                            <div class="fw-bold sakin-adi">@item.AdSoyad</div>
                                             <div class="small text-muted">Daire No: @item.DaireNo</div>
                                         </div>
                                     </div>
@@ -320,7 +539,7 @@
     <!-- ================= AYLIK PEŞİN ÖDEMELER (AKTİF) ================= -->
     <div class="page-header mt-4">
         <div>
-            <h3 class="fw-bold mb-0 text-dark">Aylık Peşin Ödemeler</h3>
+            <h3 class="fw-bold mb-0">Aylık Peşin Ödemeler</h3>
             <span class="text-muted small">Aktif peşin ödeme yapan daireler (@simdikiYil)</span>
         </div>
         <button type="button" class="btn-add" data-bs-toggle="modal" data-bs-target="#aylikEkleModal">
@@ -329,9 +548,9 @@
     </div>
 
     <div class="card table-card">
-        <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-            <h5 class="card-title fw-bold text-dark mb-0"><i class="bi bi-calendar3 me-2 text-success"></i>Aktif Aylık Ödeme Listesi</h5>
-            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small">
+        <div class="card-header border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="card-title fw-bold mb-0"><i class="bi bi-calendar3 me-2 text-success"></i>Aktif Aylık Ödeme Listesi</h5>
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill small">
                 <i class="bi bi-check-circle me-1"></i>Aktif Kayıtlar
             </span>
         </div>
@@ -356,7 +575,7 @@
                                         <div class="d-flex align-items-center">
                                             <div class="flat-icon">@item.DaireNo</div>
                                             <div>
-                                                <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                                <div class="fw-bold sakin-adi">@item.AdSoyad</div>
                                                 <div class="small text-muted">Daire No: @item.DaireNo</div>
                                             </div>
                                         </div>
@@ -399,9 +618,9 @@
     <div class="accordion my-4 shadow-sm rounded-4 overflow-hidden" id="accordionGecmisAylik">
         <div class="accordion-item border-0">
             <h2 class="accordion-header" id="headingGecmisAylik">
-                <button class="accordion-button collapsed bg-white text-secondary fw-bold py-3 px-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGecmisAylik" aria-expanded="false" aria-controls="collapseGecmisAylik">
+                <button class="accordion-button collapsed fw-bold py-3 px-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGecmisAylik" aria-expanded="false" aria-controls="collapseGecmisAylik">
                     <i class="bi bi-clock-history me-2 text-primary fs-5"></i> Geçmiş Peşin Ödemeler
-                    <span class="badge bg-secondary ms-2 rounded-pill">@(ViewBag.AylikGecmisList != null ? ViewBag.AylikGecmisList.Count : 0)</span>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 ms-2 rounded-pill">@(ViewBag.AylikGecmisList != null ? ViewBag.AylikGecmisList.Count : 0)</span>
                 </button>
             </h2>
             <div id="collapseGecmisAylik" class="accordion-collapse collapse" aria-labelledby="headingGecmisAylik" data-bs-parent="#accordionGecmisAylik">
@@ -424,26 +643,26 @@
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="flat-icon" style="background:#f1f5f9; color:#64748b;">@item.DaireNo</div>
+                                                    <div class="flat-icon flat-icon-muted">@item.DaireNo</div>
                                                     <div>
-                                                        <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                                        <div class="fw-bold sakin-adi">@item.AdSoyad</div>
                                                         <div class="small text-muted">Daire No: @item.DaireNo</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="badge-year" style="background:#f1f5f9; color:#64748b; border-color:#e2e8f0;">
+                                                <span class="badge-year badge-year-muted">
                                                     <i class="bi bi-calendar-check me-1"></i> @item.Yil
                                                 </span>
                                             </td>
                                             <td>
                                                 @foreach (var ay in (List<int>)item.Aylar)
                                                 {
-                                                    <span class="badge-month" style="background:#f8fafc; color:#64748b; border-color:#e2e8f0;">@ayAdlari[ay]</span>
+                                                    <span class="badge-month badge-month-muted">@ayAdlari[ay]</span>
                                                 }
                                             </td>
                                             <td>
-                                                <span class="badge bg-light text-muted border px-2 py-1">
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">
                                                     <i class="bi bi-check2-circle me-1 text-success"></i>Dönemi Geçti
                                                 </span>
                                             </td>
@@ -499,7 +718,7 @@
                     </p>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">İptal</button>
                     <button type="submit" class="btn btn-success px-4" style="background: var(--success-grad); border:none;">Kaydet</button>
                 </div>
             </form>
@@ -543,7 +762,7 @@
                     </p>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">İptal</button>
                     <button type="submit" class="btn btn-success px-4" style="background: var(--success-grad); border:none;">Kaydet</button>
                 </div>
             </form>
@@ -581,7 +800,7 @@
                     </p>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">İptal</button>
                     <button type="submit" class="btn btn-primary px-4">Güncelle</button>
                 </div>
             </form>
@@ -641,7 +860,7 @@
 
     // Modern Silme Onayı
     function confirmDeleteExpense(event, id) {
-        event.preventDefault(); // Sayfa yenilenmesini engelle
+        event.preventDefault();
 
         Swal.fire({
             title: 'Emin misiniz?',
@@ -704,10 +923,10 @@
                     form.submit();
                 }
             });
-            return false; // ardışık değilse önce onay bekle
+            return false;
         }
 
-        return true; // ardışık, direkt gönder
+        return true;
     }
 
     // Düzenle modalını doldur
@@ -717,10 +936,8 @@
         document.getElementById('duzenle_baslik').innerHTML =
             '<i class="bi bi-house-door me-2"></i>Daire ' + daireNo + ' - ' + adSoyad + ' (' + yil + ')';
 
-        // Önce modal içindeki checkbox'ları temizle
         $('#aylikDuzenleModal input[name="Aylar"]').prop('checked', false);
 
-        // Kayıtlı aktif ayları işaretle
         if (aylarCsv && aylarCsv.length > 0) {
             aylarCsv.split(',').forEach(function (v) {
                 var el = document.getElementById('duzenle_ay_' + parseInt(v, 10));

@@ -198,9 +198,16 @@
 
             <div class="col-lg-8">
                 <div class="table-card">
-                    <div class="px-4 py-3 border-bottom d-flex align-items-center justify-content-between bg-white">
+                    <div class="px-4 py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2 bg-white">
                         <h6 class="mb-0 fw-bold text-danger"><i class="bi bi-list-columns-reverse me-2"></i>Harcama Listesi</h6>
-                        @*<span class="badge bg-danger bg-opacity-10 text-danger">@(((List<object>)ViewBag.Gider).Count) Kayıt</span>*@
+                        <div class="d-flex gap-2">
+                            <a href="/Raporlar/TureGoreGiderlerExcel?ilk=@ViewBag.tarihdeger1&son=@ViewBag.tarihdeger2&GiderTuruID=@ViewBag.giderturudeger" class="btn btn-sm btn-success text-white fw-semibold px-3" style="color: #fff !important;">
+                                <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel'e Aktar
+                            </a>
+                            <a href="/Raporlar/TureGoreGiderlerPDF?ilk=@ViewBag.tarihdeger1&son=@ViewBag.tarihdeger2&GiderTuruID=@ViewBag.giderturudeger" target="_blank" class="btn btn-sm btn-danger text-white fw-semibold px-3" style="color: #fff !important;">
+                                <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF'e Aktar
+                            </a>
+                        </div>
                     </div>
 
                     <div class="table-responsive">

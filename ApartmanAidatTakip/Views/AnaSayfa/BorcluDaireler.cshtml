@@ -1,7 +1,8 @@
-﻿@{
+@{
     ViewBag.Title = "Borçlu Daireler";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string tl = "₺";
+    string seciliFiltre = ViewBag.Filtre as string ?? "all";
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -31,7 +32,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 25px;
+        margin-bottom: 20px;
         flex-wrap: wrap;
         gap: 15px;
     }
@@ -39,7 +40,6 @@
     .toolbar-title h3 {
         font-weight: 700;
         margin: 0;
-        color: #1e293b;
         font-size: 1.5rem;
     }
 
@@ -68,7 +68,7 @@
 
         .btn-print-custom:hover {
             background-color: #0284c7;
-            color: white;
+            color: #ffffff;
             transform: translateY(-2px);
         }
 
@@ -79,9 +79,60 @@
 
         .btn-excel-custom:hover {
             background-color: var(--excel-color);
-            color: white;
+            color: #ffffff;
             transform: translateY(-2px);
         }
+
+    /* Filtre Hap Butonları */
+    .filter-pills-bar {
+        background: #fff;
+        padding: 12px 20px;
+        border-radius: 14px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .filter-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+        .filter-pill:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .filter-pill.active {
+            background: #4f46e5;
+            color: #ffffff;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        .filter-pill.filter-pill-danger.active {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+        }
+
+    .filter-pill .badge {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+    }
 
     /* Tablo Kartı */
     .table-card {
@@ -112,7 +163,6 @@
     .modern-table tbody tr:hover {
         background-color: #fff1f2;
     }
-    /* Hafif kırmızı hover */
 
     /* Bileşenler */
     .daire-badge {
@@ -151,7 +201,7 @@
 
     .btn-whatsapp {
         background-color: var(--whatsapp-color);
-        color: white;
+        color: #ffffff;
         border: none;
         padding: 8px 16px;
         border-radius: 50px;
@@ -167,29 +217,146 @@
 
         .btn-whatsapp:hover {
             background-color: #1da851;
-            color: white;
+            color: #ffffff;
             transform: scale(1.05);
             box-shadow: 0 6px 15px rgba(37, 211, 102, 0.4);
         }
+
+    .sakin-adi {
+        font-weight: 700;
+        color: inherit;
+    }
+
+    /* ===================== DARK MODE (ayrı katman) ===================== */
+    html.dark-mode .action-toolbar,
+    html.dark-mode .table-card,
+    html.dark-mode .filter-pills-bar {
+        background: var(--dm-surface) !important;
+        border-color: var(--dm-border) !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35) !important;
+    }
+
+    html.dark-mode .toolbar-title h3,
+    html.dark-mode .sakin-adi {
+        color: var(--dm-text) !important;
+    }
+
+    html.dark-mode .toolbar-title span {
+        color: var(--dm-muted) !important;
+    }
+
+    html.dark-mode .modern-table thead th {
+        background-color: var(--dm-surface-2) !important;
+        color: var(--dm-muted) !important;
+        border-bottom-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .modern-table tbody td {
+        color: var(--dm-text) !important;
+        border-bottom-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .modern-table tbody tr:hover {
+        background-color: rgba(220, 38, 38, 0.08) !important;
+    }
+
+    html.dark-mode .daire-badge {
+        background: var(--dm-surface-2) !important;
+        color: var(--dm-text) !important;
+    }
+
+    html.dark-mode .filter-pill {
+        background: var(--dm-surface-2) !important;
+        border-color: var(--dm-border) !important;
+        color: var(--dm-muted) !important;
+    }
+
+    html.dark-mode .filter-pill:hover {
+        color: var(--dm-text) !important;
+    }
+
+    html.dark-mode .filter-pill.active {
+        background: var(--dm-primary) !important;
+        border-color: var(--dm-primary) !important;
+        color: #ffffff !important;
+    }
+
+    html.dark-mode .filter-pill.filter-pill-danger.active {
+        background: #dc2626 !important;
+        border-color: #dc2626 !important;
+        color: #ffffff !important;
+    }
+
+    html.dark-mode .status-owner {
+        background: rgba(22, 101, 52, 0.25) !important;
+        color: #4ade80 !important;
+    }
+
+    html.dark-mode .status-tenant {
+        background: rgba(7, 89, 133, 0.25) !important;
+        color: #38bdf8 !important;
+    }
+
+    html.dark-mode .btn-print-custom {
+        background-color: rgba(2, 132, 199, 0.2) !important;
+        color: #38bdf8 !important;
+    }
+
+    html.dark-mode .btn-excel-custom {
+        background-color: rgba(29, 111, 66, 0.2) !important;
+        color: #4ade80 !important;
+    }
 </style>
 
 <div class="container-fluid py-4">
 
+    <!-- Üst Aksiyon Barı -->
     <div class="action-toolbar">
         <div class="toolbar-title">
             <h3>Borçlu Daireler</h3>
-            <span><i class="bi bi-exclamation-circle-fill text-danger me-1"></i>Ödemesi geciken dairelerin listesi</span>
+            <span>
+                @if (seciliFiltre == "coklu")
+                {
+                    <text><i class="bi bi-exclamation-octagon-fill text-danger me-1"></i><strong>1 Aydan Fazla</strong> borcu olan daireler listeleniyor</text>
+                }
+                else if (seciliFiltre == "tek")
+                {
+                    <text><i class="bi bi-clock-history text-warning me-1"></i>Yalnızca 1 ay (cari dönem) borcu olan daireler listeleniyor</text>
+                }
+                else
+                {
+                    <text><i class="bi bi-exclamation-circle-fill text-danger me-1"></i>Ödemesi geciken tüm daireler listeleniyor</text>
+                }
+            </span>
         </div>
         <div class="d-flex gap-2">
-            <a href="/AnaSayfa/BorcluDairelerPDF" class="btn-toolbar btn-print-custom" target="_blank">
+            <a href="/AnaSayfa/BorcluDairelerPDF@(seciliFiltre != "all" ? "?filtre=" + seciliFiltre : "")" class="btn-toolbar btn-print-custom" target="_blank">
                 <i class="bi bi-printer-fill"></i> Listeyi Yazdır
             </a>
-            <a href="/AnaSayfa/BorcluDairelerExcel" class="btn-toolbar btn-excel-custom" target="_blank">
+            <a href="/AnaSayfa/BorcluDairelerExcel@(seciliFiltre != "all" ? "?filtre=" + seciliFiltre : "")" class="btn-toolbar btn-excel-custom" target="_blank">
                 <i class="bi bi-file-earmark-excel-fill"></i> Excel'e Aktar
             </a>
         </div>
     </div>
 
+    <!-- Filtre Sekmeleri -->
+    <div class="filter-pills-bar">
+        <span class="small fw-bold text-muted me-2"><i class="bi bi-funnel me-1"></i>Filtre:</span>
+        <a href="/AnaSayfa/BorcluDaireler?filtre=all" class="filter-pill @(seciliFiltre == "all" ? "active" : "")">
+            <i class="bi bi-list-ul me-1"></i> Tüm Borçlular
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill ms-1">@ViewBag.ToplamBorcluSayisi</span>
+        </a>
+        <a href="/AnaSayfa/BorcluDaireler?filtre=coklu" class="filter-pill filter-pill-danger @(seciliFiltre == "coklu" ? "active" : "")">
+            <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> 1 Aydan Fazla Borcu Olanlar
+            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill ms-1">@ViewBag.CokluBorcluSayisi</span>
+        </a>
+        <a href="/AnaSayfa/BorcluDaireler?filtre=tek" class="filter-pill @(seciliFiltre == "tek" ? "active" : "")">
+            <i class="bi bi-calendar-event me-1"></i> 1 Ay Borcu Olanlar
+            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill ms-1">@ViewBag.TekBorcluSayisi</span>
+        </a>
+    </div>
+
+    <!-- Tablo Kartı -->
     <div class="table-card">
         <div class="table-responsive">
             <table class="table modern-table mb-0 datatable">
@@ -198,15 +365,16 @@
                         <th>DAİRE BİLGİSİ</th>
                         <th>Ad Soyad & İletİŞİm</th>
                         <th>Durum & TC</th>
+                        <th>Gecİken Dönem</th>
                         <th>Toplam Borç</th>
                         <th class="text-end">Aksİyon</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in ViewBag.BorcluDaireler)
+                    @foreach (var item in (List<ApartmanAidatTakip.Models.BorcluDaireListe>)ViewBag.BorcluDaireler)
                     {
-                        // WhatsApp Link Oluşturma
-                        string link = "https://wa.me/+90" + item.Telefon + "?text=Merhaba,%20Sayın%20" + item.AdSoyad + ",%20" + item.Borc.ToString("N2") + "%20TL%20aidat%20borcunuz%20bulunmaktadır.%20Lütfen%20ödeme%20yapınız.";
+                        string ayBilgi = item.GecikenAySayisi > 1 ? "%20(" + item.GecikenAySayisi + "%20ayl%C4%B1k)" : "";
+                        string link = "https://wa.me/+90" + item.Telefon + "?text=Merhaba,%20Say%C4%B1n%20" + item.AdSoyad + ",%20" + item.Borc.ToString("N2") + "%20TL" + ayBilgi + "%20aidat%20borcunuz%20bulunmaktad%C4%B1r.%20L%C3%BCtfen%20%C3%B6deme%20yap%C4%B1n%C4%B1z.";
 
                         <tr>
                             <td>
@@ -215,7 +383,7 @@
                                 </span>
                             </td>
                             <td>
-                                <div class="fw-bold text-dark">@item.AdSoyad</div>
+                                <div class="sakin-adi">@item.AdSoyad</div>
                                 <div class="small text-muted"><i class="bi bi-telephone me-1"></i> @item.Telefon</div>
                             </td>
                             <td>
@@ -230,11 +398,44 @@
                                 <div class="small text-muted">TC: @item.TC</div>
                             </td>
                             <td>
+                                @if (item.CokluBorcluMu)
+                                {
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1">
+                                        <i class="bi bi-exclamation-octagon-fill me-1"></i>@(item.GecikenAySayisi > 0 ? item.GecikenAySayisi + " Ay Borçlu" : "1 Aydan Fazla")
+                                    </span>
+                                }
+                                else if (item.GecikenAySayisi == 1)
+                                {
+                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1">
+                                        <i class="bi bi-clock-history me-1"></i>1 Ay Borçlu
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1">
+                                        <i class="bi bi-info-circle me-1"></i>Demirbaş / Ek
+                                    </span>
+                                }
+
+                                @if (item.BorcluAylar != null && item.BorcluAylar.Count > 0)
+                                {
+                                    <div class="small text-muted mt-1" style="font-size:0.75rem;">
+                                        <i class="bi bi-calendar2-range me-1"></i>@string.Join(", ", item.BorcluAylar)
+                                    </div>
+                                }
+                                @if (item.BorcluEkler != null && item.BorcluEkler.Count > 0)
+                                {
+                                    <div class="small text-muted mt-1" style="font-size:0.75rem;">
+                                        <i class="bi bi-tag me-1"></i>@string.Join(", ", item.BorcluEkler)
+                                    </div>
+                                }
+                            </td>
+                            <td>
                                 <div class="debt-amount">@item.Borc.ToString("N2") @tl</div>
                                 <div class="small text-danger opacity-75">Ödenmesi Gereken</div>
                             </td>
                             <td class="text-end">
-                                <a href="@link" class="btn-whatsapp" target="_blank">
+                                <a href="@link" class="btn-whatsapp" target="_blank" title="WhatsApp ile Hatırlat">
                                     <i class="bi bi-whatsapp fs-6"></i> Hatırlat
                                 </a>
                             </td>

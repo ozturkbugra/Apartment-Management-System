@@ -205,6 +205,8 @@ Bunlar merkezi değildir — ihtiyaç duyan her controller'a kopyalanmıştır. 
 
 **Raporlama:** Her Raporlar aksiyonu ekranda gösterir; eş `*PDF` aksiyonu iTextSharp ile PDF, borçlu listeleri ClosedXML/EPPlus ile Excel üretir.
 
+**Borçlu Daireler (`BorcluDaireler` - AnaSayfa):** Borcu olan daireleri (`Borc > 0`) açık aidat ve ek (demirbaş) kayıtlarıyla eşleştirerek geciken ay sayısı ve dönem bazında listeler. Model olarak salt-okunur DTO `Models/BorcluDaireListe.cs` kullanılır. Üst filtre sekmeleri (**Tüm Borçlular**, **1 Aydan Fazla Borcu Olanlar (Kritik)**, **Yalnızca 1 Ay Borcu Olanlar**) ile anında filtrelenebilir. Eşlik eden `BorcluDairelerPDF` ve `BorcluDairelerExcel` aksiyonları da `?filtre=coklu` parametresiyle seçili filtreye göre filtrelenmiş PDF ve Excel çıktısı üretir. WhatsApp hatırlatma butonunda geciken ay sayısı mesaj metnine otomatik yansıtılır.
+
 ---
 
 ## 8. Konvansiyonlar
