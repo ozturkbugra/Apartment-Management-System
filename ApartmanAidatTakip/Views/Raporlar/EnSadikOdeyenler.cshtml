@@ -1,0 +1,523 @@
+﻿@{
+    ViewBag.Title = "En Sadık Aidat Ödeyenler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var liste = ViewBag.Liste as List<ApartmanAidatTakip.Models.SadikOdeyenListe> ?? new List<ApartmanAidatTakip.Models.SadikOdeyenListe>();
+    var ilkUc = liste.Where(x => x.YillikPesinMi || x.ToplamAidatSayisi > 0).Take(3).ToList();
+    int seciliYil = ViewBag.Yil ?? DateTime.Now.Year;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg-body: #f0f2f5;
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        --loyalty-grad: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+        --primary-grad: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        --pdf-grad: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: #344767;
+    }
+
+    .filter-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 24px;
+        border-left: 5px solid #f59e0b;
+    }
+
+    .form-label-custom {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control-modern {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 15px;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+
+        .form-control-modern:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+        }
+
+    .btn-filter {
+        background: var(--primary-grad);
+        color: #ffffff;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.28);
+    }
+
+        .btn-filter:hover {
+            transform: translateY(-2px);
+            color: #ffffff;
+        }
+
+    .btn-pdf {
+        background: var(--pdf-grad);
+        color: #ffffff !important;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.28);
+    }
+
+        .btn-pdf:hover {
+            transform: translateY(-2px);
+            color: #ffffff !important;
+        }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+
+    .podium-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: var(--card-shadow);
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+
+        .podium-card:hover {
+            transform: translateY(-3px);
+        }
+
+    .podium-1 { border-top: 5px solid #f59e0b; }
+    .podium-2 { border-top: 5px solid #94a3b8; }
+    .podium-3 { border-top: 5px solid #d97706; }
+
+    .podium-rank {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.15rem;
+    }
+
+    .rank-gold { background: rgba(245, 158, 11, 0.15); color: #b45309; }
+    .rank-silver { background: rgba(148, 163, 184, 0.2); color: #475569; }
+    .rank-bronze { background: rgba(217, 119, 6, 0.15); color: #9a3412; }
+
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        padding: 22px;
+    }
+
+    .flat-badge {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #eef2ff;
+        color: #4f46e5;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .score-bar-wrap {
+        width: 110px;
+        height: 8px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        overflow: hidden;
+    }
+
+    .score-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+    }
+
+    .info-formula-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 18px 22px;
+        box-shadow: var(--card-shadow);
+        border-left: 4px solid #6366f1;
+    }
+
+    /* Dark Mode Katmanı */
+    html.dark-mode body {
+        background-color: var(--dm-bg) !important;
+        color: var(--dm-text) !important;
+    }
+
+    html.dark-mode .filter-card,
+    html.dark-mode .stat-card,
+    html.dark-mode .podium-card,
+    html.dark-mode .table-card,
+    html.dark-mode .info-formula-card {
+        background: var(--dm-surface) !important;
+        color: var(--dm-text) !important;
+        border-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .form-label-custom {
+        color: var(--dm-muted) !important;
+    }
+
+    html.dark-mode .form-control-modern {
+        background-color: var(--dm-surface-2) !important;
+        border-color: var(--dm-border) !important;
+        color: var(--dm-text) !important;
+    }
+
+    html.dark-mode .flat-badge {
+        background: rgba(109, 139, 255, 0.16) !important;
+        color: var(--dm-primary) !important;
+    }
+
+    html.dark-mode .score-bar-wrap {
+        background: var(--dm-surface-2) !important;
+    }
+
+    html.dark-mode .rank-gold { background: rgba(245, 158, 11, 0.22) !important; color: #fbbf24 !important; }
+    html.dark-mode .rank-silver { background: rgba(148, 163, 184, 0.22) !important; color: #cbd5e1 !important; }
+    html.dark-mode .rank-bronze { background: rgba(217, 119, 6, 0.22) !important; color: #fdba74 !important; }
+
+    html.dark-mode .table {
+        color: var(--dm-text) !important;
+        border-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .table thead th {
+        background-color: var(--dm-surface-2) !important;
+        color: var(--dm-muted) !important;
+        border-color: var(--dm-border) !important;
+    }
+
+    html.dark-mode .table tbody tr:hover {
+        background-color: var(--dm-surface-2) !important;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0"><i class="bi bi-trophy-fill text-warning me-2"></i>En Sadık Aidat Ödeyenler</h3>
+            <span class="text-muted small">@seciliYil yılı aidat düzenliliği ve erken ödeme hızına göre daire sıralaması</span>
+        </div>
+    </div>
+
+    <!-- Yıl Seçimi -->
+    <div class="filter-card">
+        <form method="get" action="/Raporlar/EnSadikOdeyenler" class="row g-3 align-items-end">
+            <div class="col-md-4 col-lg-4">
+                <label class="form-label-custom">Rapor Yılı</label>
+                <select name="Yil" class="form-select form-control-modern">
+                    @foreach (var y in ViewBag.Yillar)
+                    {
+                        <option value="@y" @(y == seciliYil ? "selected" : "")>@y</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 col-lg-2">
+                <button type="submit" class="btn btn-filter">
+                    <i class="bi bi-funnel-fill me-1"></i> Listele
+                </button>
+            </div>
+            <div class="col-md-3 col-lg-3">
+                <a href="/Raporlar/EnSadikOdeyenlerPDF?Yil=@seciliYil" target="_blank" class="btn btn-pdf">
+                    <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF İndir
+                </a>
+            </div>
+            <div class="col-md-3 col-lg-3">
+                <a href="/Raporlar/EnSadikOdeyenlerExcel?Yil=@seciliYil" class="btn btn-pdf">
+                    <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel İndir
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Özet KPI Kartları -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-buildings"></i>
+                </div>
+                <div>
+                    <div class="small text-muted fw-semibold">Değerlendirilen Daire</div>
+                    <div class="fs-4 fw-bold">@ViewBag.ToplamDaire</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-patch-check-fill"></i>
+                </div>
+                <div>
+                    <div class="small text-muted fw-semibold">Borcu Kalmayan Daire</div>
+                    <div class="fs-4 fw-bold">@ViewBag.TamOdeyenSayisi</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+                <div>
+                    <div class="small text-muted fw-semibold">Ortalama Sadakat Puanı</div>
+                    <div class="fs-4 fw-bold">@ViewBag.OrtalamaPuan / 100</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+                <div>
+                    <div class="small text-muted fw-semibold">En Yüksek Puan</div>
+                    <div class="fs-4 fw-bold">@ViewBag.EnYuksekPuan</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- İlk 3 Podyum -->
+    @if (ilkUc.Count > 0)
+    {
+        <div class="row g-3 mb-4">
+            @for (int i = 0; i < ilkUc.Count; i++)
+            {
+                var p = ilkUc[i];
+                string podiumClass = i == 0 ? "podium-1" : (i == 1 ? "podium-2" : "podium-3");
+                string rankClass = i == 0 ? "rank-gold" : (i == 1 ? "rank-silver" : "rank-bronze");
+                <div class="col-md-4">
+                    <div class="podium-card @podiumClass">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="podium-rank @rankClass">
+                                    @(i + 1).
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-5">Daire @p.DaireNo</div>
+                                    <div class="text-muted small">@p.AdSoyad</div>
+                                </div>
+                            </div>
+                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 rounded-pill fw-bold">
+                                @p.Puan.ToString("0.0") Puan
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted pt-2 border-top">
+                            <span><i class="bi bi-calendar-check me-1 text-success"></i>@(p.YillikPesinMi ? "Tüm Yıl Peşin" : $"{p.OdenenSayisi}/{p.ToplamAidatSayisi} Ay")</span>
+                            <span><i class="bi bi-clock me-1 text-primary"></i>@p.HizOzeti</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Sıralama Tablosu -->
+    <div class="table-card mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-list-ol me-2 text-primary"></i>@seciliYil Yılı Sadakat Sıralaması</h5>
+            <div style="min-width: 240px;">
+                <input type="text" id="sadikArama" class="form-control form-control-sm form-control-modern" placeholder="Daire no veya ad soyad ara..." />
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" id="sadikTablo">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 70px;">Sıra</th>
+                        <th>Daire / Sakin</th>
+                        <th class="text-center">Ödenen / Toplam Ay</th>
+                        <th class="text-center">Ödeme Hızı</th>
+                        <th style="width: 210px;">Sadakat Puanı</th>
+                        <th class="text-end">Seviye</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (liste.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Seçilen yıl için daire kaydı bulunamadı.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in liste)
+                        {
+                            string barColor = item.Puan >= 90 ? "bg-success" : (item.Puan >= 75 ? "bg-info" : (item.Puan >= 50 ? "bg-warning" : "bg-danger"));
+                            string badgeClass;
+                            if (item.YillikPesinMi)
+                            {
+                                badgeClass = "bg-success bg-opacity-10 text-success border border-success border-opacity-25";
+                            }
+                            else if (item.Seviye == "Altın Sadakat")
+                            {
+                                badgeClass = "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25";
+                            }
+                            else if (item.Seviye == "Gümüş Sadakat")
+                            {
+                                badgeClass = "bg-info bg-opacity-10 text-info border border-info border-opacity-25";
+                            }
+                            else if (item.Seviye == "Düzenli")
+                            {
+                                badgeClass = "bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25";
+                            }
+                            else if (item.Seviye == "Kayıt Yok")
+                            {
+                                badgeClass = "bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25";
+                            }
+                            else
+                            {
+                                badgeClass = "bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25";
+                            }
+
+                            <tr data-search="@($"{item.DaireNo} {item.AdSoyad}".ToLowerInvariant())">
+                                <td class="text-center fw-bold">
+                                    @if (item.Sira == 1 && (item.YillikPesinMi || item.ToplamAidatSayisi > 0))
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1 rounded-pill"><i class="bi bi-trophy-fill me-1"></i>1</span>
+                                    }
+                                    else if (item.Sira == 2 && (item.YillikPesinMi || item.ToplamAidatSayisi > 0))
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill">2</span>
+                                    }
+                                    else if (item.Sira == 3 && (item.YillikPesinMi || item.ToplamAidatSayisi > 0))
+                                    {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger px-2 py-1 rounded-pill">3</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@item.Sira</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="flat-badge">@item.DaireNo</div>
+                                        <div>
+                                            <div class="fw-semibold">@item.AdSoyad</div>
+                                            <div class="small text-muted">Daire @item.DaireNo @(string.IsNullOrEmpty(item.DaireDurum) ? "" : $"· {item.DaireDurum}")</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.YillikPesinMi)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success px-2 py-1">Tüm Yıl Peşin</span>
+                                    }
+                                    else if (item.ToplamAidatSayisi == 0)
+                                    {
+                                        <span class="text-muted small">-</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-semibold">@item.OdenenSayisi</span> <span class="text-muted">/ @item.ToplamAidatSayisi</span>
+                                        if (item.OdenmeyenSayisi > 0)
+                                        {
+                                            <div class="small text-danger">@item.OdenmeyenSayisi ay açık</div>
+                                        }
+                                    }
+                                </td>
+                                <td class="text-center small">
+                                    @item.HizOzeti
+                                </td>
+                                <td>
+                                    @if (item.ToplamAidatSayisi == 0 && !item.YillikPesinMi)
+                                    {
+                                        <span class="text-muted small">Aidat yok</span>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="score-bar-wrap">
+                                                <div class="score-bar-fill @barColor" style="width: @(item.Puan.ToString("0", System.Globalization.CultureInfo.InvariantCulture))%;"></div>
+                                            </div>
+                                            <span class="fw-bold small">@item.Puan.ToString("0.0")</span>
+                                        </div>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge @badgeClass px-3 py-2 rounded-pill">@item.Seviye</span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Puanlama Açıklaması -->
+    <div class="info-formula-card small text-muted">
+        <div class="fw-bold mb-1"><i class="bi bi-info-circle-fill text-primary me-1"></i>Puanlama Nasıl Hesaplanır?</div>
+        <div>
+            Toplam <strong>100 puan</strong>, her aidat ayının ödeme tarihine göre gün bazlı hesaplanır:
+            kendi ayında veya öncesinde ödeyenler tam puana yakın (<strong>85–100</strong>) alır;
+            ay bittikten sonraki ilk birkaç gün (1–5 gün) içindeki küçük sarkmalar telafi edilebilir düzeydedir (<strong>74–82</strong>).
+            Gecikme günü arttıkça puan kademeli düşer; aylarca biriktirip toplu ödeyenler en alt sıralarda yer alır.
+            Hiç açık borcu kalmayan dairelere <strong>+3 borçsuzluk bonusu</strong> eklenir.
+            <strong>Yıllık Peşin</strong> ödeyen daireler doğrudan <strong>100 puan</strong> ile en üstte sıralanır.
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('sadikArama').addEventListener('input', function () {
+        var q = this.value.trim().toLowerCase();
+        var rows = document.querySelectorAll('#sadikTablo tbody tr[data-search]');
+        rows.forEach(function (tr) {
+            var txt = tr.getAttribute('data-search') || '';
+            tr.style.display = txt.indexOf(q) !== -1 ? '' : 'none';
+        });
+    });
+</script>

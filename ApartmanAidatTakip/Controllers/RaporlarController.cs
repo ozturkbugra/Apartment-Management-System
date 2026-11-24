@@ -1899,5 +1899,448 @@ namespace ApartmanAidatTakip.Controllers
                 return File(byteInfo, "application/pdf");
             }
         }
+
+        // ============================================================
+        //  EN SADIK AİDAT ÖDEYENLER (Yıl Bazlı Sıralama & Puanlama)
+        // ============================================================
+
+        // Yalnızca düz ay adlarını kabul eder ("Mayıs - 2", "Mayıs - 3" gibi ek aidat partilerini hariç tutar).
+        private int DuzAyKoduBul(string ayAdi)
+        {
+            if (string.IsNullOrWhiteSpace(ayAdi)) return 0;
+            switch (ayAdi.Trim().ToLower(new System.Globalization.CultureInfo("tr-TR")))
+            {
+                case "ocak": return 1;
+                case "şubat": return 2;
+                case "mart": return 3;
+                case "nisan": return 4;
+                case "mayıs": return 5;
+                case "haziran": return 6;
+                case "temmuz": return 7;
+                case "ağustos": return 8;
+                case "eylül": return 9;
+                case "ekim": return 10;
+                case "kasım": return 11;
+                case "aralık": return 12;
+                default: return 0;
+            }
+        }
+
+        private List<SadikOdeyenListe> SadikOdeyenleriHesapla(int BinaID, int seciliYil)
+        {
+            var daireler = db.Dairelers.AsNoTracking()
+                .Where(x => x.BinaID == BinaID)
+                .OrderBy(x => x.DaireNo)
+                .ToList();
+
+            var yilAidatlari = db.Aidats.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.AidatYil == seciliYil && (x.Durum == "A" || x.Durum == "P"))
+                .ToList()
+                .Where(x => DuzAyKoduBul(x.AidatAy) > 0)
+                .ToList();
+
+            var yillikPesinDaireIDler = new HashSet<int>(
+                db.PesinOdemelers.AsNoTracking()
+                    .Where(x => x.BinaID == BinaID && x.Yil == seciliYil)
+                    .Select(x => x.DaireID)
+                    .ToList()
+            );
+
+            // Seçili yıla ait aidat makbuz satırları ve makbuz tarihleri (tek sorguda)
+            var makbuzSatirlari = db.MakbuzSatirs.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.EkMiAidatMi == "A" && x.YilAdi == seciliYil && x.DaireID != null && x.MakbuzID != null)
+                .ToList();
+
+            var makbuzIDler = makbuzSatirlari.Select(x => x.MakbuzID.Value).Distinct().ToList();
+            var makbuzTarihMap = db.Makbuzs.AsNoTracking()
+                .Where(x => x.BinaID == BinaID && x.Durum == "A" && x.MakbuzTarihi != null && makbuzIDler.Contains(x.MakbuzID))
+                .ToDictionary(x => x.MakbuzID, x => x.MakbuzTarihi.Value);
+
+            var aidatByDaireNo = yilAidatlari
+                .Where(x => x.DaireNo != null)
+                .GroupBy(x => x.DaireNo.Value)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // (DaireID, AyKodu) -> en erken makbuz tarihi
+            var odemeTarihMap = new Dictionary<Tuple<int, int>, DateTime>();
+            foreach (var ms in makbuzSatirlari)
+            {
+                DateTime mTarih;
+                if (!makbuzTarihMap.TryGetValue(ms.MakbuzID.Value, out mTarih)) continue;
+                int ayKodu = DuzAyKoduBul(ms.AyAdi);
+                if (ayKodu == 0) continue;
+
+                var key = Tuple.Create(ms.DaireID.Value, ayKodu);
+                DateTime mevcut;
+                if (!odemeTarihMap.TryGetValue(key, out mevcut) || mTarih < mevcut)
+                {
+                    odemeTarihMap[key] = mTarih;
+                }
+            }
+
+            var sonuc = new List<SadikOdeyenListe>();
+
+            foreach (var d in daireler)
+            {
+                int daireNo = d.DaireNo ?? 0;
+                bool yillikPesin = yillikPesinDaireIDler.Contains(d.DaireID);
+                List<Aidat> dAidatlar;
+                aidatByDaireNo.TryGetValue(daireNo, out dAidatlar);
+                if (dAidatlar == null) dAidatlar = new List<Aidat>();
+
+                int toplam = dAidatlar.Count;
+                int odenen = dAidatlar.Count(x => x.Durum == "P");
+                int odenmeyen = dAidatlar.Count(x => x.Durum == "A");
+                decimal odenenTutar = dAidatlar.Where(x => x.Durum == "P").Sum(x => x.AidatTutar ?? 0);
+
+                if (yillikPesin)
+                {
+                    sonuc.Add(new SadikOdeyenListe
+                    {
+                        DaireID = d.DaireID,
+                        DaireNo = daireNo,
+                        AdSoyad = d.AdSoyad,
+                        DaireDurum = d.DaireDurum,
+                        ToplamAidatSayisi = toplam,
+                        OdenenSayisi = odenen,
+                        ZamanindaSayisi = odenen,
+                        GecikmeliSayisi = 0,
+                        OdenmeyenSayisi = 0,
+                        ToplamOdenenTutar = odenenTutar,
+                        YillikPesinMi = true,
+                        OrtalamaOdemeGunu = -30,
+                        Puan = 100.0,
+                        Seviye = "Yıllık Peşin",
+                        HizOzeti = "Yıllık peşin ödedi"
+                    });
+                    continue;
+                }
+
+                if (toplam == 0)
+                {
+                    sonuc.Add(new SadikOdeyenListe
+                    {
+                        DaireID = d.DaireID,
+                        DaireNo = daireNo,
+                        AdSoyad = d.AdSoyad,
+                        DaireDurum = d.DaireDurum,
+                        ToplamAidatSayisi = 0,
+                        OdenenSayisi = 0,
+                        OdenmeyenSayisi = 0,
+                        ToplamOdenenTutar = 0,
+                        YillikPesinMi = false,
+                        OrtalamaOdemeGunu = null,
+                        Puan = 0,
+                        Seviye = "Kayıt Yok",
+                        HizOzeti = "Aidat kaydı yok"
+                    });
+                    continue;
+                }
+
+                // Her ay gün bazlı zamanındalık üzerinden puanlanır:
+                // - Ay başlamadan / ayın 1'inde: 1.00
+                // - Kendi ayı içinde (2'si..son günü): 0.99 .. 0.85
+                // - Ay bittikten sonra gün bazlı yumuşak düşüş (1-5 gün: 0.82..0.74, 6-15 gün: 0.72..0.55, 16-30 gün: 0.53..0.35, 31-60 gün: 0.34..0.15, 60+ gün: 0.05)
+                // - Hiç açık borcu kalmayanlara +3 borçsuzluk bonusu (en fazla 100)
+                double ayPuanToplam = 0;
+                int zamanindaSayisi = 0;
+                int gecikmeliSayisi = 0;
+                var zamanindaFarkGunler = new List<double>();
+                var gecikmeliTarihSayaci = new Dictionary<DateTime, int>();
+
+                foreach (var a in dAidatlar.Where(x => x.Durum == "P"))
+                {
+                    int ayKodu = DuzAyKoduBul(a.AidatAy);
+                    DateTime mTarih;
+                    if (ayKodu > 0 && odemeTarihMap.TryGetValue(Tuple.Create(d.DaireID, ayKodu), out mTarih))
+                    {
+                        DateTime donemBasi = new DateTime(seciliYil, ayKodu, 1);
+                        DateTime donemSonu = new DateTime(seciliYil, ayKodu, DateTime.DaysInMonth(seciliYil, ayKodu));
+                        double farkGun = (mTarih.Date - donemBasi).TotalDays;
+                        double gecikmeGun = (mTarih.Date - donemSonu).TotalDays;
+
+                        double aySkoru;
+                        if (farkGun <= 0)
+                        {
+                            zamanindaSayisi++;
+                            zamanindaFarkGunler.Add(farkGun);
+                            aySkoru = 1.0; // Ay başlamadan / ayın 1'inde
+                        }
+                        else if (gecikmeGun <= 0)
+                        {
+                            zamanindaSayisi++;
+                            zamanindaFarkGunler.Add(farkGun);
+                            aySkoru = 1.0 - 0.15 * Math.Min(1.0, farkGun / 30.0); // Ay içinde (0.99 .. 0.85)
+                        }
+                        else if (gecikmeGun <= 5)
+                        {
+                            // 1-5 gün gecikme (ör. ayın 1'i-5'i arası telafi): hafif düşüş (0.82 .. 0.74)
+                            zamanindaSayisi++;
+                            zamanindaFarkGunler.Add(farkGun);
+                            aySkoru = 0.82 - (gecikmeGun - 1.0) * 0.02;
+                        }
+                        else
+                        {
+                            gecikmeliSayisi++;
+                            int adet;
+                            gecikmeliTarihSayaci.TryGetValue(mTarih.Date, out adet);
+                            gecikmeliTarihSayaci[mTarih.Date] = adet + 1;
+
+                            if (gecikmeGun <= 15)
+                                aySkoru = 0.72 - ((gecikmeGun - 6.0) / 9.0) * 0.17; // 6-15 gün (0.72 .. 0.55)
+                            else if (gecikmeGun <= 30)
+                                aySkoru = 0.53 - ((gecikmeGun - 16.0) / 14.0) * 0.18; // 16-30 gün (0.53 .. 0.35)
+                            else if (gecikmeGun <= 60)
+                                aySkoru = 0.34 - ((gecikmeGun - 31.0) / 29.0) * 0.19; // 31-60 gün (0.34 .. 0.15)
+                            else
+                                aySkoru = 0.05; // 60+ gün gecikmeli (birikmiş/toplu)
+                        }
+
+                        ayPuanToplam += aySkoru;
+                    }
+                    else
+                    {
+                        // Makbuz tarihi eşleşmeyen eski/manuel ödenmiş kayıtlar için nötr puan
+                        zamanindaSayisi++;
+                        ayPuanToplam += 0.80;
+                    }
+                }
+
+                bool topluGecikmeliVar = gecikmeliTarihSayaci.Values.Any(c => c >= 2);
+                double hamPuan = 100.0 * (ayPuanToplam / toplam);
+                if (odenmeyen == 0 && odenen > 0)
+                {
+                    hamPuan += 3.0; // Yıl içi tüm borcunu kapatanlara borçsuzluk bonusu
+                }
+                double toplamPuan = Math.Round(Math.Min(100.0, Math.Max(0.0, hamPuan)), 1);
+
+                double? ortGun = zamanindaFarkGunler.Any() ? Math.Round(zamanindaFarkGunler.Average(), 1) : (double?)null;
+                string hizOzeti;
+                if (odenen == 0)
+                {
+                    hizOzeti = "Ödeme yok";
+                }
+                else if (gecikmeliSayisi > 0)
+                {
+                    hizOzeti = topluGecikmeliVar
+                        ? $"Toplu · {gecikmeliSayisi} ay gecikmeli"
+                        : $"{gecikmeliSayisi} ay gecikmeli";
+                }
+                else if (!ortGun.HasValue)
+                {
+                    hizOzeti = "Tarih bilgisi yok";
+                }
+                else if (ortGun.Value < 0)
+                {
+                    hizOzeti = $"{Math.Abs(Math.Round(ortGun.Value))} gün erken";
+                }
+                else
+                {
+                    int ayinGunu = (int)Math.Round(ortGun.Value) + 1;
+                    hizOzeti = $"Ort. ayın {ayinGunu}. günü";
+                }
+
+                string seviye;
+                if (toplamPuan >= 90 && gecikmeliSayisi == 0 && odenmeyen == 0) seviye = "Altın Sadakat";
+                else if (toplamPuan >= 75 && gecikmeliSayisi <= 1 && odenmeyen == 0) seviye = "Gümüş Sadakat";
+                else if ((toplamPuan >= 60 && odenmeyen == 0 && !topluGecikmeliVar) || (toplamPuan >= 65 && gecikmeliSayisi <= 2 && !topluGecikmeliVar)) seviye = "Düzenli";
+                else if (topluGecikmeliVar) seviye = "Toplu (Gecikmeli)";
+                else seviye = "Gecikmeli";
+
+                sonuc.Add(new SadikOdeyenListe
+                {
+                    DaireID = d.DaireID,
+                    DaireNo = daireNo,
+                    AdSoyad = d.AdSoyad,
+                    DaireDurum = d.DaireDurum,
+                    ToplamAidatSayisi = toplam,
+                    OdenenSayisi = odenen,
+                    ZamanindaSayisi = zamanindaSayisi,
+                    GecikmeliSayisi = gecikmeliSayisi,
+                    OdenmeyenSayisi = odenmeyen,
+                    ToplamOdenenTutar = odenenTutar,
+                    YillikPesinMi = false,
+                    OrtalamaOdemeGunu = gecikmeliSayisi > 0 ? (double?)(100 + gecikmeliSayisi) : ortGun,
+                    Puan = toplamPuan,
+                    Seviye = seviye,
+                    HizOzeti = hizOzeti
+                });
+            }
+
+            // Sıralama: Kaydı olanlar önce, sonra puan (azalan), açık ay (artan), gecikmeli ay (artan), ortalama gün (artan), daire no (artan)
+            var sirali = sonuc
+                .OrderByDescending(x => x.YillikPesinMi || x.ToplamAidatSayisi > 0)
+                .ThenByDescending(x => x.Puan)
+                .ThenBy(x => x.OdenmeyenSayisi)
+                .ThenBy(x => x.GecikmeliSayisi)
+                .ThenBy(x => x.OrtalamaOdemeGunu ?? double.MaxValue)
+                .ThenBy(x => x.DaireNo)
+                .ToList();
+
+            for (int i = 0; i < sirali.Count; i++)
+            {
+                sirali[i].Sira = i + 1;
+            }
+
+            return sirali;
+        }
+
+        public ActionResult EnSadikOdeyenler(int? Yil)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null)
+            {
+                return RedirectToAction("Login", "AnaSayfa");
+            }
+            Session["Aktif"] = "EnSadikOdeyenler";
+            Sabit();
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+
+            var yillar = RaporYillariGetir(BinaID);
+            ViewBag.Yillar = yillar;
+            int seciliYil = Yil ?? (yillar.Contains(DateTime.Now.Year) ? DateTime.Now.Year : yillar.FirstOrDefault());
+            ViewBag.Yil = seciliYil;
+
+            var liste = SadikOdeyenleriHesapla(BinaID, seciliYil);
+            var katilanlar = liste.Where(x => x.YillikPesinMi || x.ToplamAidatSayisi > 0).ToList();
+
+            ViewBag.Liste = liste;
+            ViewBag.ToplamDaire = katilanlar.Count;
+            ViewBag.TamOdeyenSayisi = katilanlar.Count(x => x.OdenmeyenSayisi == 0);
+            ViewBag.OrtalamaPuan = katilanlar.Any() ? Math.Round(katilanlar.Average(x => x.Puan), 1) : 0;
+            ViewBag.EnYuksekPuan = katilanlar.Any() ? katilanlar.Max(x => x.Puan) : 0;
+
+            return View();
+        }
+
+        public ActionResult EnSadikOdeyenlerPDF(int? Yil)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null) return RedirectToAction("Login", "AnaSayfa");
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            string binaAdi = HttpUtility.UrlDecode(Request.Cookies["KullaniciBilgileri"]["BinaAdi"]);
+
+            int seciliYil = Yil ?? DateTime.Now.Year;
+            var liste = SadikOdeyenleriHesapla(BinaID, seciliYil);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4, 25, 25, 25, 25);
+                PdfWriter.GetInstance(document, ms);
+                document.Open();
+
+                string arialFontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
+                BaseFont bf = BaseFont.CreateFont(arialFontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                Font titleFont = new Font(bf, 14, Font.BOLD);
+                Font subTitleFont = new Font(bf, 11, Font.BOLD);
+                Font tableFont = new Font(bf, 9);
+                Font boldTableFont = new Font(bf, 9, Font.BOLD);
+
+                document.Add(new Paragraph($"ÇIKTI TARİHİ: {DateTime.Now:dd/MM/yyyy HH:mm}", tableFont) { Alignment = Element.ALIGN_RIGHT });
+                document.Add(new Paragraph(binaAdi, titleFont) { Alignment = Element.ALIGN_CENTER });
+                document.Add(new Paragraph($"{seciliYil} YILI EN SADIK AİDAT ÖDEYENLER SIRALAMASI", subTitleFont) { Alignment = Element.ALIGN_CENTER });
+                document.Add(new Paragraph("\n"));
+
+                PdfPTable table = new PdfPTable(6);
+                table.WidthPercentage = 100;
+                table.SetWidths(new float[] { 8f, 10f, 28f, 16f, 22f, 16f });
+                table.HeaderRows = 1;
+
+                string[] headers = { "Sıra", "Daire", "Ad Soyad", "Ödenen Ay", "Ödeme Hızı", "Puan / Durum" };
+                int[] aligns = { Element.ALIGN_CENTER, Element.ALIGN_CENTER, Element.ALIGN_LEFT, Element.ALIGN_CENTER, Element.ALIGN_CENTER, Element.ALIGN_CENTER };
+                for (int h = 0; h < headers.Length; h++)
+                {
+                    table.AddCell(new PdfPCell(new Phrase(headers[h], boldTableFont))
+                    {
+                        BackgroundColor = BaseColor.LIGHT_GRAY,
+                        HorizontalAlignment = aligns[h],
+                        Padding = 5
+                    });
+                }
+
+                foreach (var item in liste)
+                {
+                    string ayText = item.YillikPesinMi ? "Tüm Yıl" : $"{item.OdenenSayisi} / {item.ToplamAidatSayisi}";
+                    string puanText = item.ToplamAidatSayisi == 0 && !item.YillikPesinMi
+                        ? "-"
+                        : $"{item.Puan:0.0} ({item.Seviye})";
+
+                    table.AddCell(new PdfPCell(new Phrase(item.Sira.ToString(), boldTableFont)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 4 });
+                    table.AddCell(new PdfPCell(new Phrase(item.DaireNo.ToString(), tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 4 });
+                    table.AddCell(new PdfPCell(new Phrase(item.AdSoyad ?? "", tableFont)) { HorizontalAlignment = Element.ALIGN_LEFT, Padding = 4 });
+                    table.AddCell(new PdfPCell(new Phrase(ayText, tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 4 });
+                    table.AddCell(new PdfPCell(new Phrase(item.HizOzeti, tableFont)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 4 });
+                    table.AddCell(new PdfPCell(new Phrase(puanText, boldTableFont)) { HorizontalAlignment = Element.ALIGN_CENTER, Padding = 4 });
+                }
+
+                document.Add(table);
+                document.Close();
+
+                byte[] byteInfo = ms.ToArray();
+                Response.AppendHeader("Content-Disposition", $"inline; filename=EnSadikOdeyenler_{seciliYil}.pdf");
+                return File(byteInfo, "application/pdf");
+            }
+        }
+
+        public ActionResult EnSadikOdeyenlerExcel(int? Yil)
+        {
+            if (Request.Cookies["KullaniciBilgileri"] == null) return RedirectToAction("Login", "AnaSayfa");
+
+            HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
+            int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
+            string binaAdi = HttpUtility.UrlDecode(userCookie.Values["BinaAdi"]) ?? "";
+
+            int seciliYil = Yil ?? DateTime.Now.Year;
+            var liste = SadikOdeyenleriHesapla(BinaID, seciliYil);
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("En Sadık Ödeyenler");
+
+                worksheet.Cell(1, 1).Value = $"{binaAdi.ToUpper()} - {seciliYil} YILI EN SADIK AİDAT ÖDEYENLER SIRALAMASI";
+                worksheet.Range(1, 1, 1, 7).Merge().Style.Font.Bold = true;
+                worksheet.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheet.Cell(3, 1).Value = "SIRA";
+                worksheet.Cell(3, 2).Value = "DAİRE NO";
+                worksheet.Cell(3, 3).Value = "AD SOYAD";
+                worksheet.Cell(3, 4).Value = "ÖDENEN / TOPLAM AY";
+                worksheet.Cell(3, 5).Value = "ÖDEME HIZI";
+                worksheet.Cell(3, 6).Value = "PUAN";
+                worksheet.Cell(3, 7).Value = "SEVİYE";
+
+                worksheet.Range(3, 1, 3, 7).Style.Font.Bold = true;
+                worksheet.Range(3, 1, 3, 7).Style.Fill.BackgroundColor = XLColor.LightGray;
+
+                int row = 4;
+                foreach (var item in liste)
+                {
+                    string ayText = item.YillikPesinMi ? "Tüm Yıl Peşin" : (item.ToplamAidatSayisi == 0 ? "-" : $"{item.OdenenSayisi} / {item.ToplamAidatSayisi}");
+
+                    worksheet.Cell(row, 1).Value = item.Sira;
+                    worksheet.Cell(row, 2).Value = item.DaireNo;
+                    worksheet.Cell(row, 3).Value = item.AdSoyad ?? "";
+                    worksheet.Cell(row, 4).Value = ayText;
+                    worksheet.Cell(row, 5).Value = item.HizOzeti ?? "";
+                    worksheet.Cell(row, 6).Value = item.ToplamAidatSayisi == 0 && !item.YillikPesinMi ? 0 : item.Puan;
+                    worksheet.Cell(row, 6).Style.NumberFormat.Format = "0.0";
+                    worksheet.Cell(row, 7).Value = item.Seviye ?? "";
+                    row++;
+                }
+
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    return File(
+                        stream.ToArray(),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        $"EnSadikOdeyenler_{seciliYil}.xlsx"
+                    );
+                }
+            }
+        }
     }
 }
