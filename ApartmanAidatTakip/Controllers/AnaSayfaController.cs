@@ -4527,6 +4527,7 @@ namespace ApartmanAidatTakip.Controllers
                     };
                 })
                 .OrderBy(x => x.DaireNo)
+                .ThenBy(x => x.Yil)
                 .ToList();
 
             // GEÇMİŞ AYLIK PEŞİN ÖDEMELER (Geçmiş yıllar veya cari yılın geçmiş ayları)
@@ -4610,7 +4611,7 @@ namespace ApartmanAidatTakip.Controllers
         // =====================================================================
 
         [HttpPost]
-        public ActionResult AylikPesinOdemeEkle(int DaireID, int[] Aylar)
+        public ActionResult AylikPesinOdemeEkle(int DaireID, string[] YilAylar)
         {
             if (Request.Cookies["KullaniciBilgileri"] == null)
             {
@@ -4618,39 +4619,68 @@ namespace ApartmanAidatTakip.Controllers
             }
             HttpCookie userCookie = Request.Cookies["KullaniciBilgileri"];
             int BinaID = Convert.ToInt32(userCookie.Values["BinaID"]);
-            int Yil = DateTime.Now.Year;
+            int simdikiYil = DateTime.Now.Year;
             int simdikiAy = DateTime.Now.Month;
 
-            if (Aylar == null || Aylar.Length == 0)
+            if (YilAylar == null || YilAylar.Length == 0)
             {
                 TempData["Hata"] = "En az bir ay seçmelisiniz.";
                 return RedirectToAction("PesinOdemeler", "AnaSayfa");
             }
 
-            // Yıllık peşin ödemesi olan daireye ayrıca aylık eklenmez (çakışma).
-            var yillikVar = db.PesinOdemelers.Any(x => x.BinaID == BinaID && x.DaireID == DaireID && x.Yil == Yil);
-            if (yillikVar)
+            // "YYYY-M" biçimindeki seçimleri ayrıştır ve yalnızca cari yıl (aktif aylar) + sonraki yıl (1-12) için izin ver.
+            var secimler = new List<Tuple<int, int>>();
+            foreach (var raw in YilAylar)
             {
-                TempData["Hata"] = "Bu daire için bu yıl zaten YILLIK peşin ödeme var. Aylık eklenemez.";
+                if (string.IsNullOrWhiteSpace(raw)) continue;
+                var parts = raw.Split('-');
+                int yil, ay;
+                if (parts.Length != 2 || !int.TryParse(parts[0], out yil) || !int.TryParse(parts[1], out ay)) continue;
+
+                if (yil != simdikiYil && yil != simdikiYil + 1) continue;
+                if (ay < 1 || ay > 12) continue;
+                if (yil == simdikiYil && ay < simdikiAy) continue; // Cari yılda geçmiş aylar eklenemez
+
+                var key = Tuple.Create(yil, ay);
+                if (!secimler.Contains(key))
+                    secimler.Add(key);
+            }
+
+            if (secimler.Count == 0)
+            {
+                TempData["Hata"] = "Geçerli bir ay seçilmedi.";
                 return RedirectToAction("PesinOdemeler", "AnaSayfa");
             }
 
-            // Mevcut ayları çek, sadece eksik olanları ekle (çift kayıt önleme).
-            var mevcutAylar = db.AylikPesinOdemelers
-                .Where(x => x.BinaID == BinaID && x.DaireID == DaireID && x.Yil == Yil)
-                .Select(x => x.Ay)
+            var seciliYillar = secimler.Select(s => s.Item1).Distinct().ToList();
+
+            // Yıllık peşin ödemesi olan daireye o yıl için ayrıca aylık eklenmez (çakışma).
+            var yillikVarYillar = db.PesinOdemelers
+                .Where(x => x.BinaID == BinaID && x.DaireID == DaireID && seciliYillar.Contains(x.Yil))
+                .Select(x => x.Yil)
+                .Distinct()
+                .ToList();
+            if (yillikVarYillar.Any())
+            {
+                TempData["Hata"] = string.Join(", ", yillikVarYillar) + " yılı için bu dairede zaten YILLIK peşin ödeme var. Aylık eklenemez.";
+                return RedirectToAction("PesinOdemeler", "AnaSayfa");
+            }
+
+            // Mevcut ayları tek sorguda çek, sadece eksik olanları ekle (çift kayıt önleme).
+            var mevcutKayitlar = db.AylikPesinOdemelers
+                .Where(x => x.BinaID == BinaID && x.DaireID == DaireID && seciliYillar.Contains(x.Yil))
+                .Select(x => new { x.Yil, x.Ay })
                 .ToList();
 
             int eklenenSayisi = 0;
-            foreach (var ay in Aylar.Distinct())
+            foreach (var secim in secimler)
             {
-                if (ay < simdikiAy || ay > 12) continue; // Geçen aylar eklenemez
-                if (mevcutAylar.Contains(ay)) continue;
+                if (mevcutKayitlar.Any(m => m.Yil == secim.Item1 && m.Ay == secim.Item2)) continue;
                 db.AylikPesinOdemelers.Add(new AylikPesinOdemeler
                 {
                     DaireID = DaireID,
-                    Yil = Yil,
-                    Ay = ay,
+                    Yil = secim.Item1,
+                    Ay = secim.Item2,
                     BinaID = BinaID,
                 });
                 eklenenSayisi++;
@@ -4663,7 +4693,7 @@ namespace ApartmanAidatTakip.Controllers
             }
             else
             {
-                TempData["Hata"] = "Seçilen aylar zaten kayıtlı veya geçmiş aylardır.";
+                TempData["Hata"] = "Seçilen aylar zaten kayıtlıdır.";
             }
             return RedirectToAction("PesinOdemeler", "AnaSayfa");
         }

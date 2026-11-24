@@ -540,7 +540,7 @@
     <div class="page-header mt-4">
         <div>
             <h3 class="fw-bold mb-0">Aylık Peşin Ödemeler</h3>
-            <span class="text-muted small">Aktif peşin ödeme yapan daireler (@simdikiYil)</span>
+            <span class="text-muted small">Aktif peşin ödeme yapan daireler (@simdikiYil - @(simdikiYil + 1))</span>
         </div>
         <button type="button" class="btn-add" data-bs-toggle="modal" data-bs-target="#aylikEkleModal">
             <i class="bi bi-calendar2-range-fill"></i> Aylık Ödeme Ekle
@@ -752,8 +752,19 @@
                         @for (int a = simdikiAy; a <= 12; a++)
                         {
                             <div class="ay-check">
-                                <input type="checkbox" name="Aylar" value="@a" id="ekle_ay_@a" />
-                                <label for="ekle_ay_@a">@ayAdlari[a]</label>
+                                <input type="checkbox" name="YilAylar" value="@simdikiYil-@a" id="ekle_ay_@(simdikiYil)_@a" />
+                                <label for="ekle_ay_@(simdikiYil)_@a">@ayAdlari[a]</label>
+                            </div>
+                        }
+                    </div>
+
+                    <label class="fw-bold small mb-2 mt-3 text-muted text-uppercase d-block">Peşin Ödenen Aylar (@(simdikiYil + 1))</label>
+                    <div class="ay-grid">
+                        @for (int a = 1; a <= 12; a++)
+                        {
+                            <div class="ay-check">
+                                <input type="checkbox" name="YilAylar" value="@(simdikiYil + 1)-@a" id="ekle_ay_@(simdikiYil + 1)_@a" />
+                                <label for="ekle_ay_@(simdikiYil + 1)_@a">@ayAdlari[a]</label>
                             </div>
                         }
                     </div>
@@ -785,11 +796,11 @@
                 <input type="hidden" name="Yil" id="duzenle_Yil" />
                 <div class="modal-body">
                     <div class="info-year-card mb-3" id="duzenle_baslik"></div>
-                    <label class="fw-bold small mb-2 text-muted text-uppercase d-block">Peşin Ödenen Aktif Aylar (@simdikiYil)</label>
+                    <label class="fw-bold small mb-2 text-muted text-uppercase d-block" id="duzenle_aylar_baslik">Peşin Ödenen Aktif Aylar (@simdikiYil)</label>
                     <div class="ay-grid">
-                        @for (int a = simdikiAy; a <= 12; a++)
+                        @for (int a = 1; a <= 12; a++)
                         {
-                            <div class="ay-check">
+                            <div class="ay-check duzenle-ay-item" data-ay="@a">
                                 <input type="checkbox" name="Aylar" value="@a" id="duzenle_ay_@a" />
                                 <label for="duzenle_ay_@a">@ayAdlari[a]</label>
                             </div>
@@ -880,23 +891,41 @@
 
     // ===== AYLIK PEŞİN ÖDEME =====
 
-    // Seçili ayları toplar
-    function seciliAylar(form) {
-        return Array.from(form.querySelectorAll('input[name="Aylar"]:checked'))
-                    .map(function (c) { return parseInt(c.value, 10); })
-                    .sort(function (a, b) { return a - b; });
-    }
-
-    // Ardışık mı? (atlanan ay var mı?)
-    function aylarArdisikMi(aylar) {
-        for (var i = 0; i < aylar.length - 1; i++) {
-            if (aylar[i + 1] - aylar[i] !== 1) return false;
-        }
-        return true;
-    }
+    var SIMDIKI_YIL = @simdikiYil;
+    var SIMDIKI_AY = @simdikiAy;
 
     // Ay adları (uyarı metni için)
     var AY_ADLARI = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+
+    // Seçili ayları (yıl*12 + ay sırasıyla) toplar
+    function seciliAylar(form) {
+        if (form.id === 'aylikEkleForm') {
+            return Array.from(form.querySelectorAll('input[name="YilAylar"]:checked'))
+                        .map(function (c) {
+                            var p = c.value.split('-');
+                            var y = parseInt(p[0], 10);
+                            var a = parseInt(p[1], 10);
+                            return { yil: y, ay: a, idx: y * 12 + a, label: y + ' ' + AY_ADLARI[a] };
+                        })
+                        .sort(function (x, y) { return x.idx - y.idx; });
+        }
+
+        var dYil = parseInt(document.getElementById('duzenle_Yil').value, 10) || SIMDIKI_YIL;
+        return Array.from(form.querySelectorAll('input[name="Aylar"]:checked'))
+                    .map(function (c) {
+                        var a = parseInt(c.value, 10);
+                        return { yil: dYil, ay: a, idx: dYil * 12 + a, label: AY_ADLARI[a] };
+                    })
+                    .sort(function (x, y) { return x.idx - y.idx; });
+    }
+
+    // Ardışık mı? (atlanan ay var mı? Yıl geçişi dahil: 2026 Aralık -> 2027 Ocak ardışıktır)
+    function aylarArdisikMi(aylar) {
+        for (var i = 0; i < aylar.length - 1; i++) {
+            if (aylar[i + 1].idx - aylar[i].idx !== 1) return false;
+        }
+        return true;
+    }
 
     // Submit kontrolü: en az 1 ay + atlama (boşluk) uyarısı
     function aylikSubmitKontrol(form) {
@@ -908,7 +937,7 @@
         }
 
         if (!aylarArdisikMi(aylar)) {
-            var secili = aylar.map(function (a) { return AY_ADLARI[a]; }).join(', ');
+            var secili = aylar.map(function (item) { return item.label; }).join(', ');
             Swal.fire({
                 title: 'Ay atlanmış olabilir!',
                 html: 'Seçtiğiniz aylar ardışık değil:<br><b>' + secili + '</b><br><br>Arada atladığınız ay(lar) var. Yine de kaydetmek istiyor musunuz?',
@@ -935,13 +964,26 @@
         document.getElementById('duzenle_Yil').value = yil;
         document.getElementById('duzenle_baslik').innerHTML =
             '<i class="bi bi-house-door me-2"></i>Daire ' + daireNo + ' - ' + adSoyad + ' (' + yil + ')';
+        document.getElementById('duzenle_aylar_baslik').textContent = 'Peşin Ödenen Aktif Aylar (' + yil + ')';
 
-        $('#aylikDuzenleModal input[name="Aylar"]').prop('checked', false);
+        document.querySelectorAll('#aylikDuzenleModal .duzenle-ay-item').forEach(function (el) {
+            var ay = parseInt(el.getAttribute('data-ay'), 10);
+            var cb = el.querySelector('input[name="Aylar"]');
+            cb.checked = false;
+
+            if (yil === SIMDIKI_YIL && ay < SIMDIKI_AY) {
+                el.style.display = 'none';
+                cb.disabled = true;
+            } else {
+                el.style.display = '';
+                cb.disabled = false;
+            }
+        });
 
         if (aylarCsv && aylarCsv.length > 0) {
             aylarCsv.split(',').forEach(function (v) {
                 var el = document.getElementById('duzenle_ay_' + parseInt(v, 10));
-                if (el) el.checked = true;
+                if (el && !el.disabled) el.checked = true;
             });
         }
 
